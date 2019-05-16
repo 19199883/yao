@@ -1,4 +1,5 @@
-﻿#include <ctime>
+﻿// done
+#include <ctime>
 #include <ratio>
 #include <chrono>
 #include <thread>         // std::thread
@@ -78,64 +79,69 @@ void MdHelper::Convert(const StdQuote5 &other,
 	data.feed_type = FeedTypes::CzceLevel2;
 	data.exchange = YaoExchanges::YCZCE;
 
+	// TODO: debug 需要调试看具体的值是什么样的
+	//data.int_time = 
+	//时间：如2014-02-03 13:23:45   
+	//system_clock::time_point today = system_clock::now();
+	//std::time_t tt = system_clock::to_time_t ( today );
+	//strftime(data.TimeStamp, sizeof(data.TimeStamp), "%Y-%m-%d %H:%M:%S",localtime(&tt));
+	//strcpy(data.TimeStamp+11,other.updateTime);
+	//strcpy(data.TimeStamp+19,".");
+	//sprintf(data.TimeStamp+20,"%03d", 0/*other.updateMS*/); // 策略需要该时间字段.因当前行情的updateMS存储的是递增的值（不是时间的毫秒部分），故使用0代替
+
+	data.last_px = InvalidToZeroD(other.price);		/*最新价*/
+	data.bp_array[0] = InvalidToZeroD(other.bidPrice1);     /*买入价格 下标从0开始*/
+	data.bp_array[1] = InvalidToZeroD(other.bidPrice2);     /*买入价格 下标从0开始*/
+	data.bp_array[2] = InvalidToZeroD(other.bidPrice3);     /*买入价格 下标从0开始*/
+	data.bp_array[3] = InvalidToZeroD(other.bidPrice4);     /*买入价格 下标从0开始*/	
+	data.bp_array[4] = InvalidToZeroD(other.bidPrice5);     /*买入价格 下标从0开始*/
+	data.ap_array[0] = InvalidToZeroD(other.askPrice1);     /*卖出价 下标从0开始*/
+	data.ap_array[1] = InvalidToZeroD(other.askPrice2);     /*卖出价 下标从0开始*/
+	data.ap_array[2] = InvalidToZeroD(other.askPrice3);     /*卖出价 下标从0开始*/
+	data.ap_array[3] = InvalidToZeroD(other.askPrice4);     /*卖出价 下标从0开始*/
+	data.ap_array[4] = InvalidToZeroD(other.askPrice5);     /*卖出价 下标从0开始*/
+
+	data.bv_array[0] = other.bidVolume1;          /*买入数量 下标从0开始*/
+	data.bv_array[1] = other.bidVolume2;          /*买入数量 下标从0开始*/
+	data.bv_array[2] = other.bidVolume3;          /*买入数量 下标从0开始*/
+	data.bv_array[3] = other.bidVolume4;          /*买入数量 下标从0开始*/
+	data.bv_array[4] = other.bidVolume5;          /*买入数量 下标从0开始*/
+
+	data.av_array[0] = other.askVolume1;          /*卖出数量 下标从0开始*/
+	data.av_array[1] = other.askVolume2;          /*卖出数量 下标从0开始*/
+	data.av_array[2] = other.askVolume3;          /*卖出数量 下标从0开始*/
+	data.av_array[3] = other.askVolume4;          /*卖出数量 下标从0开始*/
+	data.av_array[4] = other.askVolume5;          /*卖出数量 下标从0开始*/
+
+	data.total_vol = other.volume; //	总成交量
+	data.total_notional = other.turnover; // 存储成交金额(StdQuote5.turnover)
+	data.total_buy_ordsize = (int)other.buyv;	/*委买总量*/
+	data.total_sell_ordsize = (int)other.sellv;	/*委卖总量*/
+
 	if(tap_data != NULL){ // contents from level1 
 		strcpy(data.symbol, tap_data->CommodityNo);		/*合约编码*/
 		strcpy(data.symbol + 2, tap_data->ContractNo1);		/*合约编码*/
+		data.pre_close_px = InvalidToZeroD(tap_data->QPreClosingPrice);	/*前收盘价格*/
+		data.pre_settle_px = InvalidToZeroD(tap_data->QPreSettlePrice);	/*前结算价格*/
+		data.pre_open_interest = (int)tap_data->QPrePositionQty;		/*previous days's positions */
+		data.open_interest = (int)tap_data->QPositionQty;	/*持仓量*/
+		data.open_px = InvalidToZeroD(tap_data->QOpeningPrice);	/*开盘价*/
+		data.high_px = InvalidToZeroD(tap_data->QHighPrice);	    /*最高价*/
+		data.low_px = InvalidToZeroD(tap_data->QLowPrice);	        /*最低价*/
+		data.avg_px = InvalidToZeroD(tap_data->QAveragePrice);	/*均价*/
+		data.upper_limit_px = InvalidToZeroD(tap_data->QLimitUpPrice);	/*涨停板*/
+		data.lower_limit_px = InvalidToZeroD(tap_data->QLimitDownPrice);	/*跌停板*/
+		data.close_px = InvalidToZeroD(tap_data->QClosingPrice);	    /*收盘价*/
+		data.settle_px = InvalidToZeroD(tap_data->QSettlePrice);	/*结算价*/
 
-		data.PreSettle = InvalidToZeroD(tap_data->QPreSettlePrice);	/*前结算价格*/
-		data.PreClose = InvalidToZeroD(tap_data->QPreClosingPrice);	/*前收盘价格*/
-		data.PreOpenInterest = (int)tap_data->QPrePositionQty;		/*previous days's positions */
-		data.OpenPrice = InvalidToZeroD(tap_data->QOpeningPrice);	/*开盘价*/
-		data.HighPrice = InvalidToZeroD(tap_data->QHighPrice);	    /*最高价*/
-		data.LowPrice = InvalidToZeroD(tap_data->QLowPrice);	        /*最低价*/
-		data.ClosePrice = InvalidToZeroD(tap_data->QClosingPrice);	    /*收盘价*/
-		data.SettlePrice = InvalidToZeroD(tap_data->QSettlePrice);	/*结算价*/
-		data.HighLimit = InvalidToZeroD(tap_data->QLimitUpPrice);	/*涨停板*/
-		data.LowLimit = InvalidToZeroD(tap_data->QLimitDownPrice);	/*跌停板*/
-		data.LifeHigh = InvalidToZeroD(tap_data->QHisHighPrice);	/*历史最高成交价格*/
-		data.LifeLow = InvalidToZeroD(tap_data->QHisLowPrice);	/*历史最低成交价格*/
-		data.AveragePrice = InvalidToZeroD(tap_data->QAveragePrice);	/*均价*/
-		data.OpenInterest = (int)tap_data->QPositionQty;	/*持仓量*/
+		// TODO: yao 需要与yao确认这2个字段,现在没有值
+		//data.implied_bid_size
+		//data.implied_ask_size
+		//data.weighted_buy_px
+		//data.implied_bid_size
 	}
 
-	//时间：如2014-02-03 13:23:45   
-	system_clock::time_point today = system_clock::now();
-	std::time_t tt = system_clock::to_time_t ( today );
-	strftime(data.TimeStamp, sizeof(data.TimeStamp), "%Y-%m-%d %H:%M:%S",localtime(&tt));
-	strcpy(data.TimeStamp+11,other.updateTime);
-	strcpy(data.TimeStamp+19,".");
-	sprintf(data.TimeStamp+20,"%03d", 0/*other.updateMS*/); // 策略需要该时间字段.因当前行情的updateMS存储的是递增的值（不是时间的毫秒部分），故使用0代替
-
-	data.TotalBidLot = (int)other.buyv;	/*委买总量*/
-	data.TotalAskLot = (int)other.sellv;	/*委卖总量*/
-
-	// 
-	data.SettlePrice = other.turnover; // SettlePrice暂时存储成交金额(StdQuote5.turnover)（黄志平用）
-	data.TotalVolume = other.volume;
 	data.ContractIDType = 0;			/*合约类型 0->目前应该为0， 扩充：0:期货,1:期权,2:组合*/
-	data.LastPrice = InvalidToZeroD(other.price);		/*最新价*/
-	data.BidPrice[0] = InvalidToZeroD(other.bidPrice1);     /*买入价格 下标从0开始*/
-	data.BidPrice[1] = InvalidToZeroD(other.bidPrice2);     /*买入价格 下标从0开始*/
-	data.BidPrice[2] = InvalidToZeroD(other.bidPrice3);     /*买入价格 下标从0开始*/
-	data.BidPrice[3] = InvalidToZeroD(other.bidPrice4);     /*买入价格 下标从0开始*/	
-	data.BidPrice[4] = InvalidToZeroD(other.bidPrice5);     /*买入价格 下标从0开始*/
-
-	data.AskPrice[0] = InvalidToZeroD(other.askPrice1);     /*卖出价 下标从0开始*/
-	data.AskPrice[1] = InvalidToZeroD(other.askPrice2);     /*卖出价 下标从0开始*/
-	data.AskPrice[2] = InvalidToZeroD(other.askPrice3);     /*卖出价 下标从0开始*/
-	data.AskPrice[3] = InvalidToZeroD(other.askPrice4);     /*卖出价 下标从0开始*/
-	data.AskPrice[4] = InvalidToZeroD(other.askPrice5);     /*卖出价 下标从0开始*/
-	data.BidLot[0] = other.bidVolume1;          /*买入数量 下标从0开始*/
-	data.BidLot[1] = other.bidVolume2;          /*买入数量 下标从0开始*/
-	data.BidLot[2] = other.bidVolume3;          /*买入数量 下标从0开始*/
-	data.BidLot[3] = other.bidVolume4;          /*买入数量 下标从0开始*/
-	data.BidLot[4] = other.bidVolume5;          /*买入数量 下标从0开始*/
-
-	data.AskLot[0] = other.askVolume1;          /*卖出数量 下标从0开始*/
-	data.AskLot[1] = other.askVolume2;          /*卖出数量 下标从0开始*/
-	data.AskLot[2] = other.askVolume3;          /*卖出数量 下标从0开始*/
-	data.AskLot[3] = other.askVolume4;          /*卖出数量 下标从0开始*/
-	data.AskLot[4] = other.askVolume5;          /*卖出数量 下标从0开始*/
 }
 
 void MdHelper::SetQuoteDataHandler(std::function<void(ZCEL2QuotSnapshotField_MY*)> quote_handler)
@@ -165,8 +171,10 @@ void MdHelper::ProcL1MdData(int32_t index)
 
 	*old_l1_md = *new_l1_md;
 
-		clog_debug("[%s] ProcL1MdData invoked. contract:%s%s", module_name_, new_l1_md->ContractNo1,
-			new_l1_md->CommodityNo);
+		clog_info("[%s] ProcL1MdData invoked. contract:%s%s", 
+					module_name_, 
+					new_l1_md->ContractNo1,
+					new_l1_md->CommodityNo);
 }
 
 TapAPIQuoteWhole_MY* MdHelper::GetData(const char *contract)
