@@ -1,3 +1,5 @@
+// done
+//
 #ifndef __VRT_VALUE_OBJ_H_
 #define __VRT_VALUE_OBJ_H_
 #include <stdlib.h>
@@ -42,10 +44,6 @@ class Log
 	enum HybridData {
 		L1_MD = 0, 
 		L2_MD, 
-		HybridData, 
-		PENDING_SIGNAL, 
-		TUNN_RPT, 
-		TRADER_EOF, 
 	};
 
 	struct vrt_hybrid_value {

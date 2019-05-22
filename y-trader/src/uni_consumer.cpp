@@ -175,7 +175,7 @@ void UniConsumer::Start()
 	sig.open_volume = 2;
 	sig.buy_price = 5658;
 	sig.sig_act = signal_act_t::buy;
-	sig.sig_openclose  = alloc_position_effect_t::open_;
+	sig.sig_openclose  = alloc_position_effect_t::OPEN;
 
 	int localorderid = tunn_rpt_producer_->NewLocalOrderID(36);
 	CThostFtdcInputOrderField *ord = CtpFieldConverter::Convert(
@@ -199,7 +199,7 @@ void UniConsumer::Start()
 	sig.open_volume = 1;
 	sig.sell_price = 3760;
 	sig.sig_act = signal_act_t::sell;
-	sig.sig_openclose  = alloc_position_effect_t::open_;
+	sig.sig_openclose  = alloc_position_effect_t::OPEN;
 
 	localorderid = tunn_rpt_producer_->NewLocalOrderID(35);
 	ord = CtpFieldConverter::Convert(

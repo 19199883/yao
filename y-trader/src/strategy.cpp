@@ -25,7 +25,6 @@ Strategy::Strategy()
 	pfn_init_;
 	pfn_feedshfemarketdata_ = NULL;
 	pfn_feedsignalresponse_ = NULL;
-	pfn_destroy_ = NULL;
 	pfn_feedinitposition_ = NULL;
 	pfn_destroy_ = NULL;
 
@@ -323,17 +322,17 @@ bool Strategy::Freeze(StrategyPosition *stra_pos,unsigned short sig_openclose,
 			unsigned short int sig_act, int32_t updated_vol)
 {
 	// 开仓限制要使用多空仓位的差值，锁仓部分不算
-	if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::buy){
+	if (sig_openclose==alloc_position_effect_t::OPEN && sig_act==signal_act_t::buy){
 		stra_pos->frozen_open_long += updated_vol;
-	} else if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::sell){
+	} else if (sig_openclose==alloc_position_effect_t::OPEN && sig_act==signal_act_t::sell){
 		stra_pos->frozen_open_short += updated_vol;
 	} 
 
-	if ((sig_openclose==alloc_position_effect_t::close_ || sig_openclose==alloc_position_effect_t::close_yesterday) &&
+	if ((sig_openclose==alloc_position_effect_t::CLOSE || sig_openclose==alloc_position_effect_t::CLOSE_TOD || sig_openclose==alloc_position_effect_t::CLOSE_YES) &&
 		sig_act==signal_act_t::buy){
 		stra_pos->frozen_close_short += updated_vol;
 	}
-	else if ((sig_openclose==alloc_position_effect_t::close_ || sig_openclose==alloc_position_effect_t::close_yesterday) && 
+	else if ((sig_openclose==alloc_position_effect_t::CLOSE || sig_openclose==alloc_position_effect_t::CLOSE_TOD || sig_openclose==alloc_position_effect_t::CLOSE_YES) && 
 		sig_act==signal_act_t::sell){
 		stra_pos->frozen_close_long += updated_vol;
 	}
@@ -354,10 +353,10 @@ bool Strategy::Freeze(StrategyPosition *stra_pos,unsigned short sig_openclose,
 int Strategy::GetVol(const signal_t &sig)
 {
 	int32_t vol = 0;
-	if (sig.sig_openclose == alloc_position_effect_t::open_){
+	if (sig.sig_openclose == alloc_position_effect_t::OPEN){
 		vol = sig.open_volume;
 	} 
-	else if ((sig.sig_openclose == alloc_position_effect_t::close_ || sig_openclose==alloc_position_effect_t::close_yesterday)){
+	else if ((sig.sig_openclose == alloc_position_effect_t::CLOSE ||  sig.sig_openclose == alloc_position_effect_t::CLOSE_TOD || sig_openclose==alloc_position_effect_t::CLOSE_YES)){
 		vol = sig.close_volume;
 	} 
 	else{ 
@@ -387,23 +386,23 @@ bool Strategy::Deferred(int sig_id, unsigned short sig_openclose, unsigned short
 	StrategyPosition *cur_pos = GetPosition(contract);
 	bool result = false;
 
-	if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::buy){
+	if (sig_openclose==alloc_position_effect_t::OPEN && sig_act==signal_act_t::buy){
 		if (cur_pos->frozen_open_long==0){
 			result = false;
 		} else { result = true; }
 	}
-	else if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::sell){
+	else if (sig_openclose==alloc_position_effect_t::OPEN && sig_act==signal_act_t::sell){
 		if (cur_pos->frozen_open_short==0){
 			result = false;
 		} else { result = true; }
 	} 
-	else if ((sig_openclose==alloc_position_effect_t::close_ ||sig_openclose==alloc_position_effect_t::close_yesterday)&& 
+	else if ((sig_openclose==alloc_position_effect_t::CLOSE || sig_openclose==alloc_position_effect_t::CLOSE_TOD ||sig_openclose==alloc_position_effect_t::CLOSE_YES)&& 
 		sig_act==signal_act_t::buy){
 		if (cur_pos->frozen_close_short==0){
 			result = false;
 		} else { result = true; }
 	}
-	else if ((sig_openclose==alloc_position_effect_t::close_ ||sig_openclose==alloc_position_effect_t::close_yesterday)&& 
+	else if ((sig_openclose==alloc_position_effect_t::CLOSE || sig_openclose==alloc_position_effect_t::CLOSE_TOD ||sig_openclose==alloc_position_effect_t::CLOSE_YES)&& 
 		sig_act==signal_act_t::sell){
 		if (cur_pos->frozen_close_long==0){
 			result = false;
@@ -469,9 +468,9 @@ void Strategy::Push(const signal_t &sig)
 	}
 
 	// 从pending队列中撤单 done
-	if (sig.sig_openclose == alloc_position_effect_t::open_){
+	if (sig.sig_openclose == alloc_position_effect_t::OPEN){
 		sigrpt_table_[cursor_].order_volume = sig.open_volume;
-	}else if (sig.sig_openclose == alloc_position_effect_t::close_ ||sig_openclose==alloc_position_effect_t::close_yesterday){
+	}else if (sig.sig_openclose == alloc_position_effect_t::CLOSE || sig.sig_openclose == alloc_position_effect_t::CLOSE_TOD ||sig_openclose==alloc_position_effect_t::CLOSE_YES){
 		sigrpt_table_[cursor_].order_volume = sig.close_volume;
 	}
 
@@ -621,20 +620,20 @@ void Strategy::UpdatePosition(StrategyPosition *stra_pos, int32_t lastqty, if_si
 			unsigned short sig_openclose, unsigned short int sig_act, int err)
 {
 	if (lastqty > 0){
-		if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::buy){
+		if (sig_openclose==alloc_position_effect_t::OPEN && sig_act==signal_act_t::buy){
 			stra_pos->cur_long += lastqty;
 			stra_pos->frozen_open_long -= lastqty;
 		}
-		else if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::sell){
+		else if (sig_openclose==alloc_position_effect_t::OPEN && sig_act==signal_act_t::sell){
 			stra_pos->cur_short += lastqty;
 			stra_pos->frozen_open_short -= lastqty;
 		}
-		else if ((sig_openclose==alloc_position_effect_t::close_ || sig_openclose==alloc_position_effect_t::close_yesterday) &&
+		else if ((sig_openclose==alloc_position_effect_t::CLOSE || sig_openclose==alloc_position_effect_t::CLOSE_TOD || sig_openclose==alloc_position_effect_t::CLOSE_YES) &&
 					sig_act==signal_act_t::buy){
 			stra_pos->cur_short -= lastqty;
 			stra_pos->frozen_close_short -= lastqty;
 		}
-		else if ((sig_openclose==alloc_position_effect_t::close_  || sig_openclose==alloc_position_effect_t::close_yesterday)&& 
+		else if ((sig_openclose==alloc_position_effect_t::CLOSE ||  sig_openclose==alloc_position_effect_t::CLOSE_TOD  || sig_openclose==alloc_position_effect_t::CLOSE_YES)&& 
 		  sig_act==signal_act_t::sell){
 			stra_pos->cur_long -= lastqty;
 			stra_pos->frozen_close_long -= lastqty;
@@ -646,17 +645,17 @@ void Strategy::UpdatePosition(StrategyPosition *stra_pos, int32_t lastqty, if_si
 		if (status==SIG_STATUS_SUCCESS ||
 			status==SIG_STATUS_CANCEL||
 			status==SIG_STATUS_REJECTED){ // 释放冻结仓位
-			if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::buy){
+			if (sig_openclose==alloc_position_effect_t::OPEN && sig_act==signal_act_t::buy){
 				stra_pos->frozen_open_long = 0;
 			}
-			else if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::sell){
+			else if (sig_openclose==alloc_position_effect_t::OPEN && sig_act==signal_act_t::sell){
 				stra_pos->frozen_open_short = 0;
 			}
-			else if ((sig_openclose==alloc_position_effect_t::close_ || sig_openclose==alloc_position_effect_t::close_yesterday)&& 
+			else if ((sig_openclose==alloc_position_effect_t::CLOSE || sig_openclose==alloc_position_effect_t::CLOSE_TOD || sig_openclose==alloc_position_effect_t::CLOSE_YES)&& 
 						sig_act==signal_act_t::buy){
 				stra_pos->frozen_close_short = 0;
 			}
-			else if ((sig_openclose==alloc_position_effect_t::close_  || sig_openclose==alloc_position_effect_t::close_yesterday)&&
+			else if ((sig_openclose==alloc_position_effect_t::CLOSE || sig_openclose==alloc_position_effect_t::CLOSE_TOD  || sig_openclose==alloc_position_effect_t::CLOSE_YES)&&
 						sig_act==signal_act_t::sell){
 				stra_pos->frozen_close_long = 0;
 			}

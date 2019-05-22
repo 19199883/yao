@@ -16,6 +16,8 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue,
 	l1_md_producer_(l1md_producer),
     l2_md_producer_(l2md_producer)
 {
+	memset(valid_conn_, 0, sizeof(valid_conn_));
+	
 	ParseConfig();
 	(this->consumer_ = vrt_consumer_new(module_name_, queue));
 	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
@@ -44,20 +46,12 @@ void UniConsumer::ParseConfig()
 	if (comp_node != NULL){
 		strcpy(config_.yield, comp_node->Attribute("yield"));
 	} else { clog_error("[%s] x-trader.config error: Disruptor node missing.", module_name_); }
-
-    TiXmlElement *strategies_ele = root->FirstChildElement("strategies");
-	if (strategies_ele != 0){
-		TiXmlElement *strategy_ele = strategies_ele->FirstChildElement();
-		while (strategy_ele != 0){
-			StrategySetting strategy_setting = this->CreateStrategySetting(strategy_ele);
-			this->strategy_settings_.push_back(strategy_setting);
-			strategy_ele = strategy_ele->NextSiblingElement();			
-		}
-	}  
 }
 
 void UniConsumer::Start()
 {
+	std::thread(&UniConsumer::Server, this).detach();
+	
 	running_  = true;
 
 	MdHelper myquotedata(l2_md_producer_, l1_md_producer_);
@@ -94,8 +88,7 @@ void UniConsumer::Stop()
 {
 	if(running_){
 		l1_md_producer_->End();
-		l2_md_producer_->End();
-
+		l2_md_producer_->End();		
 		running_ = false;
 		clog_warning("[%s] Stop exit.", module_name_);
 	}
@@ -103,7 +96,7 @@ void UniConsumer::Stop()
 	fflush (Log::fp);
 }
 
-void UniConsumer::ProcL2QuoteSnapshot(ZCEL2QuotSnapshotField_MY* md)
+void UniConsumer::ProcL2QuoteSnapshot(YaoQuote* md)
 {
 
 #ifdef LATENCY_MEASURE
@@ -111,13 +104,24 @@ void UniConsumer::ProcL2QuoteSnapshot(ZCEL2QuotSnapshotField_MY* md)
 #endif
 	clog_debug("[test] proc [%s] [ProcL2QuoteSnapshot] contract:%s, time:%s", 
 				module_name_, 
-				md->ContractID, 
-				md->TimeStamp);
+				md->symbol, 
+				md->int_time);
 
 	// TODO: here
-	strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-
-
+	for(int i=0; i< MAX_CONN_COUNT; i++){		
+		if(0 == valid_conn_[i]) continue;
+		
+		try{			
+			 char data[max_length];
+			 boost::system::error_code error;		  		
+			 boost::asio::write(socks[i], boost::asio::buffer(md, sizeof(YaoQuote)), error);			  
+			 if (error) valid_conn_[i] = 0;
+		}
+		catch (std::exception& e){
+			if (error) valid_conn_[i] = 0;
+			clog_warning("[%s] send error:%s", module_name_, e.what()); 			
+		}
+	}	
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
@@ -125,6 +129,25 @@ void UniConsumer::ProcL2QuoteSnapshot(ZCEL2QuotSnapshotField_MY* md)
 #endif
 }
 
-
+void UniConsumer::Server()
+{
+  tcp::acceptor a(io_context_, tcp::endpoint(tcp::v4(), port_));
+  for (;;)
+  {	
+    tcp::socket sock = a.accept();
+	int i = 0;
+	for(; i<MAX_CONN_COUNT; i++){
+		if(0 == valid_conn_[i]) break;
+	}
+	if(i < MAX_CONN_COUNT){
+		std::lock_guard<std::mutex> lck (mtx);
+		valid_conn_[i] = 1;
+		socks_[i] = sock;
+	}
+	else{
+		clog_warning("[%s] socks_ is full.", module_name_);
+	}
+  }
+}
 
 

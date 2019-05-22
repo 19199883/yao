@@ -1,4 +1,4 @@
-
+// done
 #ifndef __UNI_CONSUMER_H__
 #define __UNI_CONSUMER_H__
 
@@ -14,6 +14,8 @@
 #include <tinystr.h>
 #include "moduleloadlibrarylinux.h"
 #include "loadlibraryproxy.h"
+#include <boost/asio.hpp>
+#include <mutex>          // std::mutex, std::lock_guard
 
 #define SIG_BUFFER_SIZE 32 
 
@@ -23,7 +25,10 @@
 #define MAX_STRATEGY_KEY1 500
 
 // 允许的最大缓存的待处理信号数量
-#define MAX_PENDING_SIGNAL_COUNT 10
+#define MAX_PENDING_SIGNAL_COUNT 20
+
+// 允许的最大客户端连接数
+#define MAX_CONN_COUNT 10
 
 struct Uniconfig
 {
@@ -34,14 +39,17 @@ struct Uniconfig
 class UniConsumer
 {
 	public:
-		UniConsumer(struct vrt_queue  *queue, TapMDProducer *l1md_producer, 
-			L2MDProducer *l2md_producer);
+		UniConsumer(struct vrt_queue  *queue, 
+					TapMDProducer *l1md_producer, 
+					L2MDProducer *l2md_producer);
 		~UniConsumer();
 
 		void Start();
 		void Stop();
+		
 
 	private:
+		void server();
 
 		bool running_;
 		const char* module_name_;  
@@ -51,15 +59,18 @@ class UniConsumer
 		void ParseConfig();
 
 		// business logic
-		void ProcL2QuoteSnapshot(ZCEL2QuotSnapshotField_MY* md);
+		void ProcL2QuoteSnapshot(YaoQuote* md);
 		void FeedL2QuoteSnapshot(int32_t straidx);
-		void ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs);
-		void ProcTunnRpt(int32_t index);
-		void CancelOrder(Strategy &strategy,signal_t &sig);
-		void PlaceOrder(Strategy &strategy, const signal_t &sig);
-		bool CancelPendingSig(Strategy &strategy, int32_t ori_sigid);
-		signal_t sig_buffer_[SIG_BUFFER_SIZE];
 		Uniconfig config_;
+		
+		// yao quote
+		boost::asio::io_context io_context_;
+		int port;
+		tcp::socket socks_[MAX_CONN_COUNT];
+		// 记录连接是否有效。
+		// 位置与socks一一对应，1-有效；0-无效：
+		int valid_conn_[MAX_CONN_COUNT];
+		std::mutex mtx_;
 };
 
 #endif

@@ -60,7 +60,7 @@ int main(/*int argc, const char **argv*/)
 	clog_warning("PERSISTENCE_ENABLEDon off"); 
 #endif
 	// version
-	clog_warning("version:x-zce_2019-04-24_d"); 
+	clog_warning("version:y-zcequote_2019-05-21_d"); 
 	
 	struct vrt_queue  *queue;
 	int64_t  result;
@@ -68,7 +68,7 @@ int main(/*int argc, const char **argv*/)
 	rip_check(queue = vrt_queue_new("x-trader queue", vrt_hybrid_value_type(), QUEUE_SIZE));
 	l2_md_producer = new L2MDProducer(queue);
 	l1_md_producer = new TapMDProducer(queue);
-	uniConsumer = new UniConsumer (queue, l1_md_producer, l2_md_producer, tunnRptProducer);
+	uniConsumer = new UniConsumer (queue, l1_md_producer, l2_md_producer);
 	uniConsumer->Start();
 
 	clog_warning("main exit."); 

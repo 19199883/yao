@@ -212,9 +212,9 @@ enum if_sig_state_t {
 
 enum  signal_act_t
 {
-	buy 			= 1,
-	sell 		= 2,
-	cancel 		= 4,
+	buy 			= 0,
+	sell 		= 1,
+	cancel 		= 2,
 };
 
 enum instr_t
@@ -227,10 +227,12 @@ enum instr_t
 };
 
 enum alloc_position_effect_t {
-	open_	= 1,
-	close_	= 2,
+	OPEN		= 0,
+	CLOSE		= 1,
+	CLOSE_TOD	= 2,
 	// TODO: yao
-	close_yesterday	= 3,
+	// TODO: to here
+	CLOSE_YES	= 3,
 };
 
 class signal_resp_t{
@@ -249,6 +251,8 @@ public:
 	int killed; 						/* 撤销数量 */
 	int rejected; 						/* 拒绝数量 */
 	int error_no; 						/* 错误号 */
+	// TODO: yao
+	unsigned short sig_openclose; /* 开平标识，1表⽰示开；2表⽰示平;3 close and then open */
 } ;
 
 /*

@@ -12,7 +12,9 @@ MdHelper::MdHelper(L2MDProducer *l2_md_producer, TapMDProducer *l1_md_producer)
 		l1_md_producer_(l1_md_producer), 
 		module_name_("MdHelper")
 {
-	clog_warning("[%s] L1_DOMINANT_MD_BUFFER_SIZE:%d;",module_name_,L1_DOMINANT_MD_BUFFER_SIZE);
+	clog_warning("[%s] L1_DOMINANT_MD_BUFFER_SIZE:%d;",
+				module_name_,
+				L1_DOMINANT_MD_BUFFER_SIZE);
 	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++){
 		TapAPIQuoteWhole_MY &tmp = md_buffer_[i];
 		strcpy(tmp.CommodityNo, "");
@@ -21,8 +23,7 @@ MdHelper::MdHelper(L2MDProducer *l2_md_producer, TapMDProducer *l1_md_producer)
 
 
 #ifdef PERSISTENCE_ENABLED 
-    p_md_save_ = new QuoteDataSave<YaoQuote>("czce_level2", 
-				CZCE_LEVEL2_QUOTE_TYPE);
+    p_md_save_ = new QuoteDataSave<YaoQuote>( "yao_level2", YAO_QUOTE_TYPE);
 #endif
 }
 
@@ -79,7 +80,7 @@ void MdHelper::Convert(const StdQuote5 &other,
 	data.feed_type = FeedTypes::CzceLevel2;
 	data.exchange = YaoExchanges::YCZCE;
 
-	// TODO: debug 需要调试看具体的值是什么样的
+	// TODO: yao. debug 需要调试看具体的值是什么样的
 	//data.int_time = 
 	//时间：如2014-02-03 13:23:45   
 	//system_clock::time_point today = system_clock::now();
@@ -133,18 +134,16 @@ void MdHelper::Convert(const StdQuote5 &other,
 		data.lower_limit_px = InvalidToZeroD(tap_data->QLimitDownPrice);	/*跌停板*/
 		data.close_px = InvalidToZeroD(tap_data->QClosingPrice);	    /*收盘价*/
 		data.settle_px = InvalidToZeroD(tap_data->QSettlePrice);	/*结算价*/
-
-		// TODO: yao 需要与yao确认这2个字段,现在没有值
-		//data.implied_bid_size
-		//data.implied_ask_size
-		//data.weighted_buy_px
-		//data.implied_bid_size
+		
+		// data.implied_bid_size // yao 不需要
+		//data.implied_ask_size  // yao 不需要
+		//data.weighted_buy_px	 // yao 不需要	
 	}
 
 	data.ContractIDType = 0;			/*合约类型 0->目前应该为0， 扩充：0:期货,1:期权,2:组合*/
 }
 
-void MdHelper::SetQuoteDataHandler(std::function<void(ZCEL2QuotSnapshotField_MY*)> quote_handler)
+void MdHelper::SetQuoteDataHandler(std::function<void(YaoQuote*)> quote_handler)
 {
 	clog_warning("[%s] SetQuoteDataHandler invoked.", module_name_);
 	mymd_handler_= quote_handler;
@@ -196,45 +195,32 @@ TapAPIQuoteWhole_MY* MdHelper::GetData(const char *contract)
 	return data;
 }
 
-std::string MdHelper::ToString(const ZCEL2QuotSnapshotField_MY * p)
+std::string MdHelper::ToString(const YaoQuote * p)
 {
 	char buf[10240];
 	if (p) {
-		snprintf(buf, sizeof(buf), "structName=ZCEL2QuotSnapshotField_MY\n"
-			"\tContractID=%s\n"
-			"\tTimeStamp=%s\n"
-			"\tPreSettle=%f\n"
-			"\tPreClose=%f\n"
-			"\tPreOpenInterest=%i\n"
-			"\tOpenPrice=%f\n"
-			"\tHighPrice=%f\n"
-			"\tLowPrice=%f\n"
-			"\tLastPrice=%f\n"
-			"\tTotalVolume=%i\n"
-			"\tOpenInterest=%i\n"
-			"\tClosePrice=%f\n"
-			"\tSettlePrice=%f\n"
-			"\tAveragePrice=%f\n"
-			"\tLifeHigh=%f\n"
-			"\tLifeLow=%f\n"
-			"\tHighLimit=%f\n"
-			"\tLowLimit=%f\n"
-			"\tTotalBidLot=%i\n"
-			"\tTotalAskLot=%i\n"
-
-
-
-			"\tBidLot1=%i\n"
-			"\tBidLot2=%i\n"
-			"\tBidLot3=%i\n"
-			"\tBidLot4=%i\n"
-			"\tBidLot5=%i\n"
-
-			"\tAskLot1=%i\n"
-			"\tAskLot2=%i\n"
-			"\tAskLot3=%i\n"
-			"\tAskLot4=%i\n"
-			"\tAskLot5=%i\n"
+		snprintf(buf, sizeof(buf), "structName=YaoQuote\n"
+			"\tfeed_type=%d\n"
+			"\tsymbol=%s\n"
+			"\texchange=%d\n"
+			"\tint_time=%d\n"
+			"\tpre_close_px=%f\n"
+			"\tpre_settle_px=%f\n"
+			"\tpre_open_interest=%f\n"
+			"\topen_interest=%f\n"
+			"\topen_px=%f\n"
+			"\thigh_px=%f\n"
+			"\tlow_px=%f\n"
+			"\tavg_px=%f\n"
+			"\tlast_px=%f\n"
+			"\ttotal_vol=%d\n"
+			"\ttotal_notional=%f\n"
+			"\tupper_limit_px=%f\n"
+			"\tlower_limit_px=%f\n"
+			"\tclose_px=%f\n"
+			"\tsettle_px=%f\n"
+			"\ttotal_buy_ordsize=%d\n"
+			"\ttotal_sell_ordsize=%d\n"
 
 			"\tBidPrice1=%f\n"
 			"\tBidPrice2=%f\n"
@@ -246,51 +232,63 @@ std::string MdHelper::ToString(const ZCEL2QuotSnapshotField_MY * p)
 			"\tAskPrice2=%f\n"
 			"\tAskPrice3=%f\n"
 			"\tAskPrice4=%f\n"
-			"\tAskPrice5=%f\n",
-			p->ContractID,                     ///< 合约编码         
-			p->TimeStamp,
-			p->PreSettle,                   ///< 前结算价格
-			p->PreClose,                 ///< 前收盘价格
-			p->PreOpenInterest,                    ///昨日空盘量
-			p->OpenPrice,                   ///< 开盘价
-			p->HighPrice,                 ///< 最高价
-			p->LowPrice,                   ///< 最低价
-			p->LastPrice,        ///< 最新价
-			p->TotalVolume,                   ///
-			p->OpenInterest,                ///< 持仓量
-			p->ClosePrice,                  ///< 收盘价
-			p->SettlePrice,                ///< 结算价
-			p->AveragePrice,                ///< 均价
-			p->LifeHigh,                ///< 历史最高成交价格
-			p->LifeLow,                ///< 历史最低成交价格
-			p->HighLimit,                ///< 涨停板
-			p->LowLimit,                ///< 跌停板
-			p->TotalBidLot,                ///< 委卖总量
-			p->TotalAskLot,                ///< 委卖总量
+			"\tAskPrice5=%f\n"
 
-			p->BidLot[0],                
-			p->BidLot[1],                
-			p->BidLot[2],                
-			p->BidLot[3],                
-			p->BidLot[4],                
+			"\tBidLot1=%i\n"
+			"\tBidLot2=%i\n"
+			"\tBidLot3=%i\n"
+			"\tBidLot4=%i\n"
+			"\tBidLot5=%i\n"
 
-			p->AskLot[0],                
-			p->AskLot[1],                
-			p->AskLot[2],                
-			p->AskLot[3],                
-			p->AskLot[4],                
+			"\tAskLot1=%i\n"
+			"\tAskLot2=%i\n"
+			"\tAskLot3=%i\n"
+			"\tAskLot4=%i\n"
+			"\tAskLot5=%i\n",
+			(int)p->feed_type,             
+			p->symbol,
+			(int)p->exchange,        
+			p->int_time,         
+			p->pre_close_px,  
+			p->pre_settle_px,        
+			p->pre_open_interest,        
+			p->open_interest,         
+			p->open_px,        
+			p->high_px,      
+			p->low_px,     
+			p->avg_px,       
+			p->last_px,      
+			p->total_notional,     
+			p->upper_limit_px,         
+			p->lower_limit_px,          
+			p->close_px,        
+			p->settle_px,         
+			p->total_buy_ordsize,      
+			p->total_sell_ordsize,      
 
-			p->BidPrice[0],              
-			p->BidPrice[1],              
-			p->BidPrice[2],              
-			p->BidPrice[3],              
-			p->BidPrice[4],              
+			p->bp_array[0],                
+			p->bp_array[1],                
+			p->bp_array[2],                
+			p->bp_array[3],                
+			p->bp_array[4],                
 
-			p->AskPrice[0],              
-			p->AskPrice[1],              
-			p->AskPrice[2],              
-			p->AskPrice[3],              
-			p->AskPrice[4]              
+			p->ap_array[0],                
+			p->ap_array[1],                
+			p->ap_array[2],                
+			p->ap_array[3],                
+			p->ap_array[4],                
+
+			p->bv_array[0],              
+			p->bv_array[1],              
+			p->bv_array[2],              
+			p->bv_array[3],              
+			p->bv_array[4],              
+
+			p->av_array[0],              
+			p->av_array[1],              
+			p->av_array[2],              
+			p->av_array[3],              
+			p->av_array[4]              
 
 		);
 	}

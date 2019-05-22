@@ -1,4 +1,5 @@
-﻿#ifndef MD_HELPER_H_
+﻿//done
+#ifndef MD_HELPER_H_
 #define MD_HELPER_H_
 
 #include <sys/types.h>
@@ -9,7 +10,6 @@
 #include "l2md_producer.h"
 #include "tap_md_producer.h"
 #include "vrt_value_obj.h"
-#include "quote_cmn_save.h"
 #include "quote_cmn_utility.h"
 #include "quote_datatype_czce_level2.h"
 #include "quote_cmn_save.h"
@@ -18,7 +18,7 @@
 #ifdef PERSISTENCE_ENABLED 
 	#define L1_DOMINANT_MD_BUFFER_SIZE 600
 #else
-	#define L1_DOMINANT_MD_BUFFER_SIZE 14
+	#define L1_DOMINANT_MD_BUFFER_SIZE 28
 #endif
 
 using namespace std;
@@ -43,7 +43,7 @@ class MdHelper
 					YaoQuote &data);
 		YaoQuote target_data_;
 	
-		std::string ToString(const ZCEL2QuotSnapshotField_MY* p);
+		std::string ToString(const YaoQuote* p);
 
 	    L2MDProducer* l2_md_producer_;
 		TapMDProducer * l1_md_producer_;
