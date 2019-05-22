@@ -16,7 +16,7 @@ MdHelper::MdHelper(L2MDProducer *l2_md_producer, TapMDProducer *l1_md_producer)
 				module_name_,
 				L1_DOMINANT_MD_BUFFER_SIZE);
 	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++){
-		TapAPIQuoteWhole_MY &tmp = md_buffer_[i];
+		TapAPIQuoteWhole &tmp = md_buffer_[i];
 		strcpy(tmp.CommodityNo, "");
 		strcpy(tmp.ContractNo1, "");
 	}
@@ -38,7 +38,7 @@ MdHelper::~MdHelper()
 
 void MdHelper::ProcL2Data(int32_t index)
 {
-	TapAPIQuoteWhole_MY* l1_md = NULL;
+	TapAPIQuoteWhole* l1_md = NULL;
 
 	StdQuote5* md = l2_md_producer_->GetData(index);
 
@@ -74,14 +74,18 @@ void MdHelper::ProcL2Data(int32_t index)
 }
 
 void MdHelper::Convert(const StdQuote5 &other, 
-			TapAPIQuoteWhole_MY *tap_data, 
+			TapAPIQuoteWhole *tap_data, 
 			Yaoquote &data)
 {
 	data.feed_type = FeedTypes::CzceLevel2;
 	data.exchange = YaoExchanges::YCZCE;
 
 	// TODO: yao debug	
-	clog_warning("[%s] other.updateMS: %d; data.TimeStamp: %s", module_name_, other.updateMS, data.TimeStamp);
+	clog_warning("[%s] other.updateTime other.updateMS: %d %d; data.TimeStamp: %s", 
+				module_name_, 
+				other.updateTime,
+				other.updateMS, 
+				data.TimeStamp);
 
 	// TODO: yao. debug 需要调试看具体的值是什么样的
 	//data.int_time = 
@@ -154,11 +158,11 @@ void MdHelper::SetQuoteDataHandler(std::function<void(YaoQuote*)> quote_handler)
 
 void MdHelper::ProcL1MdData(int32_t index)
 {
-	TapAPIQuoteWhole_MY *new_l1_md =  l1_md_producer_->GetData(index);
+	TapAPIQuoteWhole *new_l1_md =  l1_md_producer_->GetData(index);
 
-	TapAPIQuoteWhole_MY *old_l1_md = NULL;
+	TapAPIQuoteWhole *old_l1_md = NULL;
 	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++){
-		TapAPIQuoteWhole_MY &tmp = md_buffer_[i];
+		TapAPIQuoteWhole &tmp = md_buffer_[i];
 		if(strcmp(tmp.ContractNo1, "") == 0){ // 空字符串表示已到了缓存中第一个未使用的缓存项
 			old_l1_md = &tmp; 
 			break;
@@ -179,12 +183,12 @@ void MdHelper::ProcL1MdData(int32_t index)
 					new_l1_md->CommodityNo);
 }
 
-TapAPIQuoteWhole_MY* MdHelper::GetData(const char *contract)
+TapAPIQuoteWhole* MdHelper::GetData(const char *contract)
 {
-	TapAPIQuoteWhole_MY* data = NULL;
+	TapAPIQuoteWhole* data = NULL;
 
 	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++){
-		TapAPIQuoteWhole_MY &tmp = md_buffer_[i];
+		TapAPIQuoteWhole &tmp = md_buffer_[i];
 		if(strcmp(tmp.ContractNo1, "") == 0){ // 空字符串表示已到了缓存中第一个未使用的缓存项
 			break;
 		}

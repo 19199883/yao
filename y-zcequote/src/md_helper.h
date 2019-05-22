@@ -39,7 +39,7 @@ class MdHelper
 		MdHelper operator=(const MdHelper & other);
 	
 		void Convert(const StdQuote5 &other,
-					TapAPIQuoteWhole_MY *tap_data, 
+					TapAPIQuoteWhole *tap_data, 
 					YaoQuote &data);
 		YaoQuote target_data_;
 	
@@ -52,8 +52,8 @@ class MdHelper
 		 * 获取指定合约最新的一档行情。
 		 * contract: e.g. SR1801
 		 */
-		TapAPIQuoteWhole_MY* GetData(const char *contract);
-		TapAPIQuoteWhole_MY md_buffer_[L1_DOMINANT_MD_BUFFER_SIZE] ;
+		TapAPIQuoteWhole* GetData(const char *contract);
+		TapAPIQuoteWhole md_buffer_[L1_DOMINANT_MD_BUFFER_SIZE] ;
 	
 	private:
 		const char *module_name_;  
