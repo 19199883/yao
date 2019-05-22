@@ -36,16 +36,20 @@ UniConsumer::~UniConsumer()
 
 void UniConsumer::ParseConfig()
 {
-	std::string config_file = "x-trader.config";
+	std::string config_file = "y-quote.config";
 	TiXmlDocument doc = TiXmlDocument(config_file.c_str());
     doc.LoadFile();
     TiXmlElement *root = doc.RootElement();    
 	
 	// yield strategy
-    TiXmlElement *comp_node = root->FirstChildElement("Disruptor");
-	if (comp_node != NULL){
-		strcpy(config_.yield, comp_node->Attribute("yield"));
-	} else { clog_error("[%s] x-trader.config error: Disruptor node missing.", module_name_); }
+    TiXmlElement *dis_node = root->FirstChildElement("Disruptor");
+	if (dis_node != NULL){
+		strcpy(config_.yield, dis_node->Attribute("yield"));
+		this->port_ = atoi(dis_node->Attribute("port"));
+	} 
+	else { 
+		clog_error("[%s] x-trader.config error: Disruptor node missing.", module_name_); 
+	}
 }
 
 void UniConsumer::Start()
@@ -107,7 +111,6 @@ void UniConsumer::ProcL2QuoteSnapshot(YaoQuote* md)
 				md->symbol, 
 				md->int_time);
 
-	// TODO: here
 	for(int i=0; i< MAX_CONN_COUNT; i++){		
 		if(0 == valid_conn_[i]) continue;
 		
