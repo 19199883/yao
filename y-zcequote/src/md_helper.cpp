@@ -80,6 +80,9 @@ void MdHelper::Convert(const StdQuote5 &other,
 	data.feed_type = FeedTypes::CzceLevel2;
 	data.exchange = YaoExchanges::YCZCE;
 
+	// TODO: yao debug	
+	clog_warning("[%s] other.updateMS: %d; data.TimeStamp: %s", module_name_, other.updateMS, data.TimeStamp);
+
 	// TODO: yao. debug 需要调试看具体的值是什么样的
 	//data.int_time = 
 	//时间：如2014-02-03 13:23:45   
@@ -90,7 +93,7 @@ void MdHelper::Convert(const StdQuote5 &other,
 	//strcpy(data.TimeStamp+19,".");
 	//sprintf(data.TimeStamp+20,"%03d", 0/*other.updateMS*/); // 策略需要该时间字段.因当前行情的updateMS存储的是递增的值（不是时间的毫秒部分），故使用0代替
 
-	data.last_px = InvalidToZeroD(other.price);		/*最新价*/
+	data.last_px = InvalidToZeroD(other.price);				/*最新价*/
 	data.bp_array[0] = InvalidToZeroD(other.bidPrice1);     /*买入价格 下标从0开始*/
 	data.bp_array[1] = InvalidToZeroD(other.bidPrice2);     /*买入价格 下标从0开始*/
 	data.bp_array[2] = InvalidToZeroD(other.bidPrice3);     /*买入价格 下标从0开始*/
