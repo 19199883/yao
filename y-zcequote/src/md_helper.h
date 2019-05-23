@@ -38,6 +38,7 @@ class MdHelper
 		YaoQuote target_data_;
 	
 		std::string ToString(const YaoQuote* p);
+		int GetIntTime(const char *timestr);
 
 	    L2MDProducer* l2_md_producer_;
 		TapMDProducer * l1_md_producer_;

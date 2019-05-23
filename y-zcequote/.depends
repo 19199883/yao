@@ -1,114 +1,69 @@
-l2md_producer.o: ../x-zce/src/l2md_producer.cpp \
- ../x-zce/src/l2md_producer.h ../x-zce/src/vrt_value_obj.h \
- ../3rd/tinyxml/include/tinyxml.h ../3rd/tinyxml/include/tinystr.h \
- ../3rd/tinyxml/include/tinystr.h ../x-zce/src/quote_cmn_utility.h \
- ../3rd/zce_md/include/ZceLevel2ApiStruct.h ../x-zce/src/perfctx.h
-quote_cmn_utility.o: ../x-zce/src/quote_cmn_utility.cpp \
- ../x-zce/src/quote_cmn_utility.h ../x-zce/src/vrt_value_obj.h
-tap_md_producer.o: ../x-zce/src/tap_md_producer.cpp \
- ../x-zce/src/tap_md_producer.h ../x-zce/src/vrt_value_obj.h \
+quote_cmn_utility.o: ../y-zcequote/src/quote_cmn_utility.cpp \
+ ../y-zcequote/src/quote_cmn_utility.h ../y-zcequote/src/vrt_value_obj.h
+tap_md_producer.o: ../y-zcequote/src/tap_md_producer.cpp \
+ ../y-zcequote/src/tap_md_producer.h ../y-zcequote/src/vrt_value_obj.h \
  ../3rd/tinyxml/include/tinyxml.h ../3rd/tinyxml/include/tinystr.h \
  ../3rd/tinyxml/include/tinystr.h ../3rd/zce_md/include/TapQuoteAPI.h \
  ../3rd/zce_md/include/TapQuoteAPIDataType.h \
- ../3rd/zce_md/include/TapAPICommDef.h ../x-zce/src/quote_cmn_utility.h \
+ ../3rd/zce_md/include/TapAPICommDef.h \
+ ../y-zcequote/src/quote_cmn_utility.h \
  ../3rd/zce_md/include/quote_datatype_tap.h \
  ../3rd/zce_md/include/quote_datatype_czce_level2.h \
  ../3rd/zce_md/include/ZceLevel2ApiStruct.h \
  ../3rd/esunny/include/TapTradeAPIDataType.h \
- ../3rd/esunny/include/TapAPICommDef.h ../x-zce/src/perfctx.h \
- ../3rd/esunny/include/TapAPIError.h
-esunny_data_formater.o: ../x-zce/src/esunny_data_formater.cpp \
- ../x-zce/src/esunny_data_formater.h \
- ../3rd/esunny/include/TapTradeAPIDataType.h \
- ../3rd/esunny/include/TapAPICommDef.h
-tunn_rpt_producer.o: ../x-zce/src/tunn_rpt_producer.cpp \
- ../x-zce/src/tunn_rpt_producer.h ../x-zce/src/vrt_value_obj.h \
- ../3rd/esunny/include/TapTradeAPI.h \
- ../3rd/esunny/include/TapTradeAPIDataType.h \
  ../3rd/esunny/include/TapAPICommDef.h \
- ../3rd/esunny/include/TapTradeAPIDataType.h \
+ ../3rd/esunny/include/TapAPIError.h
+l2md_producer.o: ../y-zcequote/src/l2md_producer.cpp \
+ ../y-zcequote/src/l2md_producer.h ../y-zcequote/src/vrt_value_obj.h \
  ../3rd/tinyxml/include/tinyxml.h ../3rd/tinyxml/include/tinystr.h \
- ../3rd/tinyxml/include/tinystr.h ../x-zce/src/esunny_data_formater.h \
- ../x-zce/src/my_protocol_packager.h ../x-zce/src/signal.h \
- ../3rd/esunny/include/TapAPIError.h
-my_protocol_packager.o: ../x-zce/src/my_protocol_packager.cpp \
- ../x-zce/src/my_protocol_packager.h \
- ../3rd/esunny/include/TapTradeAPIDataType.h \
- ../3rd/esunny/include/TapAPICommDef.h ../x-zce/src/signal.h \
- ../x-zce/src/vrt_value_obj.h
-compliance.o: ../x-zce/src/compliance.cpp ../x-zce/src/vrt_value_obj.h \
- ../x-zce/src/compliance.h ../3rd/esunny/include/TapTradeAPIDataType.h \
- ../3rd/esunny/include/TapAPICommDef.h ../3rd/tinyxml/include/tinyxml.h \
- ../3rd/tinyxml/include/tinystr.h ../3rd/tinyxml/include/tinystr.h
-vrt_value_obj.o: ../x-zce/src/vrt_value_obj.cpp \
- ../x-zce/src/vrt_value_obj.h
-uni_consumer.o: ../x-zce/src/uni_consumer.cpp ../x-zce/src/uni_consumer.h \
- ../x-zce/src/vrt_value_obj.h ../x-zce/src/strategy.h \
- ../x-zce/src/signal.h ../3rd/utils/include/moduleloadlibrarylinux.h \
- ../3rd/utils/include/moduleloadlibrary.h \
- ../3rd/utils/include/loadlibraryproxy.h \
- ../3rd/zce_md/include/quote_datatype_czce_level2.h \
- ../x-zce/src/tunn_rpt_producer.h ../3rd/esunny/include/TapTradeAPI.h \
- ../3rd/esunny/include/TapTradeAPIDataType.h \
- ../3rd/esunny/include/TapAPICommDef.h \
- ../3rd/esunny/include/TapTradeAPIDataType.h \
- ../x-zce/src/tap_md_producer.h ../3rd/tinyxml/include/tinyxml.h \
+ ../3rd/tinyxml/include/tinystr.h ../y-zcequote/src/quote_cmn_utility.h \
+ ../3rd/zce_md/include/ZceLevel2ApiStruct.h
+vrt_value_obj.o: ../y-zcequote/src/vrt_value_obj.cpp \
+ ../y-zcequote/src/vrt_value_obj.h
+uni_consumer.o: ../y-zcequote/src/uni_consumer.cpp \
+ ../y-zcequote/src/uni_consumer.h ../y-zcequote/src/vrt_value_obj.h \
+ ../y-zcequote/src/tap_md_producer.h ../3rd/tinyxml/include/tinyxml.h \
  ../3rd/tinyxml/include/tinystr.h ../3rd/tinyxml/include/tinystr.h \
  ../3rd/zce_md/include/TapQuoteAPI.h \
  ../3rd/zce_md/include/TapQuoteAPIDataType.h \
- ../3rd/zce_md/include/TapAPICommDef.h ../x-zce/src/quote_cmn_utility.h \
- ../3rd/zce_md/include/quote_datatype_tap.h \
- ../3rd/zce_md/include/ZceLevel2ApiStruct.h ../x-zce/src/l2md_producer.h \
- ../x-zce/src/compliance.h ../x-zce/src/pos_calcu.h \
- ../x-zce/src/perfctx.h ../x-zce/src/my_protocol_packager.h \
- ../x-zce/src/md_helper.h ../x-zce/src/quote_cmn_save.h \
- ../x-zce/src/my_cmn_util_funcs.h
-pos_calcu.o: ../x-zce/src/pos_calcu.cpp ../x-zce/src/pos_calcu.h \
- ../3rd/tinyxml/include/tinyxml.h ../3rd/tinyxml/include/tinystr.h \
- ../3rd/tinyxml/include/tinystr.h
-perfctx.o: ../x-zce/src/perfctx.cpp ../x-zce/src/perfctx.h
-quote_cmn_save.o: ../x-zce/src/quote_cmn_save.cpp \
- ../x-zce/src/quote_cmn_save.h ../x-zce/src/my_cmn_util_funcs.h \
- ../x-zce/src/quote_cmn_utility.h ../x-zce/src/vrt_value_obj.h
-strategy.o: ../x-zce/src/strategy.cpp ../x-zce/src/strategy.h \
- ../x-zce/src/signal.h ../3rd/utils/include/moduleloadlibrarylinux.h \
- ../3rd/utils/include/moduleloadlibrary.h \
- ../3rd/utils/include/loadlibraryproxy.h \
- ../3rd/zce_md/include/quote_datatype_czce_level2.h \
- ../x-zce/src/tunn_rpt_producer.h ../x-zce/src/vrt_value_obj.h \
- ../3rd/esunny/include/TapTradeAPI.h \
- ../3rd/esunny/include/TapTradeAPIDataType.h \
- ../3rd/esunny/include/TapAPICommDef.h \
- ../3rd/esunny/include/TapTradeAPIDataType.h ../x-zce/src/pos_calcu.h \
- ../3rd/tinyxml/include/tinyxml.h ../3rd/tinyxml/include/tinystr.h \
- ../3rd/tinyxml/include/tinystr.h
-main.o: ../x-zce/src/main.cpp ../x-zce/src/vrt_value_obj.h \
- ../x-zce/src/l2md_producer.h ../3rd/tinyxml/include/tinyxml.h \
- ../3rd/tinyxml/include/tinystr.h ../3rd/tinyxml/include/tinystr.h \
- ../x-zce/src/quote_cmn_utility.h \
- ../3rd/zce_md/include/ZceLevel2ApiStruct.h \
- ../x-zce/src/tap_md_producer.h ../3rd/zce_md/include/TapQuoteAPI.h \
- ../3rd/zce_md/include/TapQuoteAPIDataType.h \
  ../3rd/zce_md/include/TapAPICommDef.h \
+ ../y-zcequote/src/quote_cmn_utility.h \
  ../3rd/zce_md/include/quote_datatype_tap.h \
  ../3rd/zce_md/include/quote_datatype_czce_level2.h \
- ../x-zce/src/tunn_rpt_producer.h ../3rd/esunny/include/TapTradeAPI.h \
- ../3rd/esunny/include/TapTradeAPIDataType.h \
- ../3rd/esunny/include/TapAPICommDef.h \
- ../3rd/esunny/include/TapTradeAPIDataType.h ../x-zce/src/uni_consumer.h \
- ../x-zce/src/strategy.h ../x-zce/src/signal.h \
+ ../3rd/zce_md/include/ZceLevel2ApiStruct.h \
+ ../y-zcequote/src/l2md_producer.h \
  ../3rd/utils/include/moduleloadlibrarylinux.h \
  ../3rd/utils/include/moduleloadlibrary.h \
- ../3rd/utils/include/loadlibraryproxy.h ../x-zce/src/compliance.h \
- ../x-zce/src/pos_calcu.h ../x-zce/src/esunny_data_formater.h
-md_helper.o: ../x-zce/src/md_helper.cpp ../x-zce/src/md_helper.h \
- ../x-zce/src/l2md_producer.h ../x-zce/src/vrt_value_obj.h \
- ../3rd/tinyxml/include/tinyxml.h ../3rd/tinyxml/include/tinystr.h \
- ../3rd/tinyxml/include/tinystr.h ../x-zce/src/quote_cmn_utility.h \
+ ../3rd/utils/include/loadlibraryproxy.h ../3rd/yao/include/YaoQuote.h \
+ ../y-zcequote/src/md_helper.h ../y-zcequote/src/quote_cmn_save.h \
+ ../y-zcequote/src/my_cmn_util_funcs.h
+quote_cmn_save.o: ../y-zcequote/src/quote_cmn_save.cpp \
+ ../y-zcequote/src/quote_cmn_save.h ../y-zcequote/src/my_cmn_util_funcs.h \
+ ../y-zcequote/src/quote_cmn_utility.h ../y-zcequote/src/vrt_value_obj.h
+main.o: ../y-zcequote/src/main.cpp ../y-zcequote/src/vrt_value_obj.h \
+ ../y-zcequote/src/l2md_producer.h ../3rd/tinyxml/include/tinyxml.h \
+ ../3rd/tinyxml/include/tinystr.h ../3rd/tinyxml/include/tinystr.h \
+ ../y-zcequote/src/quote_cmn_utility.h \
  ../3rd/zce_md/include/ZceLevel2ApiStruct.h \
- ../x-zce/src/tap_md_producer.h ../3rd/zce_md/include/TapQuoteAPI.h \
+ ../y-zcequote/src/tap_md_producer.h ../3rd/zce_md/include/TapQuoteAPI.h \
  ../3rd/zce_md/include/TapQuoteAPIDataType.h \
  ../3rd/zce_md/include/TapAPICommDef.h \
  ../3rd/zce_md/include/quote_datatype_tap.h \
  ../3rd/zce_md/include/quote_datatype_czce_level2.h \
- ../x-zce/src/quote_cmn_save.h ../x-zce/src/my_cmn_util_funcs.h
+ ../y-zcequote/src/uni_consumer.h \
+ ../3rd/utils/include/moduleloadlibrarylinux.h \
+ ../3rd/utils/include/moduleloadlibrary.h \
+ ../3rd/utils/include/loadlibraryproxy.h ../3rd/yao/include/YaoQuote.h
+md_helper.o: ../y-zcequote/src/md_helper.cpp \
+ ../y-zcequote/src/md_helper.h ../y-zcequote/src/l2md_producer.h \
+ ../y-zcequote/src/vrt_value_obj.h ../3rd/tinyxml/include/tinyxml.h \
+ ../3rd/tinyxml/include/tinystr.h ../3rd/tinyxml/include/tinystr.h \
+ ../y-zcequote/src/quote_cmn_utility.h \
+ ../3rd/zce_md/include/ZceLevel2ApiStruct.h \
+ ../y-zcequote/src/tap_md_producer.h ../3rd/zce_md/include/TapQuoteAPI.h \
+ ../3rd/zce_md/include/TapQuoteAPIDataType.h \
+ ../3rd/zce_md/include/TapAPICommDef.h \
+ ../3rd/zce_md/include/quote_datatype_tap.h \
+ ../3rd/zce_md/include/quote_datatype_czce_level2.h \
+ ../y-zcequote/src/quote_cmn_save.h ../y-zcequote/src/my_cmn_util_funcs.h \
+ ../3rd/yao/include/YaoQuote.h

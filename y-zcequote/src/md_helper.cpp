@@ -59,10 +59,7 @@ void MdHelper::ProcL2Data(int32_t index)
 		Convert(*md, l1_md, target_data_);
 		if (mymd_handler_ != NULL) mymd_handler_(&target_data_);
 
-		clog_info("[test] ProcL2Data send [%s] contract:%s, int_time:%d", 
-					module_name_, 
-					target_data_.symbol, 
-					target_data_.int_time);
+		clog_info("[%s] send [%s]", module_name_, ToString(&target_data_).c_str());
 
 #ifdef PERSISTENCE_ENABLED 
 		timeval t;
@@ -71,6 +68,26 @@ void MdHelper::ProcL2Data(int32_t index)
 #endif
 	}
 	else{ clog_error("[%s] ProcL2Data: L1 is null.", module_name_); }
+}
+
+int MdHelper::GetIntTime(const char *timestr)
+{
+	char buffer[30];
+	//时间：如2014-02-03 13:23:45   
+	strncpy(buffer, timestr+11, 2);	// hour
+	strncpy(buffer+2, timestr+14, 2);		// min
+	strncpy(buffer+4, timestr+17, 2);		// sec
+	strncpy(buffer+6, timestr+20, 3);		// sec
+	buffer[9] = 0;
+
+	int int_time = atoi(buffer);
+	if(int_time < 40000000)
+	{
+		int_time += 240000000;
+	}
+
+	return int_time;
+
 }
 
 void MdHelper::Convert(const StdQuote5 &other, 
@@ -88,14 +105,7 @@ void MdHelper::Convert(const StdQuote5 &other,
 				tap_data->DateTimeStamp);
 
 	// TODO: yao. debug 需要调试看具体的值是什么样的
-	//data.int_time = 
-	//时间：如2014-02-03 13:23:45   
-	//system_clock::time_point today = system_clock::now();
-	//std::time_t tt = system_clock::to_time_t ( today );
-	//strftime(data.TimeStamp, sizeof(data.TimeStamp), "%Y-%m-%d %H:%M:%S",localtime(&tt));
-	//strcpy(data.TimeStamp+11,other.updateTime);
-	//strcpy(data.TimeStamp+19,".");
-	//sprintf(data.TimeStamp+20,"%03d", 0/*other.updateMS*/); // 策略需要该时间字段.因当前行情的updateMS存储的是递增的值（不是时间的毫秒部分），故使用0代替
+	data.int_time = GetIntTime(tap_data->DateTimeStamp);
 
 	data.last_px = InvalidToZeroD(other.price);				/*最新价*/
 	data.bp_array[0] = InvalidToZeroD(other.bidPrice1);     /*买入价格 下标从0开始*/
@@ -103,6 +113,7 @@ void MdHelper::Convert(const StdQuote5 &other,
 	data.bp_array[2] = InvalidToZeroD(other.bidPrice3);     /*买入价格 下标从0开始*/
 	data.bp_array[3] = InvalidToZeroD(other.bidPrice4);     /*买入价格 下标从0开始*/	
 	data.bp_array[4] = InvalidToZeroD(other.bidPrice5);     /*买入价格 下标从0开始*/
+
 	data.ap_array[0] = InvalidToZeroD(other.askPrice1);     /*卖出价 下标从0开始*/
 	data.ap_array[1] = InvalidToZeroD(other.askPrice2);     /*卖出价 下标从0开始*/
 	data.ap_array[2] = InvalidToZeroD(other.askPrice3);     /*卖出价 下标从0开始*/
@@ -226,7 +237,8 @@ std::string MdHelper::ToString(const YaoQuote * p)
 			"\tsettle_px=%f\n"
 			"\ttotal_buy_ordsize=%d\n"
 			"\ttotal_sell_ordsize=%d\n"
-
+			
+			
 			"\tBidPrice1=%f\n"
 			"\tBidPrice2=%f\n"
 			"\tBidPrice3=%f\n"
@@ -262,7 +274,8 @@ std::string MdHelper::ToString(const YaoQuote * p)
 			p->high_px,      
 			p->low_px,     
 			p->avg_px,       
-			p->last_px,      
+			p->last_px,  
+			p->total_vol,	
 			p->total_notional,     
 			p->upper_limit_px,         
 			p->lower_limit_px,          
