@@ -15,12 +15,6 @@
 #include "quote_cmn_save.h"
 #include "YaoQuote.h"
 
-#ifdef PERSISTENCE_ENABLED 
-	#define L1_DOMINANT_MD_BUFFER_SIZE 600
-#else
-	#define L1_DOMINANT_MD_BUFFER_SIZE 28
-#endif
-
 using namespace std;
 
 class MdHelper
@@ -53,7 +47,7 @@ class MdHelper
 		 * contract: e.g. SR1801
 		 */
 		TapAPIQuoteWhole* GetData(const char *contract);
-		TapAPIQuoteWhole md_buffer_[L1_DOMINANT_MD_BUFFER_SIZE] ;
+		TapAPIQuoteWhole md_buffer_[MAX_CONTRACT_COUNT] ;
 	
 	private:
 		const char *module_name_;  

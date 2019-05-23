@@ -6,9 +6,18 @@
 #include <stdio.h>
 #include <pthread.h>
 
+#define CLOG_CHANNEL  "y-quote.log"
+
 //#define LATENCY_MEASURE
 // 行情持久化开关
 // #define PERSISTENCE_ENABLED
+
+
+#ifdef PERSISTENCE_ENABLED 
+	#define MAX_CONTRACT_COUNT 1200
+#else
+	#define MAX_CONTRACT_COUNT 120 
+#endif
 
 /*
  * 行情UDP通讯设置成非阻塞模式

@@ -2,6 +2,7 @@
 #ifndef __UNI_CONSUMER_H__
 #define __UNI_CONSUMER_H__
 
+
 #include <functional>
 #include <array>
 #include <string>
@@ -13,19 +14,14 @@
 #include <tinyxml.h>
 #include <tinystr.h>
 #include "moduleloadlibrarylinux.h"
+#include <utility>
 #include "loadlibraryproxy.h"
 #include <boost/asio.hpp>
 #include <mutex>          // std::mutex, std::lock_guard
+#include <vector>
+#include "YaoQuote.h"
 
-#define SIG_BUFFER_SIZE 32 
-
-// key2: stoi(年月)，如1801
-#define MAX_STRATEGY_KEY2 3000 
-// 品种字符相加：如jd1801，key1: j+d(ascii 值相加
-#define MAX_STRATEGY_KEY1 500
-
-// 允许的最大缓存的待处理信号数量
-#define MAX_PENDING_SIGNAL_COUNT 20
+using boost::asio::ip::tcp;
 
 // 允许的最大客户端连接数
 #define MAX_CONN_COUNT 10
@@ -49,7 +45,7 @@ class UniConsumer
 		
 
 	private:
-		void server();
+		void Server();
 
 		bool running_;
 		const char* module_name_;  
@@ -64,9 +60,9 @@ class UniConsumer
 		Uniconfig config_;
 		
 		// yao quote
-		boost::asio::io_context io_context_;
-		int port;
-		tcp::socket socks_[MAX_CONN_COUNT];
+		boost::asio::io_service io_service_;
+		int port_;
+		std::vector<tcp::socket> socks_;
 		// 记录连接是否有效。
 		// 位置与socks一一对应，1-有效；0-无效：
 		int valid_conn_[MAX_CONN_COUNT];

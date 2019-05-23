@@ -1,20 +1,15 @@
 #include <unistd.h>
 #include <functional>   // std::bind
 #include <fstream>      // std::fstream
+#include <thread>      // std::fstream
 #include <iostream>
 #include "tap_md_producer.h"
 #include "TapQuoteAPI.h"
 #include "TapTradeAPIDataType.h"
-#include "perfctx.h"
 #include "TapAPIError.h"
 
 using namespace std::placeholders;
 using namespace std;
-
-static std::mutex quote_mutex;
-static std::mutex exchange_list_mutex;
-static std::mutex commodity_list_mutex;
-static std::mutex contract_list_mutex;
 
 TapMDProducer::TapMDProducer(struct vrt_queue  *queue)
 :module_name_("TapMDProducer")
@@ -29,8 +24,6 @@ TapMDProducer::TapMDProducer(struct vrt_queue  *queue)
 	// init dominant contracts
 	memset(dominant_contracts_, 0, sizeof(dominant_contracts_));
 	dominant_contract_count_ = LoadDominantContracts(config_.contracts_file, dominant_contracts_);
-
-	memset(&target_data_, 0, sizeof(target_data_));
 	memset(&md_buffer_, 0, sizeof(md_buffer_));
     sID = new unsigned int;
 	InitApi();
@@ -97,7 +90,7 @@ void TapMDProducer::Login()
 
 void TapMDProducer::ParseConfig()
 {
-	TiXmlDocument config = TiXmlDocument("x-trader.config");
+	TiXmlDocument config = TiXmlDocument("y-quote.config");
     config.LoadFile();
     TiXmlElement *RootElement = config.RootElement();    
 
@@ -105,7 +98,7 @@ void TapMDProducer::ParseConfig()
     TiXmlElement *disruptor_node = RootElement->FirstChildElement("Disruptor");
 	if (disruptor_node != NULL){
 		strcpy(config_.yield, disruptor_node->Attribute("yield"));
-	} else { clog_error("[%s] x-trader.config error: Disruptor node missing.", module_name_); }
+	} else { clog_error("[%s] y-quote.config error: Disruptor node missing.", module_name_); }
 
 	// addr
     TiXmlElement *l1md_node = RootElement->FirstChildElement("L1Md");
@@ -113,13 +106,13 @@ void TapMDProducer::ParseConfig()
 		config_.addr = l1md_node->Attribute("addr");
 		strcpy(config_.user, l1md_node->Attribute("user"));
 		strcpy(config_.password, l1md_node->Attribute("password"));
-	} else { clog_error("[%s] x-trader.config error: L1Md node missing.", module_name_); }
+	} else { clog_error("[%s] y-quote.config error: L1Md node missing.", module_name_); }
 	
 	// contracts file
     TiXmlElement *contracts_file_node = RootElement->FirstChildElement("Subscription");
 	if (contracts_file_node != NULL){
 		strcpy(config_.contracts_file, contracts_file_node->Attribute("contracts"));
-	} else { clog_error("[%s] x-trader.config error: Subscription node missing.", module_name_); }
+	} else { clog_error("[%s] y-quote.config error: Subscription node missing.", module_name_); }
 
 	size_t ipstr_start = config_.addr.find("//")+2;
 	size_t ipstr_end = config_.addr.find(":",ipstr_start);
@@ -389,8 +382,8 @@ TapAPIQuoteWhole* TapMDProducer::GetLastDataForIllegaluser(const char *Commodity
 	TapAPIQuoteWhole *data = NULL;
 	for(int i=0; i<L1MD_BUFFER_SIZE; i++){
 		TapAPIQuoteWhole &tmp = md_buffer_[i];
-		if(strcmp(CommodityNo, tmp.CommodityNo)==0 &&
-			strcmp(ContractNo1, tmp.ContractNo1)==0){
+		if(strcmp(CommodityNo, tmp.Contract.Commodity.CommodityNo)==0 &&
+			strcmp(ContractNo1, tmp.Contract.ContractNo1)==0){
 			data = &tmp; 
 			break;
 		}

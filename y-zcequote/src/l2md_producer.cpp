@@ -44,7 +44,7 @@ L2MDProducer::L2MDProducer(struct vrt_queue *queue)
 // done
 void L2MDProducer::ParseConfig()
 {
-	TiXmlDocument config = TiXmlDocument("x-trader.config");
+	TiXmlDocument config = TiXmlDocument("y-quote.config");
     config.LoadFile();
     TiXmlElement *RootElement = config.RootElement();    
 

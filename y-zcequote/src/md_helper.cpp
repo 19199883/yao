@@ -14,11 +14,11 @@ MdHelper::MdHelper(L2MDProducer *l2_md_producer, TapMDProducer *l1_md_producer)
 {
 	clog_warning("[%s] L1_DOMINANT_MD_BUFFER_SIZE:%d;",
 				module_name_,
-				L1_DOMINANT_MD_BUFFER_SIZE);
-	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++){
+				MAX_CONTRACT_COUNT);
+	for(int i = 0; i < MAX_CONTRACT_COUNT; i++){
 		TapAPIQuoteWhole &tmp = md_buffer_[i];
-		strcpy(tmp.CommodityNo, "");
-		strcpy(tmp.ContractNo1, "");
+		strcpy(tmp.Contract.Commodity.CommodityNo, "");
+		strcpy(tmp.Contract.ContractNo1, "");
 	}
 
 
@@ -51,8 +51,8 @@ void MdHelper::ProcL2Data(int32_t index)
 	if(NULL != l1_md){
 		clog_info("[test] [%s] ProcL2Data L1 contract:%s%s, time:%s, turnover:%f", 
 					module_name_, 
-					l1_md->CommodityNo, 
-					l1_md->ContractNo1, 
+					l1_md->Contract.Commodity.CommodityNo, 
+					l1_md->Contract.ContractNo1, 
 					l1_md->DateTimeStamp, 
 					l1_md->QTotalTurnover);
 
@@ -75,17 +75,17 @@ void MdHelper::ProcL2Data(int32_t index)
 
 void MdHelper::Convert(const StdQuote5 &other, 
 			TapAPIQuoteWhole *tap_data, 
-			Yaoquote &data)
+			YaoQuote &data)
 {
 	data.feed_type = FeedTypes::CzceLevel2;
 	data.exchange = YaoExchanges::YCZCE;
 
 	// TODO: yao debug	
-	clog_warning("[%s] other.updateTime other.updateMS: %d %d; data.TimeStamp: %s", 
+	clog_warning("[%s] other.updateTime other.updateMS: %s %d; data.TimeStamp: %s", 
 				module_name_, 
 				other.updateTime,
 				other.updateMS, 
-				data.TimeStamp);
+				tap_data->DateTimeStamp);
 
 	// TODO: yao. debug 需要调试看具体的值是什么样的
 	//data.int_time = 
@@ -127,8 +127,8 @@ void MdHelper::Convert(const StdQuote5 &other,
 	data.total_sell_ordsize = (int)other.sellv;	/*委卖总量*/
 
 	if(tap_data != NULL){ // contents from level1 
-		strcpy(data.symbol, tap_data->CommodityNo);		/*合约编码*/
-		strcpy(data.symbol + 2, tap_data->ContractNo1);		/*合约编码*/
+		strcpy(data.symbol, tap_data->Contract.Commodity.CommodityNo);		/*合约编码*/
+		strcpy(data.symbol + 2, tap_data->Contract.ContractNo1);		/*合约编码*/
 		data.pre_close_px = InvalidToZeroD(tap_data->QPreClosingPrice);	/*前收盘价格*/
 		data.pre_settle_px = InvalidToZeroD(tap_data->QPreSettlePrice);	/*前结算价格*/
 		data.pre_open_interest = (int)tap_data->QPrePositionQty;		/*previous days's positions */
@@ -146,8 +146,6 @@ void MdHelper::Convert(const StdQuote5 &other,
 		//data.implied_ask_size  // yao 不需要
 		//data.weighted_buy_px	 // yao 不需要	
 	}
-
-	data.ContractIDType = 0;			/*合约类型 0->目前应该为0， 扩充：0:期货,1:期权,2:组合*/
 }
 
 void MdHelper::SetQuoteDataHandler(std::function<void(YaoQuote*)> quote_handler)
@@ -161,15 +159,15 @@ void MdHelper::ProcL1MdData(int32_t index)
 	TapAPIQuoteWhole *new_l1_md =  l1_md_producer_->GetData(index);
 
 	TapAPIQuoteWhole *old_l1_md = NULL;
-	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++){
+	for(int i = 0; i < MAX_CONTRACT_COUNT; i++){
 		TapAPIQuoteWhole &tmp = md_buffer_[i];
-		if(strcmp(tmp.ContractNo1, "") == 0){ // 空字符串表示已到了缓存中第一个未使用的缓存项
+		if(strcmp(tmp.Contract.ContractNo1, "") == 0){ // 空字符串表示已到了缓存中第一个未使用的缓存项
 			old_l1_md = &tmp; 
 			break;
 		}
 
-		if(strcmp(new_l1_md->CommodityNo, tmp.CommodityNo) == 0 &&
-			strcmp(new_l1_md->ContractNo1, tmp.ContractNo1) == 0){ // contract: e.g. SR1801
+		if(strcmp(new_l1_md->Contract.Commodity.CommodityNo, tmp.Contract.Commodity.CommodityNo) == 0 &&
+			strcmp(new_l1_md->Contract.ContractNo1, tmp.Contract.ContractNo1) == 0){ // contract: e.g. SR1801
 			old_l1_md = &tmp; 
 			break;
 		}
@@ -179,21 +177,21 @@ void MdHelper::ProcL1MdData(int32_t index)
 
 		clog_info("[%s] ProcL1MdData invoked. contract:%s%s", 
 					module_name_, 
-					new_l1_md->ContractNo1,
-					new_l1_md->CommodityNo);
+					new_l1_md->Contract.ContractNo1,
+					new_l1_md->Contract.Commodity.CommodityNo);
 }
 
 TapAPIQuoteWhole* MdHelper::GetData(const char *contract)
 {
 	TapAPIQuoteWhole* data = NULL;
 
-	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++){
+	for(int i = 0; i < MAX_CONTRACT_COUNT; i++){
 		TapAPIQuoteWhole &tmp = md_buffer_[i];
-		if(strcmp(tmp.ContractNo1, "") == 0){ // 空字符串表示已到了缓存中第一个未使用的缓存项
+		if(strcmp(tmp.Contract.ContractNo1, "") == 0){ // 空字符串表示已到了缓存中第一个未使用的缓存项
 			break;
 		}
 
-		if(IsEqualSize4(contract, tmp.CommodityNo, tmp.ContractNo1)){ // contract: e.g. SR1801
+		if(IsEqualSize4(contract, tmp.Contract.Commodity.CommodityNo, tmp.Contract.ContractNo1)){ // contract: e.g. SR1801
 			data = &tmp; 
 			break;
 		}

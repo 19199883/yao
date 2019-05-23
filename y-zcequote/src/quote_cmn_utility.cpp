@@ -43,7 +43,7 @@ IPAndPortStr ParseIPAndPortStr(const std::string &addr_cfg)
     return std::make_pair(addr_ip, addr_port);
 }
 
-int32_t LoadDominantContracts(string file, char buffer[20][10])
+int32_t LoadDominantContracts(string file, char buffer[MAX_CONTRACT_COUNT][10])
 {
 	int32_t count = 0;
 
@@ -59,18 +59,21 @@ int32_t LoadDominantContracts(string file, char buffer[20][10])
 		while ((end_pos=contrs.find(" ",start_pos)) != string::npos){
 			contr = contrs.substr (start_pos, end_pos-start_pos);
 			strcpy(buffer[count], contr.c_str());
+			
 			clog_warning("LoadDominantContracts:dominant contract:%s",contr.c_str());
 
 			start_pos = end_pos + 1;
 			count++;
 		}
 	}
-	else { clog_error("LoadDominantContracts: can't open: %s", file.c_str()); }
+	else { 
+		clog_error("LoadDominantContracts: can't open: %s", file.c_str()); 
+	}
 
 	return count;
 }
 
-bool IsDominantImp(const char*commciodity_no, const char* contract_no, char buffer[20][10], 
+bool IsDominantImp(const char*commciodity_no, const char* contract_no, char buffer[MAX_CONTRACT_COUNT][10], 
 	int32_t buffer_size)
 {
 	bool is_dominant = false;
@@ -85,7 +88,7 @@ bool IsDominantImp(const char*commciodity_no, const char* contract_no, char buff
 	return is_dominant;
 }
 
-bool IsDominantImp(const char* contract, char buffer[20][10], 
+bool IsDominantImp(const char* contract, char buffer[MAX_CONTRACT_COUNT][10], 
 	int32_t buffer_size)
 {
 	bool is_dominant = false;

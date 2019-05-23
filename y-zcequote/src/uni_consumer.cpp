@@ -11,12 +11,17 @@ using namespace std::placeholders;
 UniConsumer::UniConsumer(struct vrt_queue  *queue, 
 			TapMDProducer *l1md_producer, 
 			L2MDProducer *l2md_producer)
-	: module_name_("uni_consumer"),
+:	 module_name_("uni_consumer"),
 	running_(true), 
 	l1_md_producer_(l1md_producer),
-    l2_md_producer_(l2md_producer)
+    l2_md_producer_(l2md_producer),
+	io_service_()
 {
 	memset(valid_conn_, 0, sizeof(valid_conn_));
+	for(int i=0; i<MAX_CONN_COUNT; i++){
+		socks_.push_back(tcp::socket(io_service_));
+	}
+
 	
 	ParseConfig();
 	(this->consumer_ = vrt_consumer_new(module_name_, queue));
@@ -48,7 +53,7 @@ void UniConsumer::ParseConfig()
 		this->port_ = atoi(dis_node->Attribute("port"));
 	} 
 	else { 
-		clog_error("[%s] x-trader.config error: Disruptor node missing.", module_name_); 
+		clog_error("[%s] y-quote.config error: Disruptor node missing.", module_name_); 
 	}
 }
 
@@ -115,13 +120,12 @@ void UniConsumer::ProcL2QuoteSnapshot(YaoQuote* md)
 		if(0 == valid_conn_[i]) continue;
 		
 		try{			
-			 char data[max_length];
 			 boost::system::error_code error;		  		
-			 boost::asio::write(socks[i], boost::asio::buffer(md, sizeof(YaoQuote)), error);			  
+			 boost::asio::write(socks_[i], boost::asio::buffer(md, sizeof(YaoQuote)), error);			  
 			 if (error) valid_conn_[i] = 0;
 		}
 		catch (std::exception& e){
-			if (error) valid_conn_[i] = 0;
+			valid_conn_[i] = 0;
 			clog_warning("[%s] send error:%s", module_name_, e.what()); 			
 		}
 	}	
@@ -134,18 +138,17 @@ void UniConsumer::ProcL2QuoteSnapshot(YaoQuote* md)
 
 void UniConsumer::Server()
 {
-  tcp::acceptor a(io_context_, tcp::endpoint(tcp::v4(), port_));
+  tcp::acceptor a(io_service_, tcp::endpoint(tcp::v4(), port_));
   for (;;)
   {	
-    tcp::socket sock = a.accept();
 	int i = 0;
 	for(; i<MAX_CONN_COUNT; i++){
 		if(0 == valid_conn_[i]) break;
 	}
 	if(i < MAX_CONN_COUNT){
-		std::lock_guard<std::mutex> lck (mtx);
+		std::lock_guard<std::mutex> lck (mtx_);
 		valid_conn_[i] = 1;
-		socks_[i] = sock;
+		a.accept(socks_[i]);
 	}
 	else{
 		clog_warning("[%s] socks_ is full.", module_name_);
