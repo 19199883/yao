@@ -6,7 +6,6 @@
 #include <sys/socket.h>
 #include "l2md_producer.h"
 #include "quote_cmn_utility.h"
-#include "perfctx.h"
 
 using namespace std;
 using namespace std::placeholders;

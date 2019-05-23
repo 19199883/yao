@@ -41,7 +41,6 @@ int main(/*int argc, const char **argv*/)
 	struct clog_handler *clog_handler = clog_stream_handler_new_fp(fp, true, "%l %m");
 	clog_handler_push_process(clog_handler);
 
-	clog_warning("test..."); 
 #ifdef LATENCY_MEASURE
 	clog_warning("latency measure on"); 
 #else
@@ -75,15 +74,12 @@ int main(/*int argc, const char **argv*/)
 	
 	fflush (fp);
 
-  // free vrt_queue
 	vrt_queue_free(queue);
 
-  delete uniConsumer;
+	delete uniConsumer;
 	delete l2_md_producer; 
 	delete l1_md_producer;
 
-// clog: free resources
-	pos_calc::destroy_instance();
 	clog_handler_free(clog_handler);
 
 	return 0;
