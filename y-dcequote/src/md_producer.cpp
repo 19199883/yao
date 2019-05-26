@@ -16,87 +16,82 @@ using namespace std;
 using namespace std::placeholders;
 using namespace DFITC_L2;
 
-static void Convert(const MDBestAndDeep &other, MDBestAndDeep_MY &data)
+static void Convert(const MDBestAndDeep &other, YaoQuote &data)
 {
-    data.Type = other.Type;                                     
-    data.Length = other.Length;                                 //报文长度
-    data.Version = other.Version;                               //版本从1开始
-    data.Time = other.Time;                                     //预留字段
-    memcpy(data.Exchange, other.Exchange, 3);                   //交易所
-    memcpy(data.Contract, other.Contract, 80);                  //合约代码
-    data.SuspensionSign = other.SuspensionSign;                 //停牌标志
-    data.LastClearPrice = InvalidToZeroF(other.LastClearPrice); //昨结算价
-    data.ClearPrice = InvalidToZeroF(other.ClearPrice);         //今结算价
-    data.AvgPrice = InvalidToZeroF(other.AvgPrice);             //成交均价
-    data.LastClose = InvalidToZeroF(other.LastClose);           //昨收盘
-    data.Close = InvalidToZeroF(other.Close);                   //今收盘
-    data.OpenPrice = InvalidToZeroF(other.OpenPrice);           //今开盘
-    data.LastOpenInterest = other.LastOpenInterest;             //昨持仓量
-    data.OpenInterest = other.OpenInterest;                     //持仓量
-    data.LastPrice = InvalidToZeroF(other.LastPrice);           //最新价
-    data.MatchTotQty = other.MatchTotQty;                       //成交数量
-    data.Turnover = InvalidToZeroD(other.Turnover);             //成交金额
-    data.RiseLimit = InvalidToZeroF(other.RiseLimit);           //最高报价
-    data.FallLimit = InvalidToZeroF(other.FallLimit);           //最低报价
-    data.HighPrice = InvalidToZeroF(other.HighPrice);           //最高价
-    data.LowPrice = InvalidToZeroF(other.LowPrice);             //最低价
-    data.PreDelta = InvalidToZeroF(other.PreDelta);             //昨虚实度
-    data.CurrDelta = InvalidToZeroF(other.CurrDelta);           //今虚实度
-    data.BuyPriceOne = InvalidToZeroF(other.BuyPriceOne);		//买入价格1
-    data.BuyQtyOne = other.BuyQtyOne;                           //买入数量1
-    data.BuyImplyQtyOne = other.BuyImplyQtyOne;
-    data.BuyPriceTwo = InvalidToZeroF(other.BuyPriceTwo);       
-    data.BuyQtyTwo = other.BuyQtyTwo;                           
-    data.BuyImplyQtyTwo = other.BuyImplyQtyTwo;
-    data.BuyPriceThree = InvalidToZeroF(other.BuyPriceThree);   
-    data.BuyQtyThree = other.BuyQtyThree;                       
-    data.BuyImplyQtyThree = other.BuyImplyQtyThree;
-    data.BuyPriceFour = InvalidToZeroF(other.BuyPriceFour);     
-    data.BuyQtyFour = other.BuyQtyFour;                         
-    data.BuyImplyQtyFour = other.BuyImplyQtyFour;
-    data.BuyPriceFive = InvalidToZeroF(other.BuyPriceFive);     
-    data.BuyQtyFive = other.BuyQtyFive;                         
-    data.BuyImplyQtyFive = other.BuyImplyQtyFive;
-    data.SellPriceOne = InvalidToZeroF(other.SellPriceOne);     //卖出价格1
-    data.SellQtyOne = other.SellQtyOne;                         //买出数量1
-    data.SellImplyQtyOne = other.SellImplyQtyOne;
-    data.SellPriceTwo = InvalidToZeroF(other.SellPriceTwo);     
-    data.SellQtyTwo = other.SellQtyTwo;                         
-    data.SellImplyQtyTwo = other.SellImplyQtyTwo;
-    data.SellPriceThree = InvalidToZeroF(other.SellPriceThree); 
-    data.SellQtyThree = other.SellQtyThree;                     
-    data.SellImplyQtyThree = other.SellImplyQtyThree;
-    data.SellPriceFour = InvalidToZeroF(other.SellPriceFour);   
-    data.SellQtyFour = other.SellQtyFour;                       
-    data.SellImplyQtyFour = other.SellImplyQtyFour;
-    data.SellPriceFive = InvalidToZeroF(other.SellPriceFive);   
-    data.SellQtyFive = other.SellQtyFive;                       
-    data.SellImplyQtyFive = other.SellImplyQtyFive;
-    memcpy(data.GenTime, other.GenTime, 13);                    //行情产生时间
-    data.LastMatchQty = other.LastMatchQty;                     //最新成交量
-    data.InterestChg = other.InterestChg;                       //持仓量变化
-    data.LifeLow = InvalidToZeroF(other.LifeLow);               //历史最低价
-    data.LifeHigh = InvalidToZeroF(other.LifeHigh);             //历史最高价
-    data.Delta = InvalidToZeroD(other.Delta);                   //delta
-    data.Gamma = InvalidToZeroD(other.Gamma);                   //gama
-    data.Rho = InvalidToZeroD(other.Rho);                       //rho
-    data.Theta = InvalidToZeroD(other.Theta);                   //theta
-    data.Vega = InvalidToZeroD(other.Vega);                     //vega
-    memcpy(data.TradeDate, other.TradeDate, 9);                 //行情日期
-    memcpy(data.LocalDate, other.LocalDate, 9);                 //本地日期
+    data.feed_type = FeedTypes::DceLevel2;    
+	memcpy(data.symbol, other.Contract, sizeof(data.symbol));   //合约代码	
+	data.exchange = YaoExchanges::YDCE;                   //交易所
+	//	交易所行情时间(HHMMssmmm), 如：90000306表示09:00:00 306. 0点-3点的数据 +24hrs
+	// TODO: 先看看时间的具体格式再做转换
+	// data.int_time;	data.Time = other.Time;			
+	data.pre_close_px = InvalidToZeroF(other.LastClose);           //昨收盘
+    data.pre_settle_px = InvalidToZeroF(other.LastClearPrice); //昨结算价
+	data.pre_open_interest = other.LastOpenInterest;             //昨持仓量
+	data.open_interest = other.OpenInterest;                     //持仓量
+	data.open_px = InvalidToZeroF(other.OpenPrice);           //今开盘
+	data.high_px = InvalidToZeroF(other.HighPrice);           //最高价
+	data.low_px = InvalidToZeroF(other.LowPrice);             //最低价
+	data.avg_px = InvalidToZeroF(other.AvgPrice);             //成交均价
+	data.last_px = InvalidToZeroF(other.LastPrice);           //最新价
+		
+	data.bp_array[0] = InvalidToZeroF(other.BuyPriceOne);		//买入价格1 	
+	data.bp_array[1] = InvalidToZeroF(other.BuyPriceTwo);	
+	data.bp_array[2] = InvalidToZeroF(other.BuyPriceThree);	
+	data.bp_array[3] = InvalidToZeroF(other.BuyPriceFour);	
+	data.bp_array[4] = InvalidToZeroF(other.BuyPriceFive);
+
+	data.ap_array[0] = InvalidToZeroF(other.SellPriceOne);     //卖出价格1	
+	data.ap_array[1] = InvalidToZeroF(other.SellPriceTwo); 	
+	data.ap_array[2] = InvalidToZeroF(other.SellPriceThree); 	
+	data.ap_array[3] = InvalidToZeroF(other.SellPriceFour);	
+	data.ap_array[4] = InvalidToZeroF(other.SellPriceFive);
+
+	data.bv_array[0] = other.BuyQtyOne;		
+	data.bv_array[1] = other.BuyQtyTwo; 		
+	data.bv_array[2] = other.BuyQtyThree;		
+	data.bv_array[3] = other.BuyQtyFour;		
+	data.bv_array[4] = other.BuyQtyFive; 
+
+	data.av_array[0] = other.SellQtyOne;  		
+	data.av_array[1] = other.SellQtyTwo;   		
+	data.av_array[2] = other.SellQtyThree; 		
+	data.av_array[3] = other.SellQtyFour; 		
+	data.av_array[4] = other.SellQtyFive; 
+
+	data.total_vol = other.MatchTotQty;                       //成交数量
+	data.total_notional = InvalidToZeroD(other.Turnover);             //成交金额	 
+	data.upper_limit_px = InvalidToZeroF(other.RiseLimit);           //涨停价
+	data.lower_limit_px = InvalidToZeroF(other.FallLimit);	//	跌停价
+	data.close_px = InvalidToZeroF(other.Close);                   //今收盘
+	data.settle_px = InvalidToZeroF(other.ClearPrice);         //今结算价
+	
+	implied_bid_size[0] = other.BuyImplyQtyOne;
+	implied_bid_size[1] = other.BuyImplyQtyTwo; 
+	implied_bid_size[2] = other.BuyImplyQtyThree; 
+	implied_bid_size[3] = other.BuyImplyQtyFour;
+	implied_bid_size[4] = other.BuyImplyQtyFive; 
+	
+	data.implied_ask_size[0]	= other.SellImplyQtyOne;
+    data.implied_ask_size[1]	= other.SellImplyQtyTwo;
+    data.implied_ask_size[2]	= other.SellImplyQtyThree;
+    data.implied_ask_size[3]	= other.SellImplyQtyFour;
+    data.implied_ask_size[4]	= other.SellImplyQtyFive;
+	    
+    // data.LastMatchQty = other.LastMatchQty;                     //最新成交量          
+    
 }
 
-static void Convert(const MDOrderStatistic &other, MDOrderStatistic_MY &data)
+static void Convert(const MDOrderStatistic &other, YaoQuote &data)
 {
-    data.Type = other.Type;                                     //行情域标识
-    data.Len = other.Len;                                       
-    memcpy(data.ContractID, other.ContractID, 80);              //合约号
-    data.TotalBuyOrderNum = other.TotalBuyOrderNum;             //买委托总量
-    data.TotalSellOrderNum = other.TotalSellOrderNum;           //卖委托总量
-    data.WeightedAverageBuyOrderPrice = InvalidToZeroD(
-		other.WeightedAverageBuyOrderPrice);   //加权平均委买价格
-    data.WeightedAverageSellOrderPrice = InvalidToZeroD(
-		other.WeightedAverageSellOrderPrice); //加权平均委卖价格
+	data.feed_type = FeedTypes::DceOrderStats;    
+	memcpy(data.symbol, other.ContractID, sizeof(data.symbol));   	//合约代码	
+	data.exchange = YaoExchanges::YDCE;                   			//交易所
+	
+	data.total_buy_ordsize = other.TotalBuyOrderNum;             	//买委托总量;	
+	data.total_sell_ordsize = other.TotalSellOrderNum;           	//卖委托总量;   
+	
+    data.weighted_buy_px = InvalidToZeroD(other.WeightedAverageBuyOrderPrice);   //加权平均委买价格
+    data.weighted_sell_px = InvalidToZeroD(other.WeightedAverageSellOrderPrice); //加权平均委卖价格    
 }
 
 MDProducer::MDProducer(struct vrt_queue  *queue)
