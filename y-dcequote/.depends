@@ -1,0 +1,77 @@
+quote_cmn_utility.o: ../x-dce/src/quote_cmn_utility.cpp \
+ ../x-dce/src/quote_cmn_utility.h ../x-dce/src/vrt_value_obj.h
+x1_data_formater.o: ../x-dce/src/x1_data_formater.cpp \
+ ../x-dce/src/x1_data_formater.h \
+ ../3rd/x1-1.6.1.08/include/X1FtdcApiDataType.h \
+ ../3rd/x1-1.6.1.08/include/X1FtdcApiStruct.h \
+ ../3rd/x1-1.6.1.08/include/X1FtdcApiDataType.h
+tunn_rpt_producer.o: ../x-dce/src/tunn_rpt_producer.cpp \
+ ../x-dce/src/tunn_rpt_producer.h ../x-dce/src/vrt_value_obj.h \
+ ../3rd/x1-1.6.1.08/include/X1FtdcTraderApi.h \
+ ../3rd/x1-1.6.1.08/include/X1FtdcApiStruct.h \
+ ../3rd/x1-1.6.1.08/include/X1FtdcApiDataType.h \
+ ../3rd/tinyxml/include/tinyxml.h ../3rd/tinyxml/include/tinystr.h \
+ ../3rd/tinyxml/include/tinystr.h ../x-dce/src/x1_data_formater.h \
+ ../3rd/x1-1.6.1.08/include/X1FtdcApiDataType.h \
+ ../3rd/x1-1.6.1.08/include/X1FtdcApiStruct.h
+compliance.o: ../x-dce/src/compliance.cpp ../x-dce/src/vrt_value_obj.h \
+ ../x-dce/src/compliance.h ../3rd/x1-1.6.1.08/include/X1FtdcApiDataType.h \
+ ../3rd/tinyxml/include/tinyxml.h ../3rd/tinyxml/include/tinystr.h \
+ ../3rd/tinyxml/include/tinystr.h
+vrt_value_obj.o: ../x-dce/src/vrt_value_obj.cpp \
+ ../x-dce/src/vrt_value_obj.h
+uni_consumer.o: ../x-dce/src/uni_consumer.cpp ../x-dce/src/uni_consumer.h \
+ ../x-dce/src/vrt_value_obj.h ../x-dce/src/strategy.h \
+ ../x-dce/src/signal.h ../3rd/utils/include/moduleloadlibrarylinux.h \
+ ../3rd/utils/include/moduleloadlibrary.h \
+ ../3rd/utils/include/loadlibraryproxy.h \
+ ../x-dce/src/quote_datatype_dce_level2.h \
+ ../x-dce/src/tunn_rpt_producer.h \
+ ../3rd/x1-1.6.1.08/include/X1FtdcTraderApi.h \
+ ../3rd/x1-1.6.1.08/include/X1FtdcApiStruct.h \
+ ../3rd/x1-1.6.1.08/include/X1FtdcApiDataType.h \
+ ../x-dce/src/md_producer.h ../3rd/tinyxml/include/tinyxml.h \
+ ../3rd/tinyxml/include/tinystr.h ../3rd/tinyxml/include/tinystr.h \
+ ../x-dce/src/quote_cmn_save.h ../x-dce/src/my_cmn_util_funcs.h \
+ ../x-dce/src/quote_cmn_utility.h ../x-dce/src/compliance.h \
+ ../3rd/x1-1.6.1.08/include/X1FtdcApiDataType.h ../x-dce/src/pos_calcu.h \
+ ../x-dce/src/perfctx.h
+pos_calcu.o: ../x-dce/src/pos_calcu.cpp ../x-dce/src/pos_calcu.h \
+ ../3rd/tinyxml/include/tinyxml.h ../3rd/tinyxml/include/tinystr.h \
+ ../3rd/tinyxml/include/tinystr.h
+perfctx.o: ../x-dce/src/perfctx.cpp ../x-dce/src/perfctx.h
+quote_cmn_save.o: ../x-dce/src/quote_cmn_save.cpp \
+ ../x-dce/src/quote_cmn_save.h ../x-dce/src/my_cmn_util_funcs.h \
+ ../x-dce/src/quote_cmn_utility.h ../x-dce/src/vrt_value_obj.h
+strategy.o: ../x-dce/src/strategy.cpp ../x-dce/src/strategy.h \
+ ../x-dce/src/signal.h ../3rd/utils/include/moduleloadlibrarylinux.h \
+ ../3rd/utils/include/moduleloadlibrary.h \
+ ../3rd/utils/include/loadlibraryproxy.h \
+ ../x-dce/src/quote_datatype_dce_level2.h \
+ ../x-dce/src/tunn_rpt_producer.h ../x-dce/src/vrt_value_obj.h \
+ ../3rd/x1-1.6.1.08/include/X1FtdcTraderApi.h \
+ ../3rd/x1-1.6.1.08/include/X1FtdcApiStruct.h \
+ ../3rd/x1-1.6.1.08/include/X1FtdcApiDataType.h ../x-dce/src/pos_calcu.h \
+ ../3rd/tinyxml/include/tinyxml.h ../3rd/tinyxml/include/tinystr.h \
+ ../3rd/tinyxml/include/tinystr.h
+main.o: ../x-dce/src/main.cpp ../x-dce/src/vrt_value_obj.h \
+ ../x-dce/src/md_producer.h ../3rd/tinyxml/include/tinyxml.h \
+ ../3rd/tinyxml/include/tinystr.h ../3rd/tinyxml/include/tinystr.h \
+ ../x-dce/src/quote_datatype_dce_level2.h ../x-dce/src/quote_cmn_save.h \
+ ../x-dce/src/my_cmn_util_funcs.h ../x-dce/src/quote_cmn_utility.h \
+ ../x-dce/src/tunn_rpt_producer.h \
+ ../3rd/x1-1.6.1.08/include/X1FtdcTraderApi.h \
+ ../3rd/x1-1.6.1.08/include/X1FtdcApiStruct.h \
+ ../3rd/x1-1.6.1.08/include/X1FtdcApiDataType.h \
+ ../x-dce/src/uni_consumer.h ../x-dce/src/strategy.h \
+ ../x-dce/src/signal.h ../3rd/utils/include/moduleloadlibrarylinux.h \
+ ../3rd/utils/include/moduleloadlibrary.h \
+ ../3rd/utils/include/loadlibraryproxy.h ../x-dce/src/compliance.h \
+ ../3rd/x1-1.6.1.08/include/X1FtdcApiDataType.h ../x-dce/src/pos_calcu.h
+md_producer.o: ../x-dce/src/md_producer.cpp ../x-dce/src/md_producer.h \
+ ../x-dce/src/vrt_value_obj.h ../3rd/tinyxml/include/tinyxml.h \
+ ../3rd/tinyxml/include/tinystr.h ../3rd/tinyxml/include/tinystr.h \
+ ../x-dce/src/quote_datatype_dce_level2.h ../x-dce/src/quote_cmn_save.h \
+ ../x-dce/src/my_cmn_util_funcs.h ../x-dce/src/quote_cmn_utility.h \
+ ../3rd/dce_md/include/DFITCL2ApiDataType.h \
+ ../3rd/dce_md/include/BasicDataType.h ../x-dce/src/perfctx.h
