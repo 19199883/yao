@@ -78,17 +78,8 @@ static void Convert(const MDBestAndDeep &other, YaoQuote &data)
     
 }
 
-static void Convert(const MDOrderStatistic &other, YaoQuote &data)
-{
-	data.total_buy_ordsize = other.TotalBuyOrderNum;             	//买委托总量;	
-	data.total_sell_ordsize = other.TotalSellOrderNum;           	//卖委托总量;   
-	
-    data.weighted_buy_px = InvalidToZeroD(other.WeightedAverageBuyOrderPrice);   //加权平均委买价格
-    data.weighted_sell_px = InvalidToZeroD(other.WeightedAverageSellOrderPrice); //加权平均委卖价格    
-}
-
 MDProducer::MDProducer(struct vrt_queue  *queue)
-:module_name_("MDProducer")
+	:module_name_("MDProducer")
 {
 
 	memset(orderstat_buffer_, 0, sizeof(orderstat_buffer_));
@@ -314,12 +305,12 @@ void MDProducer::End()
 }
 
 int32_t MDProducer::Push(const YaoQuote& md){
-	static int32_t bestanddeep_cursor = MD_BUFFER_SIZE - 1;
-	bestanddeep_cursor++;
-	if (bestanddeep_cursor%MD_BUFFER_SIZE == 0){
-		bestanddeep_cursor = 0;
+	static int32_t yaoQuote_cursor = MD_BUFFER_SIZE - 1;
+	yaoQuote_cursor++;
+	if (yaoQuote_cursor % MD_BUFFER_SIZE == 0){
+		yaoQuote_cursor = 0;
 	}
-	bestanddeep_buffer_[bestanddeep_cursor] = md;
+	yaoQuote_buffer_[yaoQuote_cursor] = md;
 
 	clog_debug("[%s] push MDBestAndDeep: cursor,%d; contract:%s; time: %s",
 				module_name_, 
@@ -327,12 +318,12 @@ int32_t MDProducer::Push(const YaoQuote& md){
 				md.Contract, 
 				md.GenTime);
 
-	return bestanddeep_cursor;
+	return yaoQuote_cursor;
 }
 
 YaoQuote* MDProducer::GetData(int32_t index)
 {
-	return &bestanddeep_buffer_[index];
+	return &yaoQuote_buffer_[index];
 }
 
 bool MDProducer::IsDominant(const char *contract)

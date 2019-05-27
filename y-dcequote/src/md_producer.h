@@ -41,7 +41,7 @@ class MDProducer
 		MDProducer(struct vrt_queue  *queue);
 		~MDProducer();
 
-		YaoQuote* GetBestAnddeep(int32_t index);
+		YaoQuote* GetData(int32_t index);
 
 		void End();
 		/*
