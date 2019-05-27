@@ -18,9 +18,6 @@ using namespace DFITC_L2;
 
 static void Convert(const MDBestAndDeep &other, YaoQuote &data)
 {
-    data.feed_type = FeedTypes::DceLevel2;    
-	memcpy(data.symbol, other.Contract, sizeof(data.symbol));   //合约代码	
-	data.exchange = YaoExchanges::YDCE;                   //交易所
 	//	交易所行情时间(HHMMssmmm), 如：90000306表示09:00:00 306. 0点-3点的数据 +24hrs
 	// TODO: 先看看时间的具体格式再做转换
 	// data.int_time;	data.Time = other.Time;			
@@ -83,10 +80,6 @@ static void Convert(const MDBestAndDeep &other, YaoQuote &data)
 
 static void Convert(const MDOrderStatistic &other, YaoQuote &data)
 {
-	data.feed_type = FeedTypes::DceOrderStats;    
-	memcpy(data.symbol, other.ContractID, sizeof(data.symbol));   	//合约代码	
-	data.exchange = YaoExchanges::YDCE;                   			//交易所
-	
 	data.total_buy_ordsize = other.TotalBuyOrderNum;             	//买委托总量;	
 	data.total_sell_ordsize = other.TotalSellOrderNum;           	//卖委托总量;   
 	
@@ -97,16 +90,17 @@ static void Convert(const MDOrderStatistic &other, YaoQuote &data)
 MDProducer::MDProducer(struct vrt_queue  *queue)
 :module_name_("MDProducer")
 {
+
+	memset(orderstat_buffer_, 0, sizeof(orderstat_buffer_));
+	memset(depth_buffer_, 0, sizeof(bestanddeep_buffer_));
+
 #ifdef PERSISTENCE_ENABLED 
-	 p_save_best_and_deep_ = new QuoteDataSave<MDBestAndDeep_MY>(
-		 "bestanddeepquote", DCE_MDBESTANDDEEP_QUOTE_TYPE);
-	 p_save_order_statistic_ = new QuoteDataSave<MDOrderStatistic_MY>(
-		 "orderstatistic", DCE_MDORDERSTATISTIC_QUOTE_TYPE, false);	 
+	 p_save_quote_ = new QuoteDataSave<YaoQuote>( "y-dcequote", YAO_QUOTE_TYPE);
 #endif
 	udp_fd_ = 0;
 
 	ended_ = false;
-	clog_warning("[%s] MD_BUFFER_SIZE: %d;", module_name_, MD_BUFFER_SIZE);
+	clog_warning("[%s] MAX_CONTRACT_COUNT: %d;", module_name_, MAX_CONTRACT_COUNT);
 
 	ParseConfig();
 
@@ -118,9 +112,11 @@ MDProducer::MDProducer(struct vrt_queue  *queue)
 	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
 	if(strcmp(config_.yield, "threaded") == 0){
 		this->producer_ ->yield = vrt_yield_strategy_threaded();
-	}else if(strcmp(config_.yield, "spin") == 0){
+	}
+	else if(strcmp(config_.yield, "spin") == 0){
 		this->producer_ ->yield = vrt_yield_strategy_spin_wait();
-	}else if(strcmp(config_.yield, "hybrid") == 0){
+	}
+	else if(strcmp(config_.yield, "hybrid") == 0){
 		this->producer_ ->yield = vrt_yield_strategy_hybrid();
 	}
 
@@ -129,7 +125,7 @@ MDProducer::MDProducer(struct vrt_queue  *queue)
 
 void MDProducer::ParseConfig()
 {
-	TiXmlDocument config = TiXmlDocument("x-trader.config");
+	TiXmlDocument config = TiXmlDocument("y-dcequote.config");
     config.LoadFile();
     TiXmlElement *RootElement = config.RootElement();    
 
@@ -137,19 +133,28 @@ void MDProducer::ParseConfig()
     TiXmlElement *comp_node = RootElement->FirstChildElement("Disruptor");
 	if (comp_node != NULL){
 		strcpy(config_.yield, comp_node->Attribute("yield"));
-	} else { clog_error("[%s] x-trader.config error: Disruptor node missing.", module_name_); }
+	} 
+	else { 
+		clog_error("[%s] y-dcequote.config error: Disruptor node missing.", module_name_); 
+	}
 
 	// addr
     TiXmlElement *fdmd_node = RootElement->FirstChildElement("Md");
 	if (fdmd_node != NULL){
 		config_.addr = fdmd_node->Attribute("addr");
-	} else { clog_error("[%s] x-shmd.config error: FulldepthMd node missing.", module_name_); }
+	} 
+	else { 
+		clog_error("[%s] x-shmd.config error: FulldepthMd node missing.", module_name_); 
+	}
 
 	// contracts file
     TiXmlElement *contracts_file_node = RootElement->FirstChildElement("Subscription");
 	if (contracts_file_node != NULL){
 		strcpy(config_.contracts_file, contracts_file_node->Attribute("contracts"));
-	} else { clog_error("[%s] x-shmd.config error: Subscription node missing.", module_name_); }
+	}
+	else {
+		clog_error("[%s] x-shmd.config error: Subscription node missing.", module_name_); 
+	}
 
 	size_t ipstr_start = config_.addr.find("//")+2;
 	size_t ipstr_end = config_.addr.find(":",ipstr_start);
@@ -160,8 +165,7 @@ void MDProducer::ParseConfig()
 MDProducer::~MDProducer()
 {
 #ifdef PERSISTENCE_ENABLED 
-    if (p_save_best_and_deep_) delete p_save_best_and_deep_;
-    if (p_save_order_statistic_) delete p_save_order_statistic_;
+    if (p_save_quote_) delete p_save_quote_;
 #endif
 }
 
@@ -211,6 +215,34 @@ int MDProducer::InitMDApi()
     return udp_client_fd;
 }
 
+YaoQuote* MDProducer::ProcessDepthData(MDBestAndDeep* depthdata )
+{
+	YaoQuote* valid_quote = NULL;
+
+	YaoQuote *quote = this->GetDepthData(p->Contract);
+	if(NULL == quote){
+		quote = this->GetNewDepthData();
+		quote->feed_type = FeedTypes::DceCombine;    
+		memcpy(quote->symbol, p->Contract, sizeof(quote->symbol)); 
+		quote->data.exchange = YaoExchanges::YDCE; 
+	}
+	Convert(*depthdata, quote);
+	MDOrderStatistic* orderStat = this->GetOrderStatData(p->Contract);
+	if(NULL == orderStat){
+		valid_quote = NULL;
+	}
+	else{
+		quote->total_buy_ordsize =  orderStat->TotalBuyOrderNum;	
+		quote->total_sell_ordsize = orderStat->TotalSellOrderNum;
+		quote->weighted_buy_px =  InvalidToZeroD(orderStat->WeightedAverageBuyOrderPrice);   
+		quote->weighted_sell_px = InvalidToZeroD(orderStat->WeightedAverageSellOrderPrice);
+
+		valid_quote = quote;
+	}
+
+	return valid_quote;
+}
+
 void MDProducer::RevData()
 {
 	int udp_fd = InitMDApi();
@@ -230,49 +262,36 @@ void MDProducer::RevData()
     sockaddr_in src_addr;
     unsigned int addr_len = sizeof(sockaddr_in);
     while (!ended_){
-        data_len = recvfrom(udp_fd, buf, 2048, 0, (sockaddr *) &src_addr, &addr_len);
+        data_len = recvfrom(udp_fd, buf, sizeof(buf), 0, (sockaddr *) &src_addr, &addr_len);
         if (data_len > 0){
+			YaoQuote *quote = NULL;
             int type = (int) buf[0];
             if (type == EDataType::eMDBestAndDeep){
                 MDBestAndDeep * p = (MDBestAndDeep *) (buf + 1);
-
 				if(!(IsDominant(p->Contract))) continue; // 抛弃非主力合约
-
-                Convert(*p, bestanddeep_);
-
-#ifdef PERSISTENCE_ENABLED 
-    timeval t;
-    gettimeofday(&t, NULL);
-    p_save_best_and_deep_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &bestanddeep_);
-#endif
-				struct vrt_value  *vvalue;
-				struct vrt_hybrid_value  *ivalue;
-				vrt_producer_claim(producer_, &vvalue);
-				ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-				ivalue->index = Push(bestanddeep_);
-				ivalue->data = BESTANDDEEP;
-				vrt_producer_publish(producer_);
-            }else if (type == EDataType::eMDOrderStatistic){
-                MDOrderStatistic * p = (MDOrderStatistic *) (buf + 1);
-
-				if(!(IsDominant(p->ContractID))) continue; // 抛弃非主力合约
-
-                Convert(*p, orderstatistic_);
-
-#ifdef PERSISTENCE_ENABLED 
-    timeval t;
-    gettimeofday(&t, NULL);
-    p_save_order_statistic_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &orderstatistic_);
-#endif
-				struct vrt_value  *vvalue;
-				struct vrt_hybrid_value  *ivalue;
-				vrt_producer_claim(producer_, &vvalue);
-				ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-				ivalue->index = Push(orderstatistic_);
-				ivalue->data = ORDERSTATISTIC_DATA;
-				vrt_producer_publish(producer_);
+				quote = ProcessDepthData(p);
             }
-        }
+			else if (type == EDataType::eMDOrderStatistic){
+                MDOrderStatistic * p = (MDOrderStatistic *) (buf + 1);
+				if(!(IsDominant(p->ContractID))) continue; // 抛弃非主力合约
+				quote = this->ProcessOrderStatData(p);
+            }
+
+			if(NULL != quote){
+				struct vrt_value  *vvalue;
+				struct vrt_hybrid_value  *ivalue;
+				vrt_producer_claim(producer_, &vvalue);
+				ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+				ivalue->index = Push(*quote);
+				ivalue->data = YAO_QUOTE;
+				vrt_producer_publish(producer_);
+#ifdef PERSISTENCE_ENABLED 
+				timeval t;
+				gettimeofday(&t, NULL);
+				p_save_quote_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, quote);
+#endif
+			}
+        } // end if (data_len > 0)
     } // while (running_flag_)
 
 	clog_warning("[%s] RevData exit.",module_name_);
@@ -294,7 +313,7 @@ void MDProducer::End()
 	}
 }
 
-int32_t MDProducer::Push(const MDBestAndDeep_MY& md){
+int32_t MDProducer::Push(const YaoQuote& md){
 	static int32_t bestanddeep_cursor = MD_BUFFER_SIZE - 1;
 	bestanddeep_cursor++;
 	if (bestanddeep_cursor%MD_BUFFER_SIZE == 0){
@@ -303,34 +322,17 @@ int32_t MDProducer::Push(const MDBestAndDeep_MY& md){
 	bestanddeep_buffer_[bestanddeep_cursor] = md;
 
 	clog_debug("[%s] push MDBestAndDeep: cursor,%d; contract:%s; time: %s",
-				module_name_, bestanddeep_cursor, md.Contract, md.GenTime);
+				module_name_, 
+				bestanddeep_cursor, 
+				md.Contract, 
+				md.GenTime);
 
 	return bestanddeep_cursor;
 }
 
-MDBestAndDeep_MY* MDProducer::GetBestAnddeep(int32_t index)
+YaoQuote* MDProducer::GetData(int32_t index)
 {
 	return &bestanddeep_buffer_[index];
-}
-
-int32_t MDProducer::Push(const MDOrderStatistic_MY& md){
-	static int32_t orderstatics_cursor = MD_BUFFER_SIZE - 1;
-	orderstatics_cursor++;
-	if (orderstatics_cursor%MD_BUFFER_SIZE == 0){
-		orderstatics_cursor = 0;
-	}
-	orderstatistic_buffer_[orderstatics_cursor] = md;
-
-
-	clog_debug("[%s] push MDOrderStatistic: cursor,%d; contract:%s; time: %s",
-				module_name_, orderstatics_cursor, md.ContractID, "");
-
-	return orderstatics_cursor;
-}
-
-MDOrderStatistic_MY* MDProducer::GetOrderStatistic(int32_t index)
-{
-	return &orderstatistic_buffer_[index];
 }
 
 bool MDProducer::IsDominant(const char *contract)
@@ -338,16 +340,76 @@ bool MDProducer::IsDominant(const char *contract)
 	return IsDominantImp(contract, dominant_contracts_, dominant_contract_count_);
 }
 
-// lic
-MDBestAndDeep_MY* MDProducer::GetLastDataForIllegaluser(const char *contract)
+
+YaoQuote* MDProducer::GetNewDepthData()
 {
-	MDBestAndDeep_MY *data = NULL;
-	for(int i=0; i<MD_BUFFER_SIZE; i++){
-		MDBestAndDeep_MY &tmp = bestanddeep_buffer_[i];
-		if(strcmp(contract, tmp.Contract)==0){
-			data = &tmp; 
-			break;
+	for(int i=0; i<MAX_CONTRACT_COUNT; i++){
+		if(NULL == depth_buffer_[i].ContractID[0])
+		{
+			return &(depth_buffer_[i]);
 		}
 	}
-	return data;
+
+	return NULL;
+}
+
+YaoQuote* MDProducer::GetNewOrderStatData()
+{
+	for(int i=0; i<MAX_CONTRACT_COUNT; i++){
+		if(NULL == orderstat_buffer_[i].ContractID[0])
+		{
+			return &(orderstat_buffer_[i]);
+		}
+	}
+
+	return NULL;
+}
+
+YaoQuote* MDProducer::GetDepthData(const char* contract)
+{
+	for(int i=0; i<MAX_CONTRACT_COUNT; i++){
+		if(0 == strcmp(depth_buffer_[i].symbol,contract))
+		{
+			return &(depth_buffer_[i]);
+		}
+	}
+
+	return NULL;
+}
+
+MDOrderStatistic* MDProducer::GetOrderStatData(const char* contract)
+{
+	for(int i=0; i<MAX_CONTRACT_COUNT; i++){
+		if(0 == strcmp(orderstat_buffer_[i].symbol,contract))
+		{
+			return &(orderstat_buffer_[i]);
+		}
+	}
+
+	return NULL;
+}
+
+YaoQuote* MDProducer::ProcessOrderStatData(MDOrderStatistic* orderStat)
+{
+	YaoQuote* valid_quote = NULL;
+
+	MDOrderStatistic* orderStat = this->GetOrderStatData(p->ContractID);
+	if(NULL == orderStat){
+		orderStat = this->GetNewOrderStatData();
+	}
+	*orderStat = *p;
+	YaoQuote* quote = this->GetDepthData(p->ContractID);
+	if(NULL == quote){
+		valid_quote = NULL;
+	}
+	else{
+		quote->total_buy_ordsize =  orderStat->TotalBuyOrderNum;	
+		quote->total_sell_ordsize = orderStat->TotalSellOrderNum;
+		quote->weighted_buy_px =  InvalidToZeroD(orderStat->WeightedAverageBuyOrderPrice);   
+		quote->weighted_sell_px = InvalidToZeroD(orderStat->WeightedAverageSellOrderPrice);
+
+		valid_quote = quote;
+	}
+
+	return valid_quote;
 }
