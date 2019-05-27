@@ -74,10 +74,10 @@ void UniConsumer::Start()
 		if (rc == 0) {
 			struct vrt_hybrid_value *ivalue = cork_container_of(vvalue, struct vrt_hybrid_value, parent);
 			switch (ivalue->data){
-				case L1_MD:
+				case ZCE_L1_MD:
 					myquotedata.ProcL1MdData(ivalue->index);
 					break;
-				case L2_MD:
+				case ZCE_L2_MD:
 					myquotedata.ProcL2Data(ivalue->index);
 					break;
 				default:

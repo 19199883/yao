@@ -318,7 +318,7 @@ void TapMDProducer::OnRspSubscribeQuote(TAPIUINT32 sessionID, TAPIINT32 errorCod
 		vrt_producer_claim(producer_, &vvalue);
 		ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
 		ivalue->index = Push(*info);
-		ivalue->data = L1_MD;
+		ivalue->data = ZCE_L1_MD;
 		vrt_producer_publish(producer_);
 
         clog_debug("[%s] TAP - OnRspSubscribeQuote Successful, ExchangNo is %s, "

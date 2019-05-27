@@ -172,7 +172,7 @@ void L2MDProducer::RevData()
 		vrt_producer_claim(producer_, &vvalue);
 		ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
 		ivalue->index = Push(*md);
-		ivalue->data = L2_MD;
+		ivalue->data = ZCE_L2_MD;
 		vrt_producer_publish(producer_);
 
 
