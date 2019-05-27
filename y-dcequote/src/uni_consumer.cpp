@@ -11,6 +11,11 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer)
 	running_(true), 
 	md_producer_(md_producer)
 {
+	memset(valid_conn_, 0, sizeof(valid_conn_));
+	for(int i=0; i<MAX_CONN_COUNT; i++){
+		socks_.push_back(tcp::socket(io_service_));
+	}
+
 	ParseConfig();
 	(this->consumer_ = vrt_consumer_new(module_name_, queue));
 
@@ -46,6 +51,7 @@ void UniConsumer::ParseConfig()
     TiXmlElement *comp_node = root->FirstChildElement("Disruptor");
 	if (comp_node != NULL){
 		strcpy(config_.yield, comp_node->Attribute("yield"));
+		this->port_ = atoi(dis_node->Attribute("port"));
 	} 
 	else { 
 		clog_error("[%s] y-quote.config error: Disruptor node missing.", module_name_); 
@@ -107,8 +113,24 @@ void UniConsumer::ProcYaoQuote(int32_t index)
 				index, 
 				md->symbol);
 
-	// TODO: yao
-	//strategy.FeedMd(md, &sig_cnt, sig_buffer_);
+	for(int i=0; i< MAX_CONN_COUNT; i++){		
+		{
+			std::lock_guard<std::mutex> lck (mtx_);
+			if(0 == valid_conn_[i]) continue;
+		}
+		
+		try{			
+			 boost::system::error_code error;		  		
+			 boost::asio::write(socks_[i], boost::asio::buffer(md, sizeof(YaoQuote)), error);			  
+			 if (error){
+				 valid_conn_[i] = 0;
+				clog_warning("[%s] write error: %d", module_name_, error); 			
+			 }
+		}
+		catch (std::exception& e){
+			valid_conn_[i] = 0;
+			clog_warning("[%s] send error:%s", module_name_, e.what()); 			
+		}
 
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
@@ -117,4 +139,25 @@ void UniConsumer::ProcYaoQuote(int32_t index)
 #endif
 }
 
+void UniConsumer::Server()
+{
+  tcp::acceptor a(io_service_, tcp::endpoint(tcp::v4(), port_));
+  for (;;)
+  {	
+	int i = 0;
+	for(; i<MAX_CONN_COUNT; i++){
+		if(0 == valid_conn_[i]) break;
+	}
+	if(i < MAX_CONN_COUNT){
+		a.accept(socks_[i]);
+		{
+			std::lock_guard<std::mutex> lck (mtx_);
+			valid_conn_[i] = 1;
+		}
+	}
+	else{
+		clog_warning("[%s] socks_ is full.", module_name_);
+	}
+  }
+}
 

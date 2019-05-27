@@ -117,12 +117,18 @@ void UniConsumer::ProcL2QuoteSnapshot(YaoQuote* md)
 				md->int_time);
 
 	for(int i=0; i< MAX_CONN_COUNT; i++){		
-		if(0 == valid_conn_[i]) continue;
+		{
+			std::lock_guard<std::mutex> lck (mtx_);
+			if(0 == valid_conn_[i]) continue;
+		}
 		
 		try{			
 			 boost::system::error_code error;		  		
 			 boost::asio::write(socks_[i], boost::asio::buffer(md, sizeof(YaoQuote)), error);			  
-			 if (error) valid_conn_[i] = 0;
+			 if (error){
+				 valid_conn_[i] = 0;
+				clog_warning("[%s] write error: %d", module_name_, error); 			
+			 }
 		}
 		catch (std::exception& e){
 			valid_conn_[i] = 0;
@@ -146,9 +152,11 @@ void UniConsumer::Server()
 		if(0 == valid_conn_[i]) break;
 	}
 	if(i < MAX_CONN_COUNT){
-		std::lock_guard<std::mutex> lck (mtx_);
-		valid_conn_[i] = 1;
 		a.accept(socks_[i]);
+		{
+			std::lock_guard<std::mutex> lck (mtx_);
+			valid_conn_[i] = 1;
+		}
 	}
 	else{
 		clog_warning("[%s] socks_ is full.", module_name_);
