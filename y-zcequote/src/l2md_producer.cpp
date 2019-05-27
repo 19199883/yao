@@ -11,7 +11,6 @@ using namespace std;
 using namespace std::placeholders;
 using std::chrono::system_clock;
 
-// done
 L2MDProducer::L2MDProducer(struct vrt_queue *queue)
 	: module_name_("L2MDProducer")
 {
@@ -72,12 +71,10 @@ void L2MDProducer::ParseConfig()
 	config_.port = stoi(config_.addr.substr(ipstr_end+1));
 }
 
-// done
 L2MDProducer::~L2MDProducer()
 {
 }
 
-// done
 int L2MDProducer::InitMDApi()
 {
     // init udp socket

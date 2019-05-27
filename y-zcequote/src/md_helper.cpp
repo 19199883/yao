@@ -8,11 +8,11 @@
 using std::chrono::system_clock;
 
 MdHelper::MdHelper(L2MDProducer *l2_md_producer, TapMDProducer *l1_md_producer) 
-		: l2_md_producer_(l2_md_producer), 
+	 :  l2_md_producer_(l2_md_producer), 
 		l1_md_producer_(l1_md_producer), 
 		module_name_("MdHelper")
 {
-	clog_warning("[%s] L1_DOMINANT_MD_BUFFER_SIZE:%d;",
+	clog_warning("[%s] MAX_CONTACT_COUNT:%d;",
 				module_name_,
 				MAX_CONTRACT_COUNT);
 	for(int i = 0; i < MAX_CONTRACT_COUNT; i++){
@@ -23,7 +23,7 @@ MdHelper::MdHelper(L2MDProducer *l2_md_producer, TapMDProducer *l1_md_producer)
 
 
 #ifdef PERSISTENCE_ENABLED 
-    p_md_save_ = new QuoteDataSave<YaoQuote>( "yao_level2", YAO_QUOTE_TYPE);
+    p_md_save_ = new QuoteDataSave<YaoQuote>( "yao_quote", YAO_QUOTE_TYPE);
 #endif
 }
 

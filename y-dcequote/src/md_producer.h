@@ -14,6 +14,11 @@
 #include "quote_cmn_utility.h"
 #include "YaoQuote.h"
 
+/*
+ *  * 10 power of 2
+ *   */
+#define MD_BUFFER_SIZE 1000 
+
 using namespace std;
 
 struct Mdconfig
@@ -51,6 +56,10 @@ class MDProducer
 
 	private:
 		int32_t Push(const YaoQuote& md);
+		/*
+		 * 用于vrt队列
+		 */
+		YaoQuote yaoQuote_buffer_[MD_BUFFER_SIZE];
 
 		const char *module_name_;  
 		int udp_fd_;
@@ -75,6 +84,12 @@ class MDProducer
 		 * 缓冲区里获取一个新的对象
 		 */
 		MDOrderStatistic* GetNewOrderStatData();
+		YaoQuote* ProcessDepthData(MDBestAndDeep* depthdata);
+		/*
+		 * 缓存level2数据，每个合约一个位置
+		 *
+		 */
+		YaoQuote  depth_buffer_[MAX_CONTRACT_COUNT];
 
 		/*
 		 * 在缓冲区里获取一个指定合约的对象
@@ -86,10 +101,10 @@ class MDProducer
 		 */
 		MDOrderStatistic* GetOrderStatData(const char* contract);
 		YaoQuote* ProcessOrderStatData(MDOrderStatistic* orderStat);
-		YaoQuote* ProcessDepthData(MDBestAndDeep* depthdata);
-
+		/*
+		 * 缓存OrderStatis数据，每个合约一个位置
+		 */
 		MDOrderStatistic orderstat_buffer_[MAX_CONTRACT_COUNT];
-		YaoQuote  depth_buffer_[MAX_CONTRACT_COUNT];
 
 #ifdef PERSISTENCE_ENABLED 
 	QuoteDataSave<YaoQuote> *p_save_quote_;

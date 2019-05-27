@@ -347,7 +347,7 @@ void TapMDProducer::OnRtnQuote(const TapAPIQuoteWhole *info)
 		vrt_producer_claim(producer_, &vvalue);
 		ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
 		ivalue->index = Push(*info);
-		ivalue->data = L1_MD;
+		ivalue->data = ZCE_L1_MD;
 		vrt_producer_publish(producer_);
 		
         clog_info("[%s] TAP - OnRtnQuote Successful, ExchangNo is %s, CommodityNo is %s,"
@@ -376,17 +376,3 @@ bool TapMDProducer::IsDominant(const char*commciodity_no, const char* contract_n
 #endif
 }
 
-// lic
-TapAPIQuoteWhole* TapMDProducer::GetLastDataForIllegaluser(const char *CommodityNo, const char*ContractNo1)
-{
-	TapAPIQuoteWhole *data = NULL;
-	for(int i=0; i<L1MD_BUFFER_SIZE; i++){
-		TapAPIQuoteWhole &tmp = md_buffer_[i];
-		if(strcmp(CommodityNo, tmp.Contract.Commodity.CommodityNo)==0 &&
-			strcmp(ContractNo1, tmp.Contract.ContractNo1)==0){
-			data = &tmp; 
-			break;
-		}
-	}
-	return data;
-}

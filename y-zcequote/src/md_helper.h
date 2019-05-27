@@ -48,6 +48,9 @@ class MdHelper
 		 * contract: e.g. SR1801
 		 */
 		TapAPIQuoteWhole* GetData(const char *contract);
+		/*
+		 * 存储一档最新行情，每个合约一个存储位置
+		 */
 		TapAPIQuoteWhole md_buffer_[MAX_CONTRACT_COUNT] ;
 	
 	private:

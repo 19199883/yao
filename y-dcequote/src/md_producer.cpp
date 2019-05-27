@@ -73,9 +73,7 @@ static void Convert(const MDBestAndDeep &other, YaoQuote &data)
     data.implied_ask_size[2]	= other.SellImplyQtyThree;
     data.implied_ask_size[3]	= other.SellImplyQtyFour;
     data.implied_ask_size[4]	= other.SellImplyQtyFive;
-	    
     // data.LastMatchQty = other.LastMatchQty;                     //最新成交量          
-    
 }
 
 MDProducer::MDProducer(struct vrt_queue  *queue)
@@ -83,7 +81,7 @@ MDProducer::MDProducer(struct vrt_queue  *queue)
 {
 
 	memset(orderstat_buffer_, 0, sizeof(orderstat_buffer_));
-	memset(depth_buffer_, 0, sizeof(bestanddeep_buffer_));
+	memset(depth_buffer_, 0, sizeof(depth_buffer_));
 
 #ifdef PERSISTENCE_ENABLED 
 	 p_save_quote_ = new QuoteDataSave<YaoQuote>( "y-dcequote", YAO_QUOTE_TYPE);
