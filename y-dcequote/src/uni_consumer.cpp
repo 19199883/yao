@@ -1,19 +1,15 @@
 #include <thread>         
 #include <chrono>        
 #include <algorithm>    
-#include "uni_consumer.h"
-#include "pos_calcu.h"
 #include "perfctx.h"
 #include <tinyxml.h>
 #include <tinystr.h>
+#include "uni_consumer.h"
 
-CX1FtdcInsertOrderField X1FieldConverter::new_order_;
-
-UniConsumer::UniConsumer(struct vrt_queue  *queue, 
-			MDProducer *md_producer)
+UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer)
 :	module_name_("uni_consumer"),
 	running_(true), 
-	md_producer_(md_producer),
+	md_producer_(md_producer)
 {
 	ParseConfig();
 	(this->consumer_ = vrt_consumer_new(module_name_, queue));
@@ -21,9 +17,11 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue,
 	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
 	if(strcmp(config_.yield, "threaded") == 0){
 		this->consumer_->yield = vrt_yield_strategy_threaded();
-	}else if(strcmp(config_.yield, "spin") == 0){
+	}
+	else if(strcmp(config_.yield, "spin") == 0){
 		this->consumer_->yield = vrt_yield_strategy_spin_wait();
-	}else if(strcmp(config_.yield, "hybrid") == 0){
+	}
+	else if(strcmp(config_.yield, "hybrid") == 0){
 		this->consumer_->yield = vrt_yield_strategy_hybrid();
 	}
 }
@@ -50,7 +48,7 @@ void UniConsumer::ParseConfig()
 		strcpy(config_.yield, comp_node->Attribute("yield"));
 	} 
 	else { 
-		clog_error("[%s] x-trader.config error: Disruptor node missing.", module_name_); 
+		clog_error("[%s] y-quote.config error: Disruptor node missing.", module_name_); 
 	}
 }
 
@@ -65,8 +63,8 @@ void UniConsumer::Start()
 		if (rc == 0) {
 			struct vrt_hybrid_value *ivalue = cork_container_of(vvalue, struct vrt_hybrid_value, parent);
 			switch (ivalue->data){
-				case BESTANDDEEP:
-					ProcBestAndDeep(ivalue->index);
+				case YAO_QUOTE:
+					ProcYaoQuote(ivalue->index);
 					break;
 				default:
 					clog_info("[%s] [start] unexpected index: %d", module_name_, ivalue->index);
@@ -91,7 +89,7 @@ void UniConsumer::Stop()
 	fflush (Log::fp);
 }
 
-void UniConsumer::ProcBestAndDeep(int32_t index)
+void UniConsumer::ProcYaoQuote(int32_t index)
 {
 #ifdef LATENCY_MEASURE
 		 static int cnt = 0;
@@ -102,12 +100,15 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 		high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
 
-	MDBestAndDeep_MY* md = md_producer_->GetBestAnddeep(index);
+	YaoQuote* md = md_producer_->GetData(index);
 
-	clog_debug("[%s] [ProcBestAndDeep] index: %d; contract: %s", module_name_, index, md->Contract);
+	clog_info("[%s] [ProcYaoQuote] index: %d; contract: %s",
+				module_name_, 
+				index, 
+				md->symbol);
 
 	// TODO: yao
-	strategy.FeedMd(md, &sig_cnt, sig_buffer_);
+	//strategy.FeedMd(md, &sig_cnt, sig_buffer_);
 
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();

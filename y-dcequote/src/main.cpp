@@ -72,7 +72,6 @@ int main(/*int argc, const char **argv*/)
   delete mdproducer; 
 
 // clog: free resources
-	pos_calc::destroy_instance();
 	clog_handler_free(clog_handler);
 
 	return 0;

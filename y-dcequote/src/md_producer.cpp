@@ -62,11 +62,11 @@ static void Convert(const MDBestAndDeep &other, YaoQuote &data)
 	data.close_px = InvalidToZeroF(other.Close);                   //今收盘
 	data.settle_px = InvalidToZeroF(other.ClearPrice);         //今结算价
 	
-	implied_bid_size[0] = other.BuyImplyQtyOne;
-	implied_bid_size[1] = other.BuyImplyQtyTwo; 
-	implied_bid_size[2] = other.BuyImplyQtyThree; 
-	implied_bid_size[3] = other.BuyImplyQtyFour;
-	implied_bid_size[4] = other.BuyImplyQtyFive; 
+	data.implied_bid_size[0] = other.BuyImplyQtyOne;
+	data.implied_bid_size[1] = other.BuyImplyQtyTwo; 
+	data.implied_bid_size[2] = other.BuyImplyQtyThree; 
+	data.implied_bid_size[3] = other.BuyImplyQtyFour;
+	data.implied_bid_size[4] = other.BuyImplyQtyFive; 
 	
 	data.implied_ask_size[0]	= other.SellImplyQtyOne;
     data.implied_ask_size[1]	= other.SellImplyQtyTwo;
@@ -208,15 +208,15 @@ YaoQuote* MDProducer::ProcessDepthData(MDBestAndDeep* depthdata )
 {
 	YaoQuote* valid_quote = NULL;
 
-	YaoQuote *quote = this->GetDepthData(p->Contract);
+	YaoQuote *quote = this->GetDepthData(depthdata->Contract);
 	if(NULL == quote){
 		quote = this->GetNewDepthData();
 		quote->feed_type = FeedTypes::DceCombine;    
-		memcpy(quote->symbol, p->Contract, sizeof(quote->symbol)); 
-		quote->data.exchange = YaoExchanges::YDCE; 
+		memcpy(quote->symbol, depthdata->Contract, sizeof(quote->symbol)); 
+		quote->exchange = YaoExchanges::YDCE; 
 	}
-	Convert(*depthdata, quote);
-	MDOrderStatistic* orderStat = this->GetOrderStatData(p->Contract);
+	Convert(*depthdata, *quote);
+	MDOrderStatistic* orderStat = this->GetOrderStatData(depthdata->Contract);
 	if(NULL == orderStat){
 		valid_quote = NULL;
 	}
@@ -310,12 +310,6 @@ int32_t MDProducer::Push(const YaoQuote& md){
 	}
 	yaoQuote_buffer_[yaoQuote_cursor] = md;
 
-	clog_debug("[%s] push MDBestAndDeep: cursor,%d; contract:%s; time: %s",
-				module_name_, 
-				bestanddeep_cursor, 
-				md.Contract, 
-				md.GenTime);
-
 	return yaoQuote_cursor;
 }
 
@@ -333,7 +327,7 @@ bool MDProducer::IsDominant(const char *contract)
 YaoQuote* MDProducer::GetNewDepthData()
 {
 	for(int i=0; i<MAX_CONTRACT_COUNT; i++){
-		if(NULL == depth_buffer_[i].ContractID[0])
+		if(0 == depth_buffer_[i].symbol[0])
 		{
 			return &(depth_buffer_[i]);
 		}
@@ -342,10 +336,10 @@ YaoQuote* MDProducer::GetNewDepthData()
 	return NULL;
 }
 
-YaoQuote* MDProducer::GetNewOrderStatData()
+MDOrderStatistic* MDProducer::GetNewOrderStatData()
 {
 	for(int i=0; i<MAX_CONTRACT_COUNT; i++){
-		if(NULL == orderstat_buffer_[i].ContractID[0])
+		if(0 == orderstat_buffer_[i].ContractID[0])
 		{
 			return &(orderstat_buffer_[i]);
 		}
@@ -369,7 +363,7 @@ YaoQuote* MDProducer::GetDepthData(const char* contract)
 MDOrderStatistic* MDProducer::GetOrderStatData(const char* contract)
 {
 	for(int i=0; i<MAX_CONTRACT_COUNT; i++){
-		if(0 == strcmp(orderstat_buffer_[i].symbol,contract))
+		if(0 == strcmp(orderstat_buffer_[i].ContractID, contract))
 		{
 			return &(orderstat_buffer_[i]);
 		}
@@ -378,16 +372,17 @@ MDOrderStatistic* MDProducer::GetOrderStatData(const char* contract)
 	return NULL;
 }
 
-YaoQuote* MDProducer::ProcessOrderStatData(MDOrderStatistic* orderStat)
+YaoQuote* MDProducer::ProcessOrderStatData(MDOrderStatistic* newOrderStat)
 {
 	YaoQuote* valid_quote = NULL;
 
-	MDOrderStatistic* orderStat = this->GetOrderStatData(p->ContractID);
+	MDOrderStatistic* orderStat = this->GetOrderStatData(newOrderStat->ContractID);
 	if(NULL == orderStat){
 		orderStat = this->GetNewOrderStatData();
 	}
-	*orderStat = *p;
-	YaoQuote* quote = this->GetDepthData(p->ContractID);
+	*orderStat = *newOrderStat;
+
+	YaoQuote* quote = this->GetDepthData(newOrderStat->ContractID);
 	if(NULL == quote){
 		valid_quote = NULL;
 	}

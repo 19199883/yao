@@ -3,18 +3,11 @@
 CC:=g++
 DEBUG:=n
 TOP:=..
-DIST_DIR:=$(TOP)/x-dce/dist
+DIST_DIR:=$(TOP)/y-dcequote/dist
 
-# kanchuan
-#INCPATH:=-I$(TOP)/3rd/x1_kc/include -I$(TOP)/3rd/tinyxml/include  -I$(TOP)/3rd/utils/include \
-#		 -I$(TOP)/3rd/dce_md/include 
-#LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/x1_kc/lib -L$(TOP)/3rd/tinyxml/lib \
-#		 -L$(TOP)/3rd/utils/lib -L$(TOP)/3rd/dce_md/lib
-
-# V1.6.1.08
-INCPATH:=-I$(TOP)/3rd/x1-1.6.1.08/include -I$(TOP)/3rd/tinyxml/include  -I$(TOP)/3rd/utils/include \
+INCPATH:=-I$(TOP)/3rd/tinyxml/include  -I$(TOP)/3rd/utils/include \
 		 -I$(TOP)/3rd/dce_md/include 
-LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/x1-1.6.1.08/lib -L$(TOP)/3rd/tinyxml/lib \
+LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/tinyxml/lib \
 		 -L$(TOP)/3rd/utils/lib -L$(TOP)/3rd/dce_md/lib
 
 CPPFLAGS:=-std=c++11 $(INCPATH)
@@ -23,20 +16,14 @@ LDFLAGS:=
 OBJPATH:=./obj
 BINPATH:=./bin
 
-# kanchuan
-#LIBS:=-lpthread -lx1_dfitc_api -ltinyxml -lutils -ldl -lpthread -lbowsprit \
-#	  -lcheck -lclogger -lcork -lvrt -lssl \
-#	  -luuid -lboost_filesystem -lboost_system -lx1_dfitc_collect
-
-# V1.6.1.08
-LIBS:=-lpthread -lx1_dfitc_api -ltinyxml -lutils -ldl -lpthread -lbowsprit \
+LIBS:=-lpthread -ltinyxml -lutils -ldl -lpthread -lbowsprit \
 	  -lcheck -lclogger -lcork -lvrt -lssl -luuid -lboost_filesystem -lboost_system
 
 DEPS:=.depends
-OUT:=x-dce
+OUT:=y-dcequote
 PACKAGE_NAME:=$(OUT)
 
-SUBDIR:=$(TOP)/x-dce/src 
+SUBDIR:=$(TOP)/y-dcequote/src 
 
 vpath %.cpp $(SUBDIR)
 
@@ -76,11 +63,10 @@ dist:
 	echo "dddddddddddddddd"
 	-rm -fr $(DIST_DIR)/$(PACKAGE_NAME)
 	-mkdir -p $(DIST_DIR)/$(PACKAGE_NAME)
-	-cp -arf $(TOP)/x-dce/bin/* $(DIST_DIR)/$(PACKAGE_NAME)/
-	-cp -arf $(TOP)/3rd/x1/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/y-dcequote/bin/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/gfortran/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
-	-cp -arf $(TOP)/3rd/level2/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
-	-cp -arf $(TOP)/3rd/boost/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -Lp /usr/local/lib/*boost_filesystem* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -Lp /usr/local/lib/*boost_system* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -Lp /usr/local/lib/libbowsprit.so.2 $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -Lp /lib64/libcheck.so.0 $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -Lp /usr/local/lib/libclogger.so.2 $(DIST_DIR)/$(PACKAGE_NAME)/

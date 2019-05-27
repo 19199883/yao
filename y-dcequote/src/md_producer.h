@@ -9,10 +9,12 @@
 #include "vrt_value_obj.h"
 #include <tinyxml.h>
 #include <tinystr.h>
-#include "quote_datatype_dce_level2.h"
+#include "DFITCL2ApiDataType.h"
 #include "quote_cmn_save.h"
 #include "quote_cmn_utility.h"
 #include "YaoQuote.h"
+
+using namespace DFITC_L2;
 
 /*
  *  * 10 power of 2
@@ -81,9 +83,13 @@ class MDProducer
 		YaoQuote* GetNewDepthData();
 
 		/*
+		 * 在缓冲区里获取一个指定合约的对象
+		 */
+		YaoQuote* GetDepthData(const char* contract);
+
+		/*
 		 * 缓冲区里获取一个新的对象
 		 */
-		MDOrderStatistic* GetNewOrderStatData();
 		YaoQuote* ProcessDepthData(MDBestAndDeep* depthdata);
 		/*
 		 * 缓存level2数据，每个合约一个位置
@@ -92,9 +98,9 @@ class MDProducer
 		YaoQuote  depth_buffer_[MAX_CONTRACT_COUNT];
 
 		/*
-		 * 在缓冲区里获取一个指定合约的对象
+		 * 缓冲区里获取一个新的对象
 		 */
-		YaoQuote* GetDepthData(const char* contract);
+		MDOrderStatistic* GetNewOrderStatData();
 
 		/*
 		 * 在缓冲区里获取一个指定合约的对象

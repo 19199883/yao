@@ -30,10 +30,6 @@ class UniConsumer
 		void Stop();
 
 	private:
-		// lic
-		bool check_lic();
-		bool legal_;
-
 		bool running_;
 		const char* module_name_;  
 		struct vrt_consumer *consumer_;
@@ -44,8 +40,7 @@ class UniConsumer
 		int32_t GetEmptyNode();
 
 		// business logic
-		void ProcBestAndDeep(int32_t index);
-		void FeedBestAndDeep(int32_t straidx);
+		void ProcYaoQuote(int32_t index);
 		Uniconfig config_;
 
 };
