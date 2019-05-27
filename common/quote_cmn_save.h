@@ -66,7 +66,7 @@
 #define SGIT_QUOTE_TYPE             24
 
 // added on 20190521 for Yao
-#define YAO_QUOTE_TYPE             25
+#define YAO_QUOTE_TYPE             125
 
 // data identities of kmds {"stockcode", "stockquote", "indexquote", "optionquote", "ordqueue", "perentrust", "perbargain"};
 #define KMDS_CODETABLE_TYPE         0xc0
