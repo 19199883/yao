@@ -54,13 +54,22 @@ class CtpFieldConverter
 		*/
 		static const char* ConvertExchange(exchange_names yExc)
 		{
-			if(exchange_names::SHFE == yExc){
+			if(exchange_names::SHFE == yExc)
+			{
 				return CTP_EXCHANGE_SHFE;
-			}else if(exchange_names::XDCE == yExc){
+			}
+			else if(exchange_names::XDCE == yExc)i
+			{
 				return CTP_EXCHANGE_DCE;
-			}else if(exchange_names::XZCE == yExc){
+			}
+			else if(exchange_names::XZCE == yExc)
+			{
 				return CTP_EXCHANGE_CZCE;
-			}else{return "";}			
+			}
+			else
+			{
+				return "";
+			}			
 		}
 		
 		static void InitNewOrder(const char *userid, const char* brokerid)
@@ -98,28 +107,37 @@ class CtpFieldConverter
 			strncpy(new_order_.InstrumentID, sig.symbol, sizeof(new_order_.InstrumentID));
 			snprintf(new_order_.OrderRef, sizeof(TThostFtdcOrderRefType), "%d", localorderid);
  
-			if (sig.sig_act == signal_act_t::buy){
+			if (sig.sig_act == signal_act_t::buy)
+			{
 				new_order_.LimitPrice = sig.buy_price;
 				new_order_.Direction = THOST_FTDC_D_Buy;
-			}else if (sig.sig_act == signal_act_t::sell){
+			}
+			else if (sig.sig_act == signal_act_t::sell)
+			{
 				new_order_.LimitPrice = sig.sell_price;
 				new_order_.Direction = THOST_FTDC_D_Sell;
-			}else{
+			}
+			else
+			{
 				 clog_warning("[%s] do support Direction value:%d; sig id:%d", "CtpFieldConverter",
 					new_order_.Direction, sig.sig_id); 
 			}
 
 			// TODO: 是否平今还是平昨，需要根据市场和昨仓决定
-			if (sig.sig_openclose == alloc_position_effect_t::open_){
+			if (sig.sig_openclose == alloc_position_effect_t::open_)
+			{
 				new_order_.CombOffsetFlag[0] = THOST_FTDC_OF_Open;
 			}
-			else if (sig.sig_openclose == alloc_position_effect_t::close_){
+			else if (sig.sig_openclose == alloc_position_effect_t::close_)
+			{
 				new_order_.CombOffsetFlag[0] = THOST_FTDC_OF_CloseToday;
 			}
-			else if (sig.sig_openclose == alloc_position_effect_t::close_yesterday){
+			else if (sig.sig_openclose == alloc_position_effect_t::close_yesterday)
+			{
 				new_order_.CombOffsetFlag[0] = THOST_FTDC_OF_Close;
 			}
-			else{
+			else
+			{
 				clog_warning("[%s] do support sig_openclose value:%d; sig id:%d", "CtpFieldConverter",
 				sig.sig_openclose, sig.sig_id); 
 			}
@@ -129,8 +147,10 @@ class CtpFieldConverter
 			return &new_order_;
 		}
 
-		static void InitCancelOrder(const char *userid, const char* brokerid,
-			TThostFtdcFrontIDType frontid, TThostFtdcSessionIDType	sessionid)
+		static void InitCancelOrder(const char *userid, 
+					const char* brokerid,
+					TThostFtdcFrontIDType frontid, 
+					TThostFtdcSessionIDType	sessionid)
 		{
 			memset(&cancel_order_, 0, sizeof(cancel_order_));
 			strncpy(cancel_order_.BrokerID, brokerid, sizeof(TThostFtdcBrokerIDType));
@@ -141,8 +161,11 @@ class CtpFieldConverter
 			cancel_order_.SessionID = sessionid;					
 		}
 		
-		static CThostFtdcInputOrderActionField* Convert(exchange_names exchange, const char* symbol, 
-				int cancel_localorderid, int orig_localorderid, TThostFtdcOrderSysIDType ordersysid)
+		static CThostFtdcInputOrderActionField* Convert(exchange_names exchange,
+					const char* symbol, 
+					int cancel_localorderid, 
+					int orig_localorderid, 
+					TThostFtdcOrderSysIDType ordersysid)
 		{
 			cancel_order_.OrderActionRef = cancel_localorderid;
 			snprintf(cancel_order_.OrderRef, sizeof(TThostFtdcOrderRefType), "%d", orig_localorderid);

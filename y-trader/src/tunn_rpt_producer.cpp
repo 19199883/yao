@@ -37,11 +37,16 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 	struct vrt_producer  *producer = vrt_producer_new("tunnrpt_producer", 1, queue);
 	this->producer_ = producer;
 	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
-	if(strcmp(config_.yield, "threaded") == 0){
+	if(strcmp(config_.yield, "threaded") == 0)
+	{
 		this->producer_ ->yield = vrt_yield_strategy_threaded();
-	}else if(strcmp(config_.yield, "spin") == 0){
+	}
+	else if(strcmp(config_.yield, "spin") == 0)
+	{
 		this->producer_ ->yield = vrt_yield_strategy_spin_wait();
-	}else if(strcmp(config_.yield, "hybrid") == 0){
+	}
+	else if(strcmp(config_.yield, "hybrid") == 0)
+	{
 		this->producer_ ->yield = vrt_yield_strategy_hybrid();
 	}
 
@@ -90,11 +95,12 @@ void TunnRptProducer::ParseConfig()
 	} else { clog_error("[%s] x-trader.config error: Disruptor node missing.", module_name_); }
 
     TiXmlElement *tunn_node = RootElement->FirstChildElement("Tunnel");
-	if (tunn_node != NULL){
-		this->config_.address = tunn_node->Attribute("address");
-		this->config_.brokerid = tunn_node->Attribute("brokerid");
-		this->config_.userid = tunn_node->Attribute("userid");
-		this->config_.password = tunn_node->Attribute("password");
+	if (tunn_node != NULL)
+	{
+		this->config_.address	=	tunn_node->Attribute("address");
+		this->config_.brokerid	=	tunn_node->Attribute("brokerid");
+		this->config_.userid	=	tunn_node->Attribute("userid");
+		this->config_.password =	tunn_node->Attribute("password");
 		strcpy(this->appid_, tunn_node->Attribute("appid"));
 		strcpy(this->authcode_, tunn_node->Attribute("authcode"));
 
@@ -107,7 +113,11 @@ void TunnRptProducer::ParseConfig()
 					this->config_.password.c_str(),
 					this->appid_,
 					this->authcode_);
-	} else { clog_error("[%s] x-trader.config error: Tunnel node missing.", module_name_); }
+	} 
+	else 
+	{
+		clog_error("[%s] x-trader.config error: Tunnel node missing.", module_name_); 
+	}
 }
 
 int TunnRptProducer::ReqOrderInsert(CThostFtdcInputOrderField *pInputOrder)
@@ -119,17 +129,23 @@ int TunnRptProducer::ReqOrderInsert(CThostFtdcInputOrderField *pInputOrder)
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
-		clog_warning("[%s] ReqOrderInsert latency:%d us", 
-					module_name_,latency); 
+		clog_warning("[%s] ReqOrderInsert latency:%d us", module_name_,latency); 
 #endif
 	
 	// report rejected if ret!=0
-	if (ret != 0){
+	if (ret != 0)
+	{
 		clog_warning("[%s] ReqOrderInsert- ret=%d - %s", 
-			module_name_, ret, CtpDatatypeFormater::ToString(pInputOrder).c_str());
-	}else {
+					module_name_, 
+					ret, 
+					CtpDatatypeFormater::ToString(pInputOrder).c_str());
+	}
+	else 
+	{
 		clog_info("[%s] ReqOrderInsert - ret=%d - %s", 
-			module_name_, ret, CtpDatatypeFormater::ToString(pInputOrder).c_str());
+					module_name_, 
+					ret, 
+					CtpDatatypeFormater::ToString(pInputOrder).c_str());
 	}
 
 	return ret;
@@ -148,16 +164,19 @@ int TunnRptProducer::ReqOrderAction(CThostFtdcInputOrderActionField *p)
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
-		clog_warning("[%s] ReqOrderAction latency:%d us", 
-			module_name_,latency); 
+		clog_warning("[%s] ReqOrderAction latency:%d us", module_name_,latency); 
 #endif
 
 	if (ret != 0){
 		clog_warning("[%s] ReqCancelOrder - ret=%d - %s", 
-			module_name_, ret, CtpDatatypeFormater::ToString(p).c_str());
+					module_name_, 
+					ret, 
+					CtpDatatypeFormater::ToString(p).c_str());
 	} else {
 		clog_info("[%s] ReqCancelOrder - ret=%d - %s", 
-			module_name_, ret, CtpDatatypeFormater::ToString(p).c_str());
+					module_name_, 
+					ret, 
+					CtpDatatypeFormater::ToString(p).c_str());
 	}
 
 	return ret;
@@ -174,9 +193,10 @@ void TunnRptProducer::ReqLogin()
     
 	int rtn = api_->ReqUserLogin(&login_data, 0);
 
-    clog_warning("[%s] ReqLogin:  err_no,%d",module_name_, rtn );
-    clog_warning("[%s] ReqLogin:   %s", 
-			module_name_, CtpDatatypeFormater::ToString(&login_data).c_str());
+    clog_warning("[%s] ReqLogin: err_no,%d",module_name_, rtn );
+    clog_warning("[%s] ReqLogin: %s", 
+				module_name_, 
+				CtpDatatypeFormater::ToString(&login_data).c_str());
 }
 
 void TunnRptProducer::OnFrontConnected()
@@ -191,18 +211,27 @@ void TunnRptProducer::OnFrontConnected()
 	strcpy(a.AppID, this->appid_);
 	int ret = api_->ReqAuthenticate(&a, 0);
 	clog_warning("[%s] ReqAuthenticate - ret=%d - %s", 
-		module_name_, ret, CtpDatatypeFormater::ToString(&a).c_str());
+				module_name_, 
+				ret, 
+				CtpDatatypeFormater::ToString(&a).c_str());
 }
 
 void TunnRptProducer::OnRspAuthenticate(CThostFtdcRspAuthenticateField *pRspAuthenticateField, 
-			CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+			CThostFtdcRspInfoField *pRspInfo, 
+			int nRequestID, 
+			bool bIsLast)
 {
-    if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {
+    if (pRspInfo==NULL || 0==pRspInfo->ErrorID) 
+	{
 		clog_warning("[%s] OnRspAuthenticate successfully.", module_name_);
 		
-    }else {
-		clog_error("[%s] OnRspAuthenticate , error: %d, msg: %s", module_name_, 
-			pRspInfo->ErrorID, pRspInfo->ErrorMsg);
+    }
+	else 
+	{
+		clog_error("[%s] OnRspAuthenticate , error: %d, msg: %s", 
+					module_name_, 
+					pRspInfo->ErrorID, 
+					pRspInfo->ErrorMsg);
     }
 	this->ReqLogin();
 }
@@ -228,12 +257,13 @@ bool TunnRptProducer::IsNightTrading()
 }
 
 void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, 
-	CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+			CThostFtdcRspInfoField *pRspInfo, 
+			int nRequestID, bool bIsLast)
 {
     clog_warning("[%s] OnRspUserLogin:%s %s",
-        module_name_,
-		CtpDatatypeFormater::ToString(pRspUserLogin).c_str(),
-        CtpDatatypeFormater::ToString(pRspInfo).c_str());
+				module_name_,
+				CtpDatatypeFormater::ToString(pRspUserLogin).c_str(),
+				CtpDatatypeFormater::ToString(pRspInfo).c_str());
 
 	this->TradingDay_ = stoi(pRspUserLogin->TradingDay);
 
@@ -242,7 +272,9 @@ void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
 	int hours = stoi(login_hour);
 	if(hours>=8 && hours<16){
 		this->IsNightTrading = 0;
-	}else{
+	}
+	else
+	{
 		this->IsNightTrading = 1;
 	}
     clog_warning("[%s] TradingDay:%d; IsNightTrading:%d",
@@ -254,20 +286,25 @@ void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
 	this->sessionid_ = pRspUserLogin->SessionID;	
 	if(strcmp(pRspUserLogin->MaxOrderRef, "")==0){
 		this->MaxOrderRef_ = 0;
-	}else{
+	}
+	else
+	{
 		this->MaxOrderRef_ =  stoi(pRspUserLogin->MaxOrderRef);
 		clog_warning("[%s] MaxOrderRef_ :%d", module_name_, MaxOrderRef_);
 	}
 	this->counter_ = GetCounterByLocalOrderID(this->MaxOrderRef_);
 	clog_warning("[%s] counter_:%d", module_name_, this->counter_);
 	
-    if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {
+    if (pRspInfo==NULL || 0==pRspInfo->ErrorID) 
+	{
 		clog_warning("[%s] OnRspUserLogin successfully.", module_name_);
 		
 		CtpFieldConverter::InitNewOrder(this->config_.userid.c_str(), 
-			this->config_.brokerid.c_str());
+					this->config_.brokerid.c_str());
 		CtpFieldConverter::InitCancelOrder(this->config_.userid.c_str(), 
-			this->config_.brokerid.c_str(), this->frontid_, this->sessionid_);
+					this->config_.brokerid.c_str(), 
+					this->frontid_, 
+					this->sessionid_);
 	
 		CThostFtdcSettlementInfoConfirmField req;
         memset(&req, 0, sizeof(req));
@@ -278,22 +315,27 @@ void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
         clog_warning("[%s] ReqSettlementInfoConfirm, return: %d", module_name_, ret);
 		
 
-    }else {
-		clog_error("[%s] OnRspUserLogin, error: %d, msg: %s", module_name_, 
-			pRspInfo->ErrorID, pRspInfo->ErrorMsg);
+    }
+	else 
+	{
+		clog_error("[%s] OnRspUserLogin, error: %d, msg: %s", 
+					module_name_, 
+					pRspInfo->ErrorID, 
+					pRspInfo->ErrorMsg);
     }
 }
 
-void TunnRptProducer::OnRspSettlementInfoConfirm(
-	CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm,
-    CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+void TunnRptProducer::OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm,
+			CThostFtdcRspInfoField *pRspInfo, 
+			int nRequestID, 
+			bool bIsLast)
 {    
-     clog_warning("[%s] OnRspSettlementInfoConfirm: requestid = %d, last_flag=%d \n%s \n%s",
-         module_name_,
-		 nRequestID,
-		 (int)bIsLast,
-         CtpDatatypeFormater::ToString(pSettlementInfoConfirm).c_str(),
-         CtpDatatypeFormater::ToString(pRspInfo).c_str());    
+     clog_warning("[%s] OnRspSettlementInfoConfirm: requestid = %d, last_flag=%d \n%s \n%s", 
+				 module_name_,
+				 nRequestID,
+				 (int)bIsLast,
+				 CtpDatatypeFormater::ToString(pSettlementInfoConfirm).c_str(),
+				 CtpDatatypeFormater::ToString(pRspInfo).c_str());    
 
 	// 查询仓位
 	CThostFtdcQryInvestorPositionField a;
@@ -301,13 +343,21 @@ void TunnRptProducer::OnRspSettlementInfoConfirm(
 	strncpy(a.BrokerID, this->config_.brokerid.c_str(), sizeof(a.BrokerID));
 	strncpy(a.InvestorID, this->config_.userid.c_str(), sizeof(a.InvestorID));
 	strncpy(a.InstrumentID, "", sizeof(a.InstrumentID));//不填写合约则返回所有持仓
+
 	int ret = api_->ReqQryInvestorPosition(&a, 0);
-	if (ret != 0){
+	if (ret != 0)
+	{
 		clog_warning("[%s] ReqQryInvestorPosition- ret=%d - %s", 
-			module_name_, ret, CtpDatatypeFormater::ToString(&a).c_str());
-	}else {
+					module_name_, 
+					ret, 
+					CtpDatatypeFormater::ToString(&a).c_str());
+	}
+	else 
+	{
 		clog_info("[%s] ReqQryInvestorPosition- ret=%d - %s", 
-			module_name_, ret, CtpDatatypeFormater::ToString(&a).c_str());
+					module_name_, 
+					ret, 
+					CtpDatatypeFormater::ToString(&a).c_str());
 	}
 }
 
@@ -320,16 +370,20 @@ void TunnRptProducer::OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout,
 	CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     clog_info("[%s] OnRspUserLogout:%s %s",
-        module_name_,
-		CtpDatatypeFormater::ToString(pUserLogout).c_str(),
-        CtpDatatypeFormater::ToString(pRspInfo).c_str());
+				module_name_,
+				CtpDatatypeFormater::ToString(pUserLogout).c_str(),
+				CtpDatatypeFormater::ToString(pRspInfo).c_str());
 		
-	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {
+	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) 
+	{
 		clog_warning("[%s] OnRspUserLogout successfully.", module_name_);
     }
-    else {
-		clog_error("[%s] OnRspUserLogout, error: %d, msg: %s", module_name_, 
-			pRspInfo->ErrorID, pRspInfo->ErrorMsg);
+    else 
+	{
+		clog_error("[%s] OnRspUserLogout, error: %d, msg: %s", 
+					module_name_, 
+					pRspInfo->ErrorID, 
+					pRspInfo->ErrorMsg);
     }
 }
 
@@ -351,13 +405,16 @@ void TunnRptProducer::End()
 	if(!ended_){
 		CThostFtdcUserLogoutField logoutinfo;
 		memest(&logoutinfo, 0, sizeof(logoutinfo));		 
-		strncpy(logoutinfo.BrokerID, this->config_.brokerid.c_str(), 
-				sizeof(logoutinfo.BrokerID));
-		strncpy(logoutinfo.UserID, this->config_.userid.c_str(), 
-				sizeof(logoutinfo.UserID));		    
+		strncpy(logoutinfo.BrokerID, 
+					this->config_.brokerid.c_str(), 
+					sizeof(logoutinfo.BrokerID));
+		strncpy(logoutinfo.UserID, 
+					this->config_.userid.c_str(), 
+					sizeof(logoutinfo.UserID));		    
+
 		int rtn = api_->ReqUserLogout(&logoutinfo, 0);
-		
-		if (NULL != api_) {
+		if (NULL != api_) 
+		{
 			api_->RegisterSpi(NULL);
 			api_->Release();
 			//api_ = NULL;
@@ -370,18 +427,23 @@ void TunnRptProducer::End()
 }
 
 void TunnRptProducer::OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder, 
-	CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+			CThostFtdcRspInfoField *pRspInfo, 
+			int nRequestID, 
+			bool bIsLast)
 {
 	if (ended_) return;
 	
 	 clog_info("[%s] OnRspOrderInsert:%s %s; bIsLast: %d",
-        module_name_,
-		CtpDatatypeFormater::ToString(pInputOrder).c_str(),
-        CtpDatatypeFormater::ToString(pRspInfo).c_str(),
-		(int)bIsLast);
-		
-	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {				
-    }else {		
+				 module_name_,
+				CtpDatatypeFormater::ToString(pInputOrder).c_str(),
+				CtpDatatypeFormater::ToString(pRspInfo).c_str(),
+				(int)bIsLast);
+				
+	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) 
+	{	
+    }
+	else 
+	{		
 		 clog_error("[%s] OnRspOrderInsert:%s %s",
         module_name_,
 		CtpDatatypeFormater::ToString(pInputOrder).c_str(),
@@ -411,31 +473,40 @@ void TunnRptProducer::OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder,
 }
 
 void TunnRptProducer::OnRspOrderAction(CThostFtdcInputOrderActionField *pInputOrderAction, 
-	CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+			CThostFtdcRspInfoField *pRspInfo, 
+			int nRequestID, 
+			bool bIsLast)
 {
 	clog_info("[%s] OnRspOrderAction:%s %s; bIsLast: %d",
-        module_name_,
-		CtpDatatypeFormater::ToString(pInputOrderAction).c_str(),
-        CtpDatatypeFormater::ToString(pRspInfo).c_str(),
-		(int)bIsLast);
+				module_name_,
+				CtpDatatypeFormater::ToString(pInputOrderAction).c_str(),
+				CtpDatatypeFormater::ToString(pRspInfo).c_str(),
+				(int)bIsLast);
 		
-	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {				
-    }else {		
+	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) 
+	{	
+    }
+	else 
+	{		
 		 clog_error("[%s] OnRspOrderAction:%s %s",
-					module_name_,
-					CtpDatatypeFormater::ToString(pInputOrderAction).c_str(),
-					CtpDatatypeFormater::ToString(pRspInfo).c_str());
+					 module_name_,
+					 CtpDatatypeFormater::ToString(pInputOrderAction).c_str(),
+					 CtpDatatypeFormater::ToString(pRspInfo).c_str());
 	}
 }
 		
 void TunnRptProducer::OnRspError(CThostFtdcRspInfoField *pRspInfo, 
-	int nRequestID, bool bIsLast)
+			int nRequestID, 
+			bool bIsLast)
 {
-	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {				
-    }else {		
+	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) 
+	{	
+    }
+	else 
+	{		
 		 clog_error("[%s] OnRspError:%s",
-					module_name_,		
-					CtpDatatypeFormater::ToString(pRspInfo).c_str());	
+					 module_name_,		
+					 CtpDatatypeFormater::ToString(pRspInfo).c_str());	
 	}
 }
 	
@@ -447,7 +518,8 @@ void TunnRptProducer::OnRtnOrder(CThostFtdcOrderField *pOrder)
 				module_name_, 
 				CtpDatatypeFormater::ToString(pOrder).c_str());
 
-	if (pOrder->OrderStatus == THOST_FTDC_OSS_InsertRejected){
+	if (pOrder->OrderStatus == THOST_FTDC_OSS_InsertRejected)
+	{
 		clog_warning("[%s] OnRtnOrder:%s",
 					module_name_,
 					CtpDatatypeFormater::ToString(pOrder).c_str());
@@ -487,32 +559,38 @@ void TunnRptProducer::OnRtnTrade(CThostFtdcTradeField *pTrade)
 
 //  看《CTP问题列表》，该回调可以忽略
 void TunnRptProducer::OnErrRtnOrderInsert(CThostFtdcInputOrderField *pInputOrder, 
-	CThostFtdcRspInfoField *pRspInfo)
+			CThostFtdcRspInfoField *pRspInfo)
 {
 		if (ended_) return;
 	
 	 clog_info("[%s] OnErrRtnOrderInsert:%s %s;",
-				module_name_,
-				CtpDatatypeFormater::ToString(pInputOrder).c_str(),
-				CtpDatatypeFormater::ToString(pRspInfo).c_str());
+				 module_name_,
+				 CtpDatatypeFormater::ToString(pInputOrder).c_str(),
+				 CtpDatatypeFormater::ToString(pRspInfo).c_str());
 		
-	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {				
-    }else {		
-		 clog_error("[%s] OnErrRtnOrderInsert:%s %s",
-					module_name_,
-					CtpDatatypeFormater::ToString(pInputOrder).c_str(),
-					CtpDatatypeFormater::ToString(pRspInfo).c_str());
+	if (pRspInfo==NULL || 0==pRspInfo->ErrorID)
+	{				
+    }
+	else
+	{		
+		clog_error("[%s] OnErrRtnOrderInsert:%s %s",
+					 module_name_,
+					 CtpDatatypeFormater::ToString(pInputOrder).c_str(),
+					 CtpDatatypeFormater::ToString(pRspInfo).c_str());
 	}
 }
 
 void TunnRptProducer::OnErrRtnOrderAction(CThostFtdcOrderActionField *pOrderAction, 
-	CThostFtdcRspInfoField *pRspInfo)
+			CThostFtdcRspInfoField *pRspInfo)
 {
-	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {				
+	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) 
+	{	
 		 clog_info("[%s] OnErrRtnOrderAction:%s",
 					 module_name_,		
 					 CtpDatatypeFormater::ToString(pRspInfo).c_str());		
-    }else {		
+    }	
+	else 
+	{		
 		 clog_error("[%s] OnErrRtnOrderAction:%s",
 					 module_name_,		
 					 CtpDatatypeFormater::ToString(pRspInfo).c_str());		
@@ -523,7 +601,8 @@ int32_t TunnRptProducer::Push()
 {
 	static int32_t cursor = RPT_BUFFER_SIZE - 1;
 	cursor++;
-	if (cursor%RPT_BUFFER_SIZE == 0){
+	if (cursor%RPT_BUFFER_SIZE == 0)
+	{
 		cursor = 0;
 	}
 
@@ -531,7 +610,9 @@ int32_t TunnRptProducer::Push()
 }
 
 void TunnRptProducer::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInvestorPosition, 
-	CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+			CThostFtdcRspInfoField *pRspInfo, 
+			int nRequestID, 
+			bool bIsLast)
 
 {
 	// 如果没有仓位，则pInvestorPosition,pRspInfo为NULL
@@ -542,19 +623,24 @@ void TunnRptProducer::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *
 				(int)bIsLast);	
 
 	
-	if(NULL != pRspInfo && 0 != pRspInfo->ErrorID ){
+	if(NULL != pRspInfo && 0 != pRspInfo->ErrorID )
+	{
 		clog_error("[%s] OnRspQryInvestorPosition:%s %s,isLast:%d",
 					module_name_,
 					CtpDatatypeFormater::ToString(pInvestorPosition).c_str(),
 					CtpDatatypeFormater::ToString(pRspInfo).c_str(),
 					(int)bIsLast);	
+		fflush (Log::fp);
 		
 		exit (EXIT_FAILURE);
-	}else{
+	}
+	else
+	{
 		FillInitPosition(pInvestorPosition);
 	}
 	
-	if(bIsLast){
+	if(bIsLast)
+	{
 		SavePosition();
 
 		// TODO: yao. pos_redist.py代码在实盘时需要修改
@@ -572,53 +658,74 @@ void TunnRptProducer::FillInitPosition(CThostFtdcInvestorPositionField *posiFiel
 	int index = 0;
 
 	// 同一合约，保证存储在_cur_pos，_yesterday_pos中存储在同一个索引位置，方便查找
-	if (posField != NULL) {		
+	if (posField != NULL)
+	{		
 		int i=0;
-		for(; i<init_positions._cur_pos.symbol_cnt_; i++){
-			if(strcmp(init_positions._cur_pos[i].symbol,posField->InstrumentID)==0){
+		for(; i<init_positions._cur_pos.symbol_cnt_; i++)
+		{
+			if(strcmp(init_positions._cur_pos[i].symbol,posField->InstrumentID)==0)
+			{
 				break;
 			}
 		}
 		index = i;
-		strncpy(init_positions._cur_pos[i].symbol, posField->InstrumentID,
-				sizeof(init_positions._cur_pos[i].symbol);
-		strncpy(init_positions._yesterday_pos[i].symbol, posField->InstrumentID,
-				sizeof(init_positions._yesterday_pos[i].symbol);
+		strncpy(init_positions._cur_pos[i].symbol, 
+					posField->InstrumentID, 
+					sizeof(init_positions._cur_pos[i].symbol);
+		strncpy(init_positions._yesterday_pos[i].symbol, 
+					posField->InstrumentID, 
+					sizeof(init_positions._yesterday_pos[i].symbol);
 
-		if(posField->PosiDirection==THOST_FTDC_PD_Long){
+		if(posField->PosiDirection==THOST_FTDC_PD_Long)
+		{
 			init_positions._cur_pos[i].long_volume = posField->TodayPosition;
-			init_positions._yesterday_pos[i].long_volume = 
-				posField->Position - posField->TodayPosition;
+			init_positions._yesterday_pos[i].long_volume = posField->Position - posField->TodayPosition;
 		}
-		else if(posField->PosiDirection==THOST_FTDC_PD_Short){
+		else if(posField->PosiDirection==THOST_FTDC_PD_Short)
+		{
 			init_positions._cur_pos[i].short_volume = posField->TodayPosition;
-			init_positions._yesterday_pos[i].short_volume = 
-				posField->Position - posField->TodayPosition;
+			init_positions._yesterday_pos[i].short_volume = posField->Position - posField->TodayPosition;
 		}
-		else{
-			clog_warning("[%s] CThostFtdcInvestorPositionField.PosiDirection is net position!", 
-				module_name_);
+		else
+		{
+			clog_warning("[%s] CThostFtdcInvestorPositionField."
+						"PosiDirection is net position!", 
+						module_name_);
 		}
 	}
 }
 
+/*
+ * sample:
+ * ag1912;12;13;23;22
+ * OI001;33;21;34;67
+ * contract;yesterday long;yesterday short;today long;today short
+ *
+ *
+ */
 void TunnRptProducer::SavePosition()
 {
 	std::ofstream of;
 	of.open("pos_sum.pos",std::ofstream::trunc);
-	if (of.good()) {
-		for(int i=0; i<init_positions._cur_pos.symbol_cnt_; i++){
+	if (of.good()) 
+	{
+		for(int i=0; i<init_positions._cur_pos.symbol_cnt_; i++)
+		{
 			char buffer[10];
 			const char *contract = init_positions._cur_pos[i].symbol;
 			// contract
 			of.write(contract, strlen(contract));	
 			of.write(";", 1);	
 			// yesterday long position
-			snprintf (buffer, sizeof(buffer), "%d", init_positions._yesterday_pos[i].long_volume);
+			snprintf (buffer, sizeof(buffer), 
+						"%d", 
+						init_positions._yesterday_pos[i].long_volume);
 			of.write(buffer, strlen(buffer));
 			of.write(";", 1);	
 			// yesterday short position
-			snprintf (buffer, sizeof(buffer), "%d", init_positions._yesterday_pos[i].short_volume);
+			snprintf (buffer, sizeof(buffer), 
+						"%d", 
+						init_positions._yesterday_pos[i].short_volume);
 			of.write(buffer, strlen(buffer));
 			of.write(";", 1);	
 			// today long position
@@ -626,14 +733,19 @@ void TunnRptProducer::SavePosition()
 			of.write(buffer, strlen(buffer));
 			of.write(";", 1);	
 			// today short position
-			snprintf (buffer, sizeof(buffer), "%d", init_positions._cur_pos[i].short_volume);
+			snprintf (buffer, sizeof(buffer), 
+						"%d", 
+						init_positions._cur_pos[i].short_volume);
 			of.write(buffer, strlen(buffer));
 			of.write(";", 1);	
 			of.write("\n", 1);	
 		} // end for(int i=0; i<init_positions._cur_pos.symbol_cnt_; i++){
 	}
-	else{
-		clog_error("[%s] SavePosition failed due to failure to open file.", module_name_);
+	else
+	{
+		clog_error("[%s] SavePosition failed due to failure "
+					"to open file.", 
+					module_name_);
 	}
 
 	of.close();
