@@ -10,11 +10,14 @@
 #include "YaoQuote.h"
 
 
-UniConsumer::UniConsumer(struct vrt_queue  *queue, DceMDProducer *md_producer, 
-			TunnRptProducer *tunn_rpt_producer)
-: module_name_("uni_consumer"),running_(true), 
-  md_producer_(md_producer),
-  tunn_rpt_producer_(tunn_rpt_producer),lock_log_(ATOMIC_FLAG_INIT)
+UniConsumer::UniConsumer(struct vrt_queue  *queue, 
+			DceMDProducer *md_producer, 
+			TunnRptProducer *tunn_rpt_producer) 
+		: module_name_("uni_consumer"),
+		running_(true), 
+		md_producer_(md_producer),
+		tunn_rpt_producer_(tunn_rpt_producer),
+		lock_log_(ATOMIC_FLAG_INIT)
 {
 	// lic
 	legal_ = check_lic();
@@ -39,11 +42,16 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, DceMDProducer *md_producer,
 	if(!legal_) strcpy(config_.yield, "hybrid" );
 
 	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
-	if(strcmp(config_.yield, "threaded") == 0){
+	if(strcmp(config_.yield, "threaded") == 0)
+	{
 		this->consumer_->yield = vrt_yield_strategy_threaded();
-	}else if(strcmp(config_.yield, "spin") == 0){
+	}
+	else if(strcmp(config_.yield, "spin") == 0)
+	{
 		this->consumer_->yield = vrt_yield_strategy_spin_wait();
-	}else if(strcmp(config_.yield, "hybrid") == 0){
+	}
+	else if(strcmp(config_.yield, "hybrid") == 0)
+	{
 		this->consumer_->yield = vrt_yield_strategy_hybrid();
 	}
 
@@ -73,14 +81,21 @@ void UniConsumer::ParseConfig()
 	
 	// yield strategy
     TiXmlElement *comp_node = root->FirstChildElement("Disruptor");
-	if (comp_node != NULL){
+	if (comp_node != NULL)
+	{
 		strcpy(config_.yield, comp_node->Attribute("yield"));
-	} else { clog_error("[%s] x-trader.config error: Disruptor node missing.", module_name_); }
+	}
+	else 
+	{ 
+		clog_error("[%s] x-trader.config error: Disruptor node missing.", module_name_); 
+	}
 
     TiXmlElement *strategies_ele = root->FirstChildElement("strategies");
-	if (strategies_ele != 0){
+	if (strategies_ele != 0)
+	{
 		TiXmlElement *strategy_ele = strategies_ele->FirstChildElement();
-		while (strategy_ele != 0){
+		while (strategy_ele != 0)
+		{
 			StrategySetting strategy_setting = this->CreateStrategySetting(strategy_ele);
 			this->strategy_settings_.push_back(strategy_setting);
 			strategy_ele = strategy_ele->NextSiblingElement();			
@@ -110,7 +125,8 @@ StrategySetting UniConsumer::CreateStrategySetting(const TiXmlElement *ele)
 
 	int counter = 0;
 	const TiXmlElement* symbol_ele = ele->FirstChildElement();		
-	while (symbol_ele != 0)	{		
+	while (symbol_ele != 0)	
+	{
 		symbol_t &tmp = setting.config.symbols[counter];
 
 		symbol_ele->QueryIntAttribute("max_pos", &tmp.max_pos);
