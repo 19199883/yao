@@ -101,7 +101,7 @@ public:
 	void FeedInitPosition();
 	void FeedMd(YaoQuote* md, int *sig_cnt, signal_t* signals);
 	void feed_sig_response(signal_resp_t* rpt, 
-				symbol_pos_t *pos,
+				symbol_pos_t *pos, 
 				int *sig_cnt, 
 				signal_t* sigs);
 
@@ -113,10 +113,16 @@ public:
 	int32_t GetMaxPosition(const char* contract);
 	const char* GetSoFile();
 	int GetLocalOrderID(int32_t sig_id);
-	bool Deferred(int sig_id, unsigned short sig_openclose, unsigned short int sig_act);
-	void PrepareForExecutingSig(int localorderid, const signal_t &sig,
+	bool Deferred(int sig_id, 
+				unsigned short sig_openclose, 
+				unsigned short int sig_act);
+	void PrepareForExecutingSig(int localorderid, 
+				const signal_t &sig, 
 				int32_t actual_vol);
-	void FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, signal_t* sigs);
+	void FeedTunnRpt(int32_t sigidx, 
+				const TunnRpt &rpt, 
+				int *sig_cnt, 
+				signal_t* sigs);
 	bool HasFrozenPosition(const char *contract);
 	int32_t GetCounterByLocalOrderID(int local_ord_id);
 	signal_t* GetSignalBySigID(int32_t sig_id);
@@ -192,6 +198,7 @@ private:
 
 	CLoadLibraryProxy *pproxy_;
 	const char *module_name_;  
+
 	/*
 	 * 储每个策略的最新仓位，在策略内部处理仓位逻辑时使用
 	 */
@@ -216,14 +223,20 @@ private:
 	/*
 	 * 
 	 */
-	void UpdateSigrptByTunnrpt(int32_t lastqty, double last_price, signal_resp_t& sigrpt, 
-			if_sig_state_t &status, int err);
-	void UpdatePosition(StrategyPosition *stra_pos,int32_t lastqty, if_sig_state_t status,
+	void UpdateSigrptByTunnrpt(int32_t lastqty,
+				double last_price, 
+				signal_resp_t& sigrpt, 
+				if_sig_state_t &status, 
+				int err);
+	void UpdatePosition(StrategyPosition *stra_pos,int32_t lastqty, 
+				if_sig_state_t status, 
 				unsigned short sig_openclose,
-			unsigned short int sig_act, int err);
+				unsigned short int sig_act, int err);
 	void FillPositionRpt();
 	// const char * GetSymbol();
-	bool Freeze(StrategyPosition *stra_pos,unsigned short sig_openclose, 
-				unsigned short int sig_act, int32_t updated_vol);
+	bool Freeze(StrategyPosition *stra_pos,
+				unsigned short sig_openclose, 
+				unsigned short int sig_act, 
+				int32_t updated_vol);
 };
 

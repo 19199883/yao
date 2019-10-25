@@ -1,4 +1,3 @@
-// done
 // lic
 #include<stdlib.h>
 #include <chrono>
@@ -46,18 +45,25 @@ Strategy::Strategy()
 void Strategy::End(void)
 {
 	fclose(pfDayLogFile_);
-	clog_warning("[%s] strategy(id:%d) close log file", module_name_, this->setting_.config.st_id);
+	clog_warning("[%s] strategy(id:%d) close log file", 
+				module_name_, 
+				this->setting_.config.st_id);
 
-	if (this->pfn_destroy_ != NULL){
-		//pfn_destroy_ ();
-		clog_warning("[%s] strategy(id:%d) destroyed", module_name_, this->setting_.config.st_id);
+	if (this->pfn_destroy_ != NULL)
+	{
+		pfn_destroy_ ();
+		clog_warning("[%s] strategy(id:%d) destroyed", 
+					module_name_, 
+					this->setting_.config.st_id);
 	}
+
 	fflush (Log::fp);
 }
 
 Strategy::~Strategy(void)
 {
-	if (pproxy_ != NULL){
+	if (pproxy_ != NULL)
+	{
 		// lic
 		char cmd[1024];
 		char bar_so[1024];
@@ -112,7 +118,8 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 
 	// lic
 	char cmd[1024];
-	sprintf(cmd, "openssl des3 -d -k 617999 -salt -in %s.so | tar -xzf - -C ./lib", this->setting_.file.c_str());
+	sprintf(cmd, "openssl des3 -d -k 617999 -salt -in %s.so | tar -xzf - -C ./lib", 
+				this->setting_.file.c_str());
 	system(cmd);
 
 	char bar_so[1024];
@@ -127,9 +134,10 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 					errno);
 	}
 
-	pfn_feedshfemarketdata_ = (FeedYaoMarketData_ptr )pproxy_->findObject(
-					bar_so, STRATEGY_METHOD_FEED_MD_YAO);
-	if (!pfn_feedshfemarketdata_ ){
+	pfn_feedshfemarketdata_ = 
+		(FeedYaoMarketData_ptr )pproxy_->findObject( bar_so, STRATEGY_METHOD_FEED_MD_YAO);
+	if (!pfn_feedshfemarketdata_ )
+	{
 		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, 
 					bar_so, 
@@ -137,9 +145,10 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 					errno);
 	}
 
-	pfn_feedinitposition_ = (FeedInitPosition_ptr)pproxy_->findObject(
-				bar_so, STRATEGY_METHOD_FEED_INIT_POSITION);
-	if (!pfn_feedinitposition_ ){
+	pfn_feedinitposition_ = 
+		(FeedInitPosition_ptr)pproxy_->findObject(bar_so, STRATEGY_METHOD_FEED_INIT_POSITION);
+	if (!pfn_feedinitposition_ )
+	{
 		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, 
 					bar_so, 
@@ -147,9 +156,10 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 					errno);
 	}
 
-	pfn_feedsignalresponse_ = (FeedSignalResponse_ptr)pproxy_->findObject(
-				bar_so, STRATEGY_METHOD_FEED_SIG_RESP);
-	if (!pfn_feedsignalresponse_){
+	pfn_feedsignalresponse_ = 
+		(FeedSignalResponse_ptr)pproxy_->findObject(bar_so, STRATEGY_METHOD_FEED_SIG_RESP);
+	if (!pfn_feedsignalresponse_)
+	{
 		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, 
 					bar_so, 
@@ -157,8 +167,10 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 					errno);
 	}
 
-	pfn_destroy_ = (Destroy_ptr)pproxy_->findObject(bar_so, STRATEGY_METHOD_FEED_DESTROY );
-	if (!pfn_destroy_){
+	pfn_destroy_ = 
+		(Destroy_ptr)pproxy_->findObject(bar_so, STRATEGY_METHOD_FEED_DESTROY );
+	if (!pfn_destroy_)
+	{
 		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, 
 					bar_so, 
@@ -174,13 +186,17 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 
 	LoadPosition();
 
-	string sym_log_name = generate_log_name(setting_.config.symbols[0].symbol_log_name);
+	string sym_log_name = 
+		generate_log_name(setting_.config.symbols[0].symbol_log_name);
 	strcpy(setting_.config.symbols[0].symbol_log_name, sym_log_name.c_str());
 
 	pfDayLogFile_ = fopen (setting_.config.log_name, "w");
 	int err = 0;
 	this->pfn_init_(&this->setting_.config, &err, log_.data()+log_cursor_);
-	if((log_.data()+log_cursor_)->exch_time > 0) log_cursor_++;
+	if((log_.data()+log_cursor_)->exch_time > 0) 
+	{
+		log_cursor_++;
+	}
 
 	this->FeedInitPosition();
 }
@@ -191,7 +207,10 @@ void Strategy::FeedInitPosition()
 	int sig_cnt = 0;
 
 	this->pfn_feedinitposition_(&init_pos_, log_.data()+log_cursor_);
-	if((log_.data()+log_cursor_)->exch_time > 0) log_cursor_++;
+	if((log_.data()+log_cursor_)->exch_time > 0)
+	{
+		log_cursor_++;
+	}
 }
 
 void Strategy::FeedMd(YaoQuote* md, int *sig_cnt, signal_t* sigs)
@@ -208,16 +227,18 @@ void Strategy::FeedMd(YaoQuote* md, int *sig_cnt, signal_t* sigs)
 	*sig_cnt = 0;
 	(log_.data()+log_cursor_)->exch_time = 0;
 	this->pfn_feedshfemarketdata_(md, sig_cnt, sigs, log_.data()+log_cursor_);
-	if((log_.data()+log_cursor_)->exch_time > 0) log_cursor_++;
+	if((log_.data()+log_cursor_)->exch_time > 0)
+	{
+		log_cursor_++;
+	}
 
-	for (int i = 0; i < *sig_cnt; i++ ){
-
+	for (int i = 0; i < *sig_cnt; i++ )
+	{
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
 		clog_warning("[%s] strategy latency:%d us", module_name_, latency); 
 #endif
-
 		sigs[i].st_id = this->GetId();
 
 		 clog_info("[%s] FeedMd MDBestAndDeep(data_flag=%d) signal: "
@@ -276,13 +297,6 @@ int32_t Strategy::GetId()
 	return id_;
 }
 
-// TODO: 需要支持多个合约
-// TODO: yao 
-//const char* Strategy::GetContract()
-//{
-//	return this->setting_.config.symbols[0].name;
-//}
-
 exchange_names Strategy::GetExchange(const char* contract)
 {
 	for(int i=0; i< this->setting_.config.symbols_cnt; i++)
@@ -309,8 +323,10 @@ bool Strategy::Subscribed(const char* contract)
 
 int32_t Strategy::GetMaxPosition(const char* contract)
 {
-	for(int i=0; i< this->setting_.config.symbols_cnt; i++){
-		if (strcmp(this->setting_.config.symbols[i].name, contract) == 0){
+	for(int i=0; i< this->setting_.config.symbols_cnt; i++)
+	{
+		if (strcmp(this->setting_.config.symbols[i].name, contract) == 0)
+		{
 			return this->setting_.config.symbols[i].max_pos;
 		}
 	}
@@ -326,46 +342,6 @@ int Strategy::GetLocalOrderID(int32_t sig_id)
 	return sigid_localorderid_map_table_[sig_id];
 }
 
-bool Strategy::Freeze(StrategyPosition *stra_pos,
-			unsigned short sig_openclose, 
-			unsigned short int sig_act, 
-			int32_t updated_vol)
-{
-	// 开仓限制要使用多空仓位的差值，锁仓部分不算
-	if (sig_openclose==alloc_position_effect_t::OPEN && sig_act==signal_act_t::buy)
-	{
-		stra_pos->frozen_open_long += updated_vol;
-	} 
-	else if (sig_openclose==alloc_position_effect_t::OPEN && sig_act==signal_act_t::sell)
-	{
-		stra_pos->frozen_open_short += updated_vol;
-	} 
-
-	if ((sig_openclose==alloc_position_effect_t::CLOSE || sig_openclose==alloc_position_effect_t::CLOSE_TOD || sig_openclose==alloc_position_effect_t::CLOSE_YES) &&
-		sig_act==signal_act_t::buy)
-	{
-		stra_pos->frozen_close_short += updated_vol;
-	}
-	else if ((sig_openclose==alloc_position_effect_t::CLOSE || sig_openclose==alloc_position_effect_t::CLOSE_TOD || sig_openclose==alloc_position_effect_t::CLOSE_YES) && 
-		sig_act==signal_act_t::sell)
-	{
-		stra_pos->frozen_close_long += updated_vol;
-	}
-
-	clog_debug("[%s] Freeze: strategy id:%d; current long:%d; current short:%d; \
-				frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d; \
-				frozen_open_short:%d; ",
-				module_name_, 
-				setting_.config.st_id, 
-				stra_pos->cur_long, 
-				stra_pos->cur_short,
-				stra_pos->frozen_close_long, 
-				stra_pos->frozen_close_short,
-				stra_pos->frozen_open_long, 
-				stra_pos->frozen_open_short);
-}
-
-// TODO: multiple contracts
 int Strategy::GetVol(const signal_t &sig)
 {
 	int32_t vol = 0;
@@ -530,7 +506,8 @@ void Strategy::PrepareForExecutingSig(int localorderid, const signal_t &sig, int
 {
 	int32_t cursor = sigid_sigidx_map_table_[sig.sig_id];
 	StrategyPosition *cur_pos = GetPosition(contract);
-	this->Freeze(cur_pos,sig.sig_openclose, sig.sig_act, actual_vol);
+	// TODO: yao
+	//this->Freeze(cur_pos,sig.sig_openclose, sig.sig_act, actual_vol);
 	sigrpt_table_[cursor].order_volume = actual_vol;
 	// mapping table
 	// sigid_sigandrptidx_map_table_[sig.sig_id] = cursor;
@@ -771,6 +748,7 @@ void Strategy::FillPositionRpt()
 		pos.s_pos[i].changed = 1;
 	}
 }
+
 void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty, 
 			double last_price, 
 			signal_resp_t& sigrpt, 
@@ -798,6 +776,7 @@ void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty,
 	sigrpt.status = status;
 }
 
+// done
 void Strategy::LoadPosition()
 {
 	char* strategy;
@@ -821,19 +800,18 @@ void Strategy::LoadPosition()
 	strategy = GetSoFile();
 	
 	// 注意pos.s_pos与position_以同样的合约顺序存储
-	for(int i=0; i< this->setting_.config.symbols_cnt; i++){
+	for(int i=0; i< this->setting_.config.symbols_cnt; i++)
+	{
 		contract = this->setting_.config.symbols[i].name;
-
-		strcpy(pos_cache_.s_pos[i].symbol, contract);
-
-		strcpy(position_[i].contract, contract);
 		pos_calc::get_pos(strategy, contract, yLong, yShort, tLong, tShort);
 
+		strcpy(position_[i].contract, contract);
 		position_[i].cur_long = yLong + tLong;
 		position_[i].cur_short = yShort + tShort;
 
-		pos.s_pos[i].long_volume  = yLong + tLong;
-		pos.s_pos[i].short_volume = tLong + tshort;
+		strcpy(pos_cache_.s_pos[i].symbol, contract);
+		pos_cache_.s_pos[i].long_volume  = yLong + tLong;
+		pos_cache_.s_pos[i].short_volume = tLong + tshort;
 
 		symbol_pos_t &yesterday_sym_pos = yesterday_pos.s_pos[i];
 		strncpy(yesterday_sym_pos.symbol, contract, sizeof(yesterday_sym_pos.symbol));
