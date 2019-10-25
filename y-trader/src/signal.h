@@ -52,7 +52,8 @@ enum POS_DIRECT {
 	POS_SELL = 2,
 };
 
-class symbol_t {
+class symbol_t 
+{
 public:
 	/* exchange code,the detail is the following:
 	 * 'A': SHANGHAI FUTURES EXCHANGE，上海期货交易所
@@ -77,7 +78,8 @@ public:
 	char symbol_log_name[256];
 };
 
-class st_config_t{
+class st_config_t
+{
 public:
 	/* 策略id，策略的唯⼀一标志。*/
 	int st_id;
@@ -127,7 +129,7 @@ public:
 	 * is specified by symbols_cnt member.
 	 */
 	// TODO: yao
-	symbol_t symbols[100];
+	symbol_t symbols[5];
 
 	// TODO: yao
 	int TradingDay;
@@ -138,7 +140,8 @@ public:
 	int IsNightTrading;
 } ;
 
-class symbol_pos_t {
+class symbol_pos_t 
+{
 public:
 	/* 合约名称 */
 	char symbol[64];
@@ -168,7 +171,8 @@ public:
 	}
 };
 
-class position_t{
+class position_t
+{
 public:
 	position_t()
 	{
@@ -184,7 +188,8 @@ public:
 	symbol_pos_t s_pos[100];
 } ;
 
-class strategy_init_pos_t {
+class strategy_init_pos_t 
+{
 public:
 	strategy_init_pos_t()
 	{
@@ -202,7 +207,8 @@ public:
  } ;
 
 
-enum if_sig_state_t {
+enum if_sig_state_t 
+{
 	SIG_STATUS_SUCCESS = 0,
 
 	/* 报单委托成功 */
@@ -215,7 +221,7 @@ enum if_sig_state_t {
 
 enum  signal_act_t
 {
-	buy 			= 0,
+	buy			= 0,
 	sell 		= 1,
 	cancel 		= 2,
 };
@@ -239,7 +245,8 @@ enum alloc_position_effect_t
 	CLOSE_YES	= 3,
 };
 
-class signal_resp_t{
+class signal_resp_t
+{
 public:
 	unsigned long sig_id; 				/* 信号id */
 	char symbol[64]; 					/* 合约号 */
@@ -263,7 +270,8 @@ public:
  * if the field "instr" is equal to  QUOTE, the value of open_volume field is set to
  * the buy_volume field of quote order and the value close_volume field is set to the sell_volume field of quote order
  */
-class signal_t {
+class signal_t 
+{
 public:
 	/* 信号id */
 	unsigned long sig_id;

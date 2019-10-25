@@ -407,6 +407,7 @@ void Strategy::Push(const signal_t &sig)
 	sigrpt_table_[cursor_].status = -1; 
 	sigrpt_table_[cursor_].sig_id = sig.sig_id;
 	sigrpt_table_[cursor_].sig_act = sig.sig_act;
+	sigrpt_table_[cursor_].sig_openclose = sig.sig_openclose;
 	strcpy(sigrpt_table_[cursor_].symbol, sig.symbol);
 	if (sig.sig_act==signal_act_t::buy)
 	{

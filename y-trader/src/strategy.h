@@ -78,19 +78,26 @@ class Strategy
 {
 public:
 	typedef void ( *LogFn1Ptr) (int strategy_id, struct Log1 &content);
+
 	typedef void ( *LogFn2Ptr) (int strategy_id, struct Log2 &content);
+
 	typedef void (* Init_ptr)(st_config_t *config, int *ret_code, struct strat_out_log *log);
+
 	typedef void ( *FeedYaoMarketData_ptr)(YaoQuote* md, 
 				int *sig_cnt, 
 				signal_t* signals, 
 				struct strat_out_log *log);	
+
 	typedef void ( *FeedSignalResponse_ptr)(signal_resp_t* rpt, 
 				symbol_pos_t *pos, 
 				int *sig_cnt, 
 				signal_t* sigs, 
 				struct strat_out_log *log);
+
 	typedef void (*Destroy_ptr)();
-	typedef void (*FeedInitPosition_ptr)(strategy_init_pos_t *data, struct strat_out_log *log);
+
+	typedef void (*FeedInitPosition_ptr)(strategy_init_pos_t *data, 
+				struct strat_out_log *log);
 
 public:
 	Strategy();
