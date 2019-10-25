@@ -40,7 +40,8 @@ struct Uniconfig
 class UniConsumer
 {
 	public:
-		UniConsumer(struct vrt_queue  *queue, DceMDProducer *md_producer,
+		UniConsumer(struct vrt_queue *queue, 
+					DceMDProducer *md_producer, 
 					TunnRptProducer *tunn_rpt_producer);
 		~UniConsumer();
 

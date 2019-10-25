@@ -80,7 +80,8 @@ int main(/*int argc, const char **argv*/)
 	// TODO: yao
 	//l1_md_producer = new TapMDProducer(queue);
 	tunnRptProducer = new TunnRptProducer(queue);
-	while(!tunnRptProducer->IsReady()){
+	while(!tunnRptProducer->IsReady())
+	{
 		std::this_thread::sleep_for (std::chrono::seconds(1));
 	}
 	uniConsumer = new UniConsumer (queue, dcemd_producer, tunnRptProducer);

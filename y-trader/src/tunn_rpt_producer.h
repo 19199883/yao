@@ -15,6 +15,7 @@ using namespace std;
 #define CTP_EXCHANGE_SHFE "SHFE"
 #define CTP_EXCHANGE_DCE "DCE"
 #define CTP_EXCHANGE_CZCE "CZCE"
+#define  CTP_EXCHANGE_INE "INE"
 
 #define OEDERINSERT_REQUESTID 1
 #define ORDERCANCEL_REQUESTID 2
@@ -66,6 +67,10 @@ class CtpFieldConverter
 			{
 				return CTP_EXCHANGE_CZCE;
 			}
+			else if(exchange_names::INE == yExc)
+			{
+				return CTP_EXCHANGE_INE;
+			}
 			else
 			{
 				return "";
@@ -100,12 +105,21 @@ class CtpFieldConverter
 		/*
 			将策略产生的信号等信息生成ctp需要的下单对象
 		*/
-		static CThostFtdcInputOrderField*  Convert(const signal_t& sig,int localorderid,int32_t vol)
+		static CThostFtdcInputOrderField*  Convert(const signal_t& sig,
+					int localorderid,
+					int32_t vol)
 		{	
-			strncpy(new_order_.ExchangeID, ConvertExchange(sig.exchange), sizeof(new_order_.ExchangeID));						
+			strncpy(new_order_.ExchangeID, 
+						ConvertExchange(sig.exchange), 
+						sizeof(new_order_.ExchangeID));						
 			new_order_.RequestID = OEDERINSERT_REQUESTID;
-			strncpy(new_order_.InstrumentID, sig.symbol, sizeof(new_order_.InstrumentID));
-			snprintf(new_order_.OrderRef, sizeof(TThostFtdcOrderRefType), "%d", localorderid);
+			strncpy(new_order_.InstrumentID, 
+						sig.symbol, 
+						sizeof(new_order_.InstrumentID));
+			snprintf(new_order_.OrderRef, 
+						sizeof(TThostFtdcOrderRefType), 
+						"%d", 
+						localorderid);
  
 			if (sig.sig_act == signal_act_t::buy)
 			{
@@ -119,27 +133,52 @@ class CtpFieldConverter
 			}
 			else
 			{
-				 clog_warning("[%s] do support Direction value:%d; sig id:%d", "CtpFieldConverter",
-					new_order_.Direction, sig.sig_id); 
+				 clog_warning("[%s] do support Direction value:%d; sig id:%d", 
+							 "CtpFieldConverter", 
+							 new_order_.Direction, 
+							 sig.sig_id); 
 			}
 
-			// TODO: 是否平今还是平昨，需要根据市场和昨仓决定
-			if (sig.sig_openclose == alloc_position_effect_t::open_)
+			if (sig.sig_openclose == alloc_position_effect_t::OPEN)
 			{
 				new_order_.CombOffsetFlag[0] = THOST_FTDC_OF_Open;
 			}
-			else if (sig.sig_openclose == alloc_position_effect_t::close_)
+
+			if(exchange_names::SHFE == sig.exchange||
+						exchange_names::INE == sig.exchange)
 			{
-				new_order_.CombOffsetFlag[0] = THOST_FTDC_OF_CloseToday;
-			}
-			else if (sig.sig_openclose == alloc_position_effect_t::close_yesterday)
-			{
-				new_order_.CombOffsetFlag[0] = THOST_FTDC_OF_Close;
+				if (sig.sig_openclose == alloc_position_effect_t::CLOSE_TOD)
+				{
+					new_order_.CombOffsetFlag[0] = THOST_FTDC_OF_CloseToday;
+				}
+				else if (sig.sig_openclose == alloc_position_effect_t::CLOSE ||
+							sig.sig_openclose == alloc_position_effect_t::CLOSE_YES)
+				{
+					new_order_.CombOffsetFlag[0] = THOST_FTDC_OF_CloseYesterday;
+				}
+				else
+				{
+					clog_warning("[%s] do support sig_openclose value:%d; sig id:%d", 
+								"CtpFieldConverter", 
+								sig.sig_openclose, 
+								sig.sig_id); 
+				}
 			}
 			else
 			{
-				clog_warning("[%s] do support sig_openclose value:%d; sig id:%d", "CtpFieldConverter",
-				sig.sig_openclose, sig.sig_id); 
+				if (sig.sig_openclose == alloc_position_effect_t::CLOSE ||
+							sig.sig_openclose == alloc_position_effect_t::CLOSE_YES ||
+							sig.sig_openclose == alloc_position_effect_t::CLOSE_TOD)
+				{
+					new_order_.CombOffsetFlag[0] = THOST_FTDC_OF_Close;
+				}
+				else
+				{
+					clog_warning("[%s] do support sig_openclose value:%d; sig id:%d", 
+								"CtpFieldConverter", 
+								sig.sig_openclose, 
+								sig.sig_id); 
+				}
 			}
 
 			new_order_.VolumeTotalOriginal = vol;
@@ -168,10 +207,20 @@ class CtpFieldConverter
 					TThostFtdcOrderSysIDType ordersysid)
 		{
 			cancel_order_.OrderActionRef = cancel_localorderid;
-			snprintf(cancel_order_.OrderRef, sizeof(TThostFtdcOrderRefType), "%d", orig_localorderid);
-			strncpy(cancel_order_.ExchangeID, ConvertExchange(exchange), sizeof(cancel_order_.ExchangeID));						
-			strncpy(cancel_order_.OrderSysID, ordersysid, sizeof(cancel_order_.OrderSysID));
-			strncpy(cancel_order_.InstrumentID, symbol, sizeof(cancel_order_.InstrumentID));
+			snprintf(cancel_order_.OrderRef, 
+						sizeof(TThostFtdcOrderRefType), 
+						"%d", 
+						orig_localorderid);
+			strncpy(cancel_order_.ExchangeID, 
+						ConvertExchange(exchange), 
+						sizeof(cancel_order_.ExchangeID));						
+			strncpy(cancel_order_.OrderSysID, 
+						ordersysid, 
+						sizeof(cancel_order_.OrderSysID));
+			strncpy(cancel_order_.InstrumentID, 
+						symbol, 
+						sizeof(cancel_order_.InstrumentID));
+
 			return &cancel_order_;
 	
 		}

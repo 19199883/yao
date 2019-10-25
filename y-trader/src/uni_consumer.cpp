@@ -257,7 +257,8 @@ void UniConsumer::ProcYaoData(int32_t index)
 
 	clog_debug("[%s] [YaoQuote] index: %d; contract: %s", 
 				module_name_, 
-				index, md->Contract);
+				index, 
+				md->Contract);
 
 	for(int i = 0; i < strategy_counter_; i++)
 	{ 
@@ -359,8 +360,12 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 	signal_t *orig_sig = strategy.GetSignalBySigID(ori_sigid);
 	int orig_orderRef = strategy.GetLocalOrderID(sig.orig_sig_id); // 即LocalOrderId
 	char* orig_sysOrderId = strategy.GetSysOrderIdBySigID(sig.orig_sig_id); 
-	CThostFtdcInputOrderActionField* orderAction = CtpFieldConverter::Convert(
-		orig_sig->exchange, orig_sig->symbol, orderRef, orig_orderRef, orig_sysOrderId);    		  	
+	CThostFtdcInputOrderActionField* orderAction = 
+		CtpFieldConverter::Convert( orig_sig->exchange, 
+					orig_sig->symbol, 
+					orderRef, 
+					orig_orderRef, 
+					orig_sysOrderId);    		  	
 	this->tunn_rpt_producer_->ReqOrderAction(orderAction);
 
 #ifdef LATENCY_MEASURE
@@ -380,13 +385,17 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 
 #ifdef COMPLIANCE_CHECK
 	int32_t counter = strategy.GetCounterByLocalOrderID(localorderid);
-	bool result = compliance_.TryReqOrderInsert(counter, ord->InstrumentID,
-				ord->LimitPrice,ord->Direction, ord->CombOffsetFlag[0]);
+	bool result = compliance_.TryReqOrderInsert(counter, 
+				ord->InstrumentID, 
+				ord->LimitPrice,
+				ord->Direction, 
+				ord->CombOffsetFlag[0]);
 	if(result)
 	{
 #endif
 		int32_t rtn = tunn_rpt_producer_->ReqOrderInsert(ord);
-		if(rtn != 0){ // feed rejeted info
+		if(rtn != 0)
+		{ // feed rejeted info
 			TunnRpt rpt;
 			memset(&rpt, 0, sizeof(rpt));
 			rpt.LocalOrderID = localorderid;
@@ -405,7 +414,27 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	}
 	else
 	{
-		clog_warning("[%s] matched with myself:%d", module_name_, localorderid);
+		 clog_error("[%s] compliance checking failed:%ld", 
+					 module_name_,
+					 localorderid);
+		 clog_error("[%s] strategy id:%d; compliance checking failed, "
+					 "signal: strategy id:%d; sig_id:%d; exchange:%d; "
+					 "symbol:%s; open_volume:%d; buy_price:%f; "
+					 "close_volume:%d; sell_price:%f; sig_act:%d; "
+					 "sig_openclose:%d; orig_sig_id:%d", 
+					 module_name_,
+					 strategy.GetId(), 
+					 sig.st_id, 
+					 sig.sig_id, 
+					 sig.exchange, 
+					 sig.symbol, 
+					 sig.open_volume, 
+					 sig.buy_price, 
+					 sig.close_volume, 
+					 sig.sell_price, 
+					 sig.sig_act, 
+					 sig.sig_openclose, 
+					 sig.orig_sig_id); 
 
 		// feed rejeted info
 		TunnRpt rpt;

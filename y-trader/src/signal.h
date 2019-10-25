@@ -23,6 +23,9 @@ enum exchange_names
 	// ZHENGZHOU COMMODITY EXCHANGE
 	XZCE = 'C',
 
+	// Shanghai International Energy Trading Center Co., Ltd.
+	INE = 'N',
+
 	/*
 	 * Shanghai Gold Exchange
 	 */
@@ -226,7 +229,8 @@ enum instr_t
 	instr_undefined = -1,
 };
 
-enum alloc_position_effect_t {
+enum alloc_position_effect_t 
+{
 	OPEN		= 0,
 	CLOSE		= 1,
 	CLOSE_TOD	= 2,
