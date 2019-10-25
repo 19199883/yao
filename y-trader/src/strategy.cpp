@@ -380,78 +380,6 @@ StrategyPosition* Strategy::GetPosition(const char* contract)
 	return cur_pos;
 }
 
-// TODO: multiple contracts
-bool Strategy::Deferred(int sig_id, unsigned short sig_openclose, unsigned short int sig_act)
-{
-	const char* contract = GetContractBySigId(sig_id);
-	StrategyPosition *cur_pos = GetPosition(contract);
-	bool result = false;
-
-	if (sig_openclose==alloc_position_effect_t::OPEN && sig_act==signal_act_t::buy)
-	{
-		if (cur_pos->frozen_open_long==0)
-		{
-			result = false;
-		}
-		else 
-		{ 
-			result = true; 
-		}
-	}
-	else if (sig_openclose==alloc_position_effect_t::OPEN && sig_act==signal_act_t::sell)
-	{
-		if (cur_pos->frozen_open_short==0)
-		{
-			result = false;
-		}
-		else 
-		{ 
-			result = true; 
-		}
-	} 
-	else if ((sig_openclose==alloc_position_effect_t::CLOSE || sig_openclose==alloc_position_effect_t::CLOSE_TOD ||sig_openclose==alloc_position_effect_t::CLOSE_YES)&& 
-		sig_act==signal_act_t::buy)
-	{
-		if (cur_pos->frozen_close_short==0)
-		{
-			result = false;
-		}
-		else
-		{
-			result = true; 
-		}
-	}
-	else if ((sig_openclose==alloc_position_effect_t::CLOSE || sig_openclose==alloc_position_effect_t::CLOSE_TOD ||sig_openclose==alloc_position_effect_t::CLOSE_YES)&& 
-		sig_act==signal_act_t::sell){
-		if (cur_pos->frozen_close_long==0){
-			result = false;
-		} else { result = true; }
-	}
-	else{ 
-		clog_error("[%s] Deferred: strategy id:%d; act:%d; sig_openclose:%d, sig id:%d",
-					module_name_, 
-					setting_.config.st_id, 
-					sig_act, 
-					sig_openclose, 
-					sig_id); 
-	}
-
-	clog_info("[%s] Deferred: strategy id:%d; signal id:%d; current long:%d; current short:%d; "
-				"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d; "
-				"frozen_open_short:%d; ",
-				module_name_, 
-				setting_.config.st_id, 
-				sig_id, 
-				cur_pos->cur_long, 
-				cur_pos->cur_short,
-				cur_pos->frozen_close_long, 
-				cur_pos->frozen_close_short,
-				cur_pos->frozen_open_long, 
-				cur_pos->frozen_open_short);
-
-	return result;
-} 
-
 signal_t* Strategy::GetSignalBySigID(int32_t sig_id)
 {
 	int32_t cursor = sigid_sigidx_map_table_[sig_id];
@@ -480,9 +408,12 @@ void Strategy::Push(const signal_t &sig)
 	sigrpt_table_[cursor_].sig_id = sig.sig_id;
 	sigrpt_table_[cursor_].sig_act = sig.sig_act;
 	strcpy(sigrpt_table_[cursor_].symbol, sig.symbol);
-	if (sig.sig_act==signal_act_t::buy){
+	if (sig.sig_act==signal_act_t::buy)
+	{
 		sigrpt_table_[cursor_].order_price = sig.buy_price;
-	} else if (sig.sig_act==signal_act_t::sell){
+	}
+	else if (sig.sig_act==signal_act_t::sell)
+	{
 		sigrpt_table_[cursor_].order_price = sig.sell_price;
 	}
 
@@ -501,27 +432,15 @@ void Strategy::Push(const signal_t &sig)
 	cursor_++;
 }
 
-// TODO: multiple contracts
 void Strategy::PrepareForExecutingSig(int localorderid, const signal_t &sig, int32_t actual_vol)
 {
 	int32_t cursor = sigid_sigidx_map_table_[sig.sig_id];
-	StrategyPosition *cur_pos = GetPosition(contract);
-	// TODO: yao
-	//this->Freeze(cur_pos,sig.sig_openclose, sig.sig_act, actual_vol);
-	sigrpt_table_[cursor].order_volume = actual_vol;
 	// mapping table
 	// sigid_sigandrptidx_map_table_[sig.sig_id] = cursor;
 	int32_t counter = GetCounterByLocalOrderID(localorderid);
 	localorderid_sigandrptidx_map_table_[counter] = cursor;
 	sigid_localorderid_map_table_[sig.sig_id] = localorderid;
 
-	clog_info("[%s] PrepareForExecutingSig: strategy id:%d; sig id: %d; cursor,%d;"
-		"LocalOrderID:%d;", 
-		module_name_, 
-		sig.st_id, 
-		sig.sig_id, 
-		cursor, 
-		localorderid);
 }
 
 
@@ -636,25 +555,6 @@ void Strategy::FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, sig
 
 }
 
-bool Strategy::HasFrozenPosition(const char *contract)
-{
-	StrategyPosition *cur_pos = GetPosition(contract);
-	if (cur_pos->frozen_open_long > 0 ||
-		cur_pos->frozen_open_short > 0 || 
-		cur_pos->frozen_close_long > 0 || 
-		cur_pos->frozen_close_short > 0)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-
-}
-
-// TODO: last volume
-// TODO: multiple contract
 void Strategy::UpdatePosition(StrategyPosition *stra_pos, 
 			int32_t lastqty, 
 			if_sig_state_t status, 
@@ -736,7 +636,6 @@ void Strategy::UpdatePosition(StrategyPosition *stra_pos,
 				stra_pos->frozen_open_short);
 }
 
-// TODO: multiple contract
 void Strategy::FillPositionRpt()
 {
 	position_t &pos = pos_cache_;

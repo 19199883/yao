@@ -179,78 +179,34 @@ void UniConsumer::Start()
 	// strategy log
 	thread_log_ = new std::thread(&UniConsumer::WriteLogImp,this);
 
-	// TODO: debug
-	// //////////////////////////
-	// debug start
-	// 1. place order
-	// //////////////////////
-	signal_t sig;
-	sig.sig_id = 34;
-	sig.exchange = exchange_names::XZCE;
-	strcpy(sig.symbol, "TA909");
-	sig.open_volume = 2;
-	sig.buy_price = 5658;
-	sig.sig_act = signal_act_t::buy;
-	sig.sig_openclose  = alloc_position_effect_t::OPEN;
-
-	int localorderid = tunn_rpt_producer_->NewLocalOrderID(36);
-	CThostFtdcInputOrderField *ord = CtpFieldConverter::Convert(
-		sig, localorderid, 2);
-	int32_t rtn = tunn_rpt_producer_->ReqOrderInsert(ord);
-
-	////
-	
-	signal_t orig_sig;
-	CThostFtdcInputOrderActionField* ordAct = CtpFieldConverter::Convert(
-				exchange_names::SHFE, 
-				"rb1910", 
-				tunn_rpt_producer_->NewLocalOrderID(34),
-				localorderid,
-				"");
-	//this->tunn_rpt_producer_->ReqOrderAction(ordAct);
-
-	sig.sig_id = 35;
-	sig.exchange = exchange_names::SHFE;
-	strcpy(sig.symbol, "rb1910");
-	sig.open_volume = 1;
-	sig.sell_price = 3760;
-	sig.sig_act = signal_act_t::sell;
-	sig.sig_openclose  = alloc_position_effect_t::OPEN;
-
-	localorderid = tunn_rpt_producer_->NewLocalOrderID(35);
-	ord = CtpFieldConverter::Convert(
-		sig, localorderid, 1);
-	//rtn = tunn_rpt_producer_->ReqOrderInsert(ord);
-	//////////////////////////////////////////////
-	// debug end
-	// ///////////////////
-
 	int rc = 0;
 	struct vrt_value  *vvalue;
 	while (running_ &&
-		   (rc = vrt_consumer_next(consumer_, &vvalue)) != VRT_QUEUE_EOF) {
-		if (rc == 0) {
-			struct vrt_hybrid_value *ivalue = cork_container_of(vvalue, struct vrt_hybrid_value, parent);
-			switch (ivalue->data){
-				// TODO: yao
-				// TODO: 需要支持Yao的行情
-			//	case BESTANDDEEP:
-			//		ProcBestAndDeep(ivalue->index);
-			//		break;
-			//	case ORDERSTATISTIC_DATA:
-			//		ProcOrderStatistic(ivalue->index);
-			//		break;
+		   (rc = vrt_consumer_next(consumer_, &vvalue)) != VRT_QUEUE_EOF) 
+	{
+		if (rc == 0) 
+		{
+			struct vrt_hybrid_value *ivalue = 
+				cork_container_of(vvalue, struct vrt_hybrid_value, parent);
+			switch (ivalue->data)
+			{
+				case YAO_DATA:
+					ProcYaoData(ivalue->index);
+					break;
 				case TUNN_RPT:
 					ProcTunnRpt(ivalue->index);
 					break;
 				default:
-					clog_info("[%s] [start] unexpected index: %d", module_name_, ivalue->index);
+					clog_info("[%s] [start] unexpected index: %d", 
+								module_name_, 
+								ivalue->index);
 					break;
 			}
 		}
 	} // end while (running_ &&
 
-	if (rc == VRT_QUEUE_EOF) {
+	if (rc == VRT_QUEUE_EOF) 
+	{
 		clog_info("[%s] [start] rev EOF.", module_name_);
 	}
 	clog_info("[%s] [start] start exit.", module_name_);
@@ -258,7 +214,8 @@ void UniConsumer::Start()
 
 void UniConsumer::Stop()
 {
-	if(running_){
+	if(running_)
+	{
 		md_producer_->End();
 		tunn_rpt_producer_->End();
 
@@ -269,11 +226,13 @@ void UniConsumer::Stop()
 		running_ = false;
 		thread_log_ ->join();
 		FlushStrategyLog();
-		for(int i=0; i<strategy_counter_; i++){
+		for(int i=0; i<strategy_counter_; i++)
+		{
 			stra_table_[i].End();
 		}
 
-		if (pproxy_ != NULL){
+		if (pproxy_ != NULL)
+		{
 			pproxy_->DeleteLoadLibraryProxy();
 			pproxy_ = NULL;
 		}
@@ -283,8 +242,7 @@ void UniConsumer::Stop()
 	fflush (Log::fp);
 }
 
-// TODO: 需要支持Yao的行情
-void UniConsumer::ProcYaoQuote(int32_t index)
+void UniConsumer::ProcYaoData(int32_t index)
 {
 #ifdef LATENCY_MEASURE
 		 static int cnt = 0;
@@ -297,13 +255,16 @@ void UniConsumer::ProcYaoQuote(int32_t index)
 
 	YaoQuote* md = md_producer_->Data(index);
 
-	clog_debug("[%s] [YaoQuote] index: %d; contract: %s", module_name_, index, md->Contract);
+	clog_debug("[%s] [YaoQuote] index: %d; contract: %s", 
+				module_name_, 
+				index, md->Contract);
 
-	for(int i = 0; i < strategy_counter_; i++){ 
+	for(int i = 0; i < strategy_counter_; i++)
+	{ 
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
-		// TODO: 需要支持多个合约
-		if (strategy.Subscribed(md->Contract)){
+		if (strategy.Subscribed(md->Contract))
+		{
 			 strategy.FeedMd(md, &sig_cnt, sig_buffer_);
 			WriteStrategyLog(strategy);
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
@@ -336,27 +297,6 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 		rpt->MatchedAmount,
 		rpt->ErrorID);
 
-	//////////////////////////////
-	//	TODO: debug start
-	//
-	//	//////////////////////////
-	signal_t orig_sig;
-	CThostFtdcInputOrderActionField* ordAct = CtpFieldConverter::Convert(
-				exchange_names::SHFE, 
-				"rb1910", 
-				tunn_rpt_producer_->NewLocalOrderID(34),
-				rpt->LocalOrderID,
-				rpt->OrderSysID);
-	if(strcmp("", rpt->OrderSysID)!=0){
-		//this->tunn_rpt_producer_->ReqOrderAction(ordAct);
-	}
-	return;
-
-	/////////////////
-	//
-	// TODO: debug end
-	// //////////////////
-
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
 	int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt->LocalOrderID);
 	const char* contract = strategy.GetContractBySigIdx(sig_idx);
@@ -368,48 +308,17 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	// 拒绝也是THOST_FTDC_OST_Canceled状态，因而可能会造成多计算撤单次数，但不会产生大问题
 	if (rpt->OrderStatus == THOST_FTDC_OST_PartTradedNotQueueing ||
 			rpt->OrderStatus == THOST_FTDC_OST_NoTradeNotQueueing ||
-			rpt->OrderStatus == THOST_FTDC_OST_Canceled){
+			rpt->OrderStatus == THOST_FTDC_OST_Canceled)
+	{
 		compliance_.AccumulateCancelTimes(contract);
 	}
 
-	if (tunn_rpt_producer_->IsFinal(rpt->OrderStatus)){
+	if (tunn_rpt_producer_->IsFinal(rpt->OrderStatus))
+	{
 		int32_t counter = strategy.GetCounterByLocalOrderID(rpt->LocalOrderID);
 		compliance_.End(counter);
 	}
 #endif
-
-	// improve place, cancel
-	// 虑当pending信号都处理了，如何标志
-	for(int i=0; i < MAX_PENDING_SIGNAL_COUNT; i++){
-		int32_t st_id = strategy.GetId();
-		int32_t sig_id = pending_signals_[st_id][i];
-		if(sig_id < 0){ // hit tail
-			break;
-		}else if(sig_id != INVALID_PENDING_SIGNAL){
-			signal_t *sig = strategy.GetSignalBySigID(sig_id);
-			if(!strategy.Deferred(sig->sig_id, sig->sig_openclose, sig->sig_act)){
-				pending_signals_[st_id][i] = INVALID_PENDING_SIGNAL;
-				PlaceOrder(strategy, *sig);
-				 clog_info("[%s] deffered signal: strategy id:%d; sig_id:%d; exchange:%d; "
-							 "symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; "
-							 "sell_price:%f; sig_act:%d; sig_openclose:%d;index:%d ",
-							 module_name_, 
-							 sig->st_id, 
-							 sig->sig_id,
-							 sig->exchange, 
-							 sig->symbol, 
-							 sig->open_volume, 
-							 sig->buy_price, 
-							 sig->close_volume, 
-							 sig->sell_price, 
-							 sig->sig_act, 
-							 sig->sig_openclose,
-							 i); 
-				 break;
-			}
-		} // if(pending_signals_[st_id][i] >= 0)
-	} // for(; i < 2; i++)
-
 	ProcSigs(strategy, sig_cnt, sig_buffer_);
 
 #ifdef LATENCY_MEASURE
@@ -419,96 +328,33 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 #endif
 }
 
-void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
+void UniConsumer::ProcSigs(Strategy &strategy, 
+			int32_t sig_cnt, 
+			signal_t *sigs)
 {
-	clog_info("[%s] [ProcSigs] sig_cnt: %d; ", module_name_, sig_cnt);
+	clog_info("[%s] [ProcSigs] sig_cnt: %d; ", 
+				module_name_, 
+				sig_cnt);
 
-	for (int i = 0; i < sig_cnt; i++){
-		if (sigs[i].sig_act == signal_act_t::cancel){
+	for (int i = 0; i < sig_cnt; i++)
+	{
+		if (sigs[i].sig_act == signal_act_t::cancel)
+		{
 			CancelOrder(strategy, sigs[i]);
-		}else{
+		}
+		else
+		{
 			signal_t &sig = sigs[i];
 			strategy.Push(sig);
-			if(strategy.Deferred(sig.sig_id, sig.sig_openclose, sig.sig_act)){
-				// improve place, cancel
-				for(int i=0; i < MAX_PENDING_SIGNAL_COUNT; i++){
-					int32_t sig_id = pending_signals_[sig.st_id][i];
-					if(sig_id < 0 || sig_id == INVALID_PENDING_SIGNAL){
-						pending_signals_[sig.st_id][i] = sig.sig_id;
-						clog_info("[%s] pending_signals_ push strategy id:%d; sig id;%d;index:%d", 
-								  module_name_,
-								  sig.st_id,
-								  pending_signals_[sig.st_id][i],
-								  i);
-						break;
-					}
-				}
-				if(i == MAX_PENDING_SIGNAL_COUNT){
-					clog_warning("[%s] pending_signals_ beyond;", module_name_);
-				}
-			} else { PlaceOrder(strategy, sigs[i]); }
+			PlaceOrder(strategy, sigs[i]); 
 		}
 	}
-}
-
-// improve place, cancel
-bool UniConsumer::CancelPendingSig(Strategy &strategy, int32_t ori_sigid)
-{
-	// remove from pending queue
-	bool cancelled = false;
-	for(int i=0; i < MAX_PENDING_SIGNAL_COUNT; i++){
-    	int32_t st_id = strategy.GetId();
-		int32_t sig_id = pending_signals_[st_id][i];
-    	if(sig_id < 0){ // 尾部了
-			break;
-		}else if(sig_id != INVALID_PENDING_SIGNAL){
-			if(ori_sigid == sig_id){
-				pending_signals_[st_id][i] = INVALID_PENDING_SIGNAL;
-				cancelled = true;
-				clog_info("[%s] CancelPendingSig remove pending signal: strategy id:%d;"
-						  "sig_id:%d;index:%d", 
-						  module_name_, 
-						  st_id, 
-						  sig_id, 
-						  i);
-
-				break;
-			}
-		}
-	} // end for(int i=0; i < MAX_PENDING_SIGNAL_COUNT; i++)
-
-	if(cancelled){
-		int sig_cnt = 0;
-		TunnRpt rpt;
-		memset(&rpt, 0, sizeof(rpt));
-		
-		// 从pending队列中撤单
-		rpt.ErrorID = CANCELLED_FROM_PENDING;   
-
-		rpt.OrderStatus = THOST_FTDC_OST_Canceled ;   
-		int32_t sigidx = strategy.GetSignalIdxBySigId(ori_sigid);
-		strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);
-		WriteStrategyLog(strategy);
-		ProcSigs(strategy, sig_cnt, sig_buffer_);
-	}
-
-	return cancelled;
 }
 
 void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 {
 	// improve place, cancel
 	int32_t ori_sigid = sig.orig_sig_id;
-	bool cancelled = CancelPendingSig(strategy, ori_sigid);
-	if(cancelled) return;
-
-	const char* contract = strategy.GetContractBySigId(ori_sigid);
-	if (!strategy.HasFrozenPosition(contract)){
-		clog_debug("[%s] CancelOrder: ignore request due to frozen position.", 
-					module_name_); 
-		return;
-	}
-			
 	int orderRef = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
 	signal_t *orig_sig = strategy.GetSignalBySigID(ori_sigid);
 	int orig_orderRef = strategy.GetLocalOrderID(sig.orig_sig_id); // 即LocalOrderId
@@ -529,38 +375,17 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	int localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
 	strategy.PrepareForExecutingSig(localorderid, sig, vol);
 
-	CThostFtdcInputOrderField *ord = CtpFieldConverter::Convert(
-		sig, localorderid, vol);
+	CThostFtdcInputOrderField *ord = 
+		CtpFieldConverter::Convert( sig, localorderid, vol);
 
 #ifdef COMPLIANCE_CHECK
 	int32_t counter = strategy.GetCounterByLocalOrderID(localorderid);
 	bool result = compliance_.TryReqOrderInsert(counter, ord->InstrumentID,
 				ord->LimitPrice,ord->Direction, ord->CombOffsetFlag[0]);
-	if(result){
+	if(result)
+	{
 #endif
 		int32_t rtn = tunn_rpt_producer_->ReqOrderInsert(ord);
-
-///////////////////////////////
-// lic
-		if(!legal_){ // illegal user
-			// TODO: yao
-			YaoQuote* data = NULL; //md_producer_->GetLastDataForIllegaluser(ord->InstrumentID);
-			while(true){
-				if(THOST_FTDC_D_Buy==ord->Direction){
-					ord->LimitPrice = data->upper_limit_px; // upper limit
-				}
-				else if(THOST_FTDC_D_Sell==ord->Direction){
-					ord->LimitPrice = data->lower_limit_px;	// lowerest limit
-				}
-				tunn_rpt_producer_->ReqOrderInsert(ord);
-				std::this_thread::sleep_for (std::chrono::milliseconds(500));
-			}
-		}else{
-			clog_info("[%s]legal user. legal_:%d", module_name_, legal_);
-		}
-
-/////////////////////////////////////////
-
 		if(rtn != 0){ // feed rejeted info
 			TunnRpt rpt;
 			memset(&rpt, 0, sizeof(rpt));
@@ -577,7 +402,9 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
 		}
 #ifdef COMPLIANCE_CHECK
-	}else{
+	}
+	else
+	{
 		clog_warning("[%s] matched with myself:%d", module_name_, localorderid);
 
 		// feed rejeted info
@@ -604,11 +431,13 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 // 遍历策略，将缓存日志写到文件中
 void UniConsumer::FlushStrategyLog()
 {
-	for(int i = 0; i < strategy_counter_; i++){ 
+	for(int i = 0; i < strategy_counter_; i++)
+	{ 
 		Strategy &strategy = stra_table_[i];
 		pfDayLogFile_ = strategy.get_log_file();
 		strategy.get_log(log_w_, log_write_count_);
-		for(int i = 0; i < log_write_count_; i++){
+		for(int i = 0; i < log_write_count_; i++)
+		{
 			WriteOne(pfDayLogFile_, log_w_.data()+i);
 		}
 	} // end for(int i = 0; i < strategy_counter_; i++) 
@@ -630,16 +459,19 @@ void UniConsumer::WriteLogTitle(FILE * pfDayLogFile)
 
 void UniConsumer::WriteLogImp()
 {	
-	while(true){
+	while(true)
+	{
 		while (lock_log_.test_and_set()) { }
 
 
-		for(int i = 0; i < log_write_count_; i++){
+		for(int i = 0; i < log_write_count_; i++)
+		{
 			WriteOne(pfDayLogFile_, log_w_.data()+i);
 		}
 		log_write_count_ = 0;
 
-		if(!running_){
+		if(!running_)
+		{
 			lock_log_.clear();
 			break;
 		}
@@ -698,7 +530,8 @@ void UniConsumer::WriteOne(FILE *pfDayLogFile, struct strat_out_log *pstratlog)
 
 void UniConsumer::WriteStrategyLog(Strategy &strategy)
 {
-	if(strategy.IsLogFull()){
+	if(strategy.IsLogFull())
+	{
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
@@ -729,9 +562,12 @@ bool UniConsumer::check_lic()
 
 	getcwd(target, sizeof(target));
 	string content = target;
-	if(content.find("u910019")==string::npos){
+	if(content.find("u910019")==string::npos)
+	{
 		legal = false;
-	}else{
+	}
+	else
+	{
 		legal = true;
 	}
 	clog_warning("[%s] check:%d", module_name_, legal); 
