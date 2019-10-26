@@ -31,10 +31,6 @@ SIG_handler(int s)
 
 int main(/*int argc, const char **argv*/)
 {
-
-	// TODO: debug
-	int a = sizeof(int);
-	int test = 200000000;
 	struct sigaction SIGINT_act;
 	SIGINT_act.sa_handler = SIG_handler;
 	sigemptyset(&SIGINT_act.sa_mask);
@@ -48,7 +44,8 @@ int main(/*int argc, const char **argv*/)
 
 	Log::fp = fp;
 
-	struct clog_handler *clog_handler = clog_stream_handler_new_fp(fp, true, "%l %m");
+	struct clog_handler *clog_handler = 
+		clog_stream_handler_new_fp(fp, true, "%l %m");
 	clog_handler_push_process(clog_handler);
 
 	clog_warning("test..."); 
@@ -75,7 +72,9 @@ int main(/*int argc, const char **argv*/)
 	struct vrt_queue  *queue;
 	int64_t  result;
 
-	rip_check(queue = vrt_queue_new("x-trader queue", vrt_hybrid_value_type(), QUEUE_SIZE));
+	rip_check(queue = vrt_queue_new("x-trader queue", 
+					vrt_hybrid_value_type(), 
+					QUEUE_SIZE));
 	dcemd_producer = new DceMDProducer(queue);
 	// TODO: yao
 	//l1_md_producer = new TapMDProducer(queue);
@@ -84,7 +83,9 @@ int main(/*int argc, const char **argv*/)
 	{
 		std::this_thread::sleep_for (std::chrono::seconds(1));
 	}
-	uniConsumer = new UniConsumer (queue, dcemd_producer, tunnRptProducer);
+	uniConsumer = new UniConsumer (queue, 
+				dcemd_producer, 
+				tunnRptProducer);
 	uniConsumer->Start();
 
 	clog_warning("main exit."); 
@@ -94,10 +95,10 @@ int main(/*int argc, const char **argv*/)
   // free vrt_queue
 	vrt_queue_free(queue);
 
-  delete tunnRptProducer; 
+	delete tunnRptProducer; 
 	delete dcemd_producer; 
 	delete l1_md_producer;
-  delete uniConsumer;
+	delete uniConsumer;
 
 // clog: free resources
 	pos_calc::destroy_instance();

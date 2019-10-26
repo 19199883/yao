@@ -1,22 +1,30 @@
 # Makefile 
 
+
 CC:=g++
 DEBUG:=y
 TOP:=..
 DIST_DIR:=$(TOP)/yao/dist
-INCPATH:=-I$(TOP)/3rd/ctp/include_se -I$(TOP)/3rd/tinyxml/include -I$(TOP)/3rd/utils/include \
-		 -I$(TOP)/3rd/zce_md/include -I$(TOP)/3rd/dce_md/include -I$(TOP)/3rd/shfe_md/include
+INCPATH:=-I$(TOP)/3rd/ctp/include_se -I$(TOP)/3rd/tinyxml/include \
+		 -I$(TOP)/3rd/utils/include -I$(TOP)/3rd/zce_md/include \
+		 -I$(TOP)/3rd/dce_md/include -I$(TOP)/3rd/shfe_md/include
 
-LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/ctp/lib -L$(TOP)/3rd/tinyxml/lib \
-		-L$(TOP)/3rd/utils/lib -L$(TOP)/3rd/zce_md/lib
+LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/ctp/lib \
+		 -L$(TOP)/3rd/tinyxml/lib -L$(TOP)/3rd/utils/lib \
+		 -L$(TOP)/3rd/zce_md/lib
+
+
 CPPFLAGS:=-std=c++11 $(INCPATH)
 CFLAGS:=
-LDFLAGS:= 
+LDFLAGS:=
 OBJPATH:=./obj
 BINPATH:=./bin
-LIBS:=-lpthread -lTapQuoteAPI -ltinyxml -lutils -ldl -lbowsprit -lcheck -lclogger \
-	  -lcork -lvrt -luuid -lboost_filesystem -lboost_system \
-	  -lthosttraderapi_se -lLinuxDataCollect
+
+LIBS:=-lpthread -lTapQuoteAPI -ltinyxml -lutils -ldl \
+	  -lbowsprit -lcheck -lclogger -lcork -lvrt -luuid \
+	  -lboost_filesystem -lboost_system -lthosttraderapi_se \
+	  -lLinuxDataCollect \
+
 DEPS:=.depends
 OUT:=ytrader
 PACKAGE_NAME:=$(OUT)
@@ -37,24 +45,26 @@ OBJS:=$(patsubst %.cpp,%.o,$(SRCS))
 OBJS:=$(addprefix $(OBJPATH)/, $(notdir $(OBJS)))
 OUT:=$(addprefix $(BINPATH)/, $(OUT))
 
-
 all:$(OUT)
+	echo "all"
 	@echo $(OUT)	
 
 $(OUT):$(DEPS) $(OBJS)
+	echo "eeeeeeeee -o eeeeeeeeee"
 	-@mkdir -p $(BINPATH)
-	$(CC) $(OBJS) 	-o $@  $(LDFLAGS) $(LIBPATH) $(LIBS)	
+	$(CC) $(OBJS) -o $@  $(LDFLAGS) $(LIBPATH) $(LIBS)	
 	@echo "---------build target finshed-----------"
 
 
 $(OBJPATH)/%.o:%.cpp
-	echo "debug"
+	echo "iiiiiiiiii debug iiiiiiiii"
 	-@mkdir -p $(OBJPATH)
 	$(CC) -c $< $(CPPFLAGS) $(CFLAGS) $(INCPATH)  -o $@
 
 $(DEPS):$(SRCS)
+	echo "eeeeeeeeeee debug iiiiiiiii"
 	-@rm $(DEPS)
-	$(CC)  -MM $(CPPFLAGS) $(INCPATH) $^  >>$(DEPS) 
+	$(CC)  -MM $(CPPFLAGS) $(INCPATH) $^  >>$(DEPS)
 
 -include $(DEPS)
 
