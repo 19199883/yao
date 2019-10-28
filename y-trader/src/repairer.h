@@ -4,8 +4,8 @@
 #include <string>
 #include "quote_datatype_shfe_my.h"
 #include "quote_datatype_shfe_deep.h"
-#include "my_int_deque.h"
-#include "fulldepthmd_producer.h"
+//#include "my_int_deque.h"
+#include "shfe_fulldepthmd_producer.h"
 #include "vrt_value_obj.h"
 
 using namespace std;

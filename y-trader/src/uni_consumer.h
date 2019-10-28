@@ -9,7 +9,6 @@
 #include <unordered_map>
 #include "vrt_value_obj.h"
 #include "strategy.h"
-#include "dce_md_producer.h"
 #include "tunn_rpt_producer.h"
 #include <tinyxml.h>
 #include <tinystr.h>

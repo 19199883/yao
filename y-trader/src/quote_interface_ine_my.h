@@ -29,9 +29,9 @@ class DLL_PUBLIC MYIneQuoteData
 		~MYIneQuoteData();
 
 		void SetQuoteDataHandler(std::function<void(YaoQuote *)> quote_handler);
-		// business logic
 		void ProcIneL1MdData(int32_t index);
 		void ProcIneFullDepthData(int32_t index);
+
 	private:
 		// 禁止拷贝和赋值
 		MYIneQuoteData(const MYIneQuoteData & other);

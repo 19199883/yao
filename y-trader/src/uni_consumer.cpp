@@ -32,7 +32,7 @@ UniConsumer::UniConsumer(struct vrt_queue* queue,
 	log_w_ = vector<strat_out_log>(MAX_LINES_FOR_LOG);
 
 #ifdef PERSISTENCE_ENABLED 
-    p_yao_md_save_ = new QuoteDataSave<YaoQuote>("yao_md", MY_YAO_QUOTE_TYPE);
+    p_yao_md_save_ = new QuoteDataSave<YaoQuote>("yao_md", YAO_QUOTE_TYPE);
 #endif
 
 #if FIND_STRATEGIES == 3 // strcmp

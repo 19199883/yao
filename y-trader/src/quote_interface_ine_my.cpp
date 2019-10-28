@@ -3,19 +3,35 @@
 #include "yao_utils.h"
 
 std::string MYIneQuoteData::ToString(const MYShfeMarketData &d) {
-	//clog_debug("MYShfeMarketData: instrument:%s, data_flag:%d,buy_total_volume:%d; sell_total_volume:%d; buy_weighted_avg_price:%lf; sell_weighted_avg_price:%lf",
-	//			d.InstrumentID, d.data_flag, d.buy_total_volume,d.sell_total_volume,d.buy_weighted_avg_price,d.sell_weighted_avg_price);
-
+//	clog_debug("MYShfeMarketData: instrument:%s, "
+//				"data_flag:%d,buy_total_volume:%d; "
+//				"sell_total_volume:%d; buy_weighted_avg_price:%lf; "
+//				"sell_weighted_avg_price:%lf",
+//				d.InstrumentID, 
+//				d.data_flag, 
+//				d.buy_total_volume,
+//				d.sell_total_volume,
+//				d.buy_weighted_avg_price,
+//				d.sell_weighted_avg_price);
+//
 	//clog_debug("dir:buy; price, volume");
 	for(int i = 0; i < 30; i++) 
 	{
-		 //clog_debug("price%d: %lf, volume%d: %d\n", i, d.buy_price[i], i, d.buy_volume[i]);
+		// clog_debug("price%d: %lf, volume%d: %d\n", 
+		//			 i, 
+		//			 d.buy_price[i], 
+		//			 i, 
+		//			 d.buy_volume[i]);
 	}
 
 	//clog_debug("dir:sell; price, volume");
 	for(int i = 0; i < 30; i++) 
 	{
-		 //clog_debug("price%d: %lf, volume%d: %d\n", i, d.sell_price[i], i, d.sell_volume[i]);
+		// clog_debug("price%d: %lf, volume%d: %d\n", 
+		//			 i, 
+		//			 d.sell_price[i], 
+		//			 i, 
+		//			 d.sell_volume[i]);
 	}
   
   return "";
@@ -243,13 +259,6 @@ void MYIneQuoteData::ProcIneL1MdData(int32_t index)
 	CDepthMarketDataField* md = l1_md_producer_->GetData(index);
 
 	//clog_info("[%s] ProcL1MdData:constract:%s;index:%d", module_name_, md->InstrumentID, l1_md_last_index_); 
-
-	//memcpy(&target_data_, md, sizeof(CDepthMarketDataField));
-	//target_data_.data_flag = 1;
-	
-	// 发给数据客户
-	// if (fulldepthmd_handler_ != NULL) { fulldepthmd_handler_(&target_data_); }
-
 }
 
 void MYIneQuoteData::Reset()

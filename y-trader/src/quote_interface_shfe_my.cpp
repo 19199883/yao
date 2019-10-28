@@ -1,18 +1,37 @@
 ﻿#include <thread>         // std::thread
 #include "quote_interface_shfe_my.h"
 
-std::string MYQuoteData::ToString(const MYShfeMarketData &d) {
-	//clog_info("MYShfeMarketData: instrument:%s, data_flag:%d,buy_total_volume:%d; sell_total_volume:%d; buy_weighted_avg_price:%lf; sell_weighted_avg_price:%lf",
-	//			d.InstrumentID, d.data_flag, d.buy_total_volume,d.sell_total_volume,d.buy_weighted_avg_price,d.sell_weighted_avg_price);
+std::string MYQuoteData::ToString(const MYShfeMarketData &d) 
+{
+//	clog_info("MYShfeMarketData: instrument:%s, "
+//				"data_flag:%d,buy_total_volume:%d; "
+//				"sell_total_volume:%d; buy_weighted_avg_price:%lf; "
+//				"sell_weighted_avg_price:%lf",
+//				d.InstrumentID, 
+//				d.data_flag, 
+//				d.buy_total_volume,
+//				d.sell_total_volume,
+//				d.buy_weighted_avg_price,
+//				d.sell_weighted_avg_price);
 
 	//clog_info("dir:buy; price, volume");
-	for(int i = 0; i < 30; i++) {
-		 //clog_info("price%d: %lf, volume%d: %d\n", i, d.buy_price[i], i, d.buy_volume[i]);
+	for(int i = 0; i < 30; i++) 
+	{
+//		 clog_info("price%d: %lf, volume%d: %d\n", 
+//					 i, 
+//					 d.buy_price[i], 
+//					 i, 
+//					 d.buy_volume[i]);
 	}
 
 	//clog_info("dir:sell; price, volume");
-	for(int i = 0; i < 30; i++) {
-		 //clog_debug("price%d: %lf, volume%d: %d\n", i, d.sell_price[i], i, d.sell_volume[i]);
+	for(int i = 0; i < 30; i++) 
+	{
+//		 clog_debug("price%d: %lf, volume%d: %d\n", 
+//					 i, 
+//					 d.sell_price[i], 
+//					 i, 
+//					 d.sell_volume[i]);
 	}
   
   return "";
@@ -208,8 +227,6 @@ void MYQuoteData::Send(const char* contract)
 	CDepthMarketDataField* l1_md = NULL;
 
 	//clog_info("[%s] SHFE send %s.", module_name_,contract);
-
-	// 合并一档行情
 	if(l1_md_last_index_ != L1MD_NPOS)
 	{
 		 l1_md =  l1_md_producer_->GetLastData(contract, l1_md_last_index_);
@@ -240,10 +257,10 @@ void MYQuoteData::ProcShfeL1MdData(int32_t index)
 	l1_md_last_index_ = index;
 	CDepthMarketDataField* md = l1_md_producer_->GetData(index);
 
-	//clog_info("[%s] ProcL1MdData:constract:%s;index:%d", module_name_, md->InstrumentID, l1_md_last_index_); 
-
-	memcpy(&target_data_, md, sizeof(CDepthMarketDataField));
-	target_data_.data_flag = 1;
+	clog_info("[%s] ProcL1MdData:constract:%s;index:%d", 
+				module_name_, 
+				md->InstrumentID, 
+				l1_md_last_index_); 
 }
 
 void MYQuoteData::Reset()

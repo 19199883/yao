@@ -6,7 +6,7 @@
 using namespace std;
 
 // 单个策略最大支持的策略数
-#define MAX_CONTRACT_COUNT 100
+#define MAX_CONTRACT_COUNT_FOR_STRATEDY 100
 
 struct StrategyLog1{
 
@@ -188,7 +188,7 @@ public:
 	 * specific element number is given by symbol_cnt member.
 	 */
 	// TODO: yao
-	symbol_pos_t s_pos[MAX_CONTRACT_COUNT];
+	symbol_pos_t s_pos[MAX_CONTRACT_COUNT_FOR_STRATEDY];
 } ;
 
 class strategy_init_pos_t 
