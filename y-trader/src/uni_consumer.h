@@ -9,7 +9,6 @@
 #include <unordered_map>
 #include "vrt_value_obj.h"
 #include "strategy.h"
-#include "l2md_producer.h"
 #include "dce_md_producer.h"
 #include "tunn_rpt_producer.h"
 #include <tinyxml.h>
@@ -75,17 +74,6 @@ class UniConsumer
 		int32_t log_write_count_;
 		FILE * pfDayLogFile_;
 
-#if FIND_STRATEGIES == 1
-		// unordered_multimap  key: contract; value: indices of strategies in stra_table_
-		std::unordered_multimap<std::string, int32_t> cont_straidx_map_table_;
-#endif
-
-#if FIND_STRATEGIES == 2
-		// two-dimensional array
-		int32_t stra_idx_table_[MAX_STRATEGY_COUNT][MAX_STRATEGY_COUNT];
-		int32_t cont_straidx_map_table_[MAX_STRATEGY_KEY1][MAX_STRATEGY_KEY2];
-#endif
-
 		// key: strategy id; value: index of strategy in stra_table_
 		int32_t straid_straidx_map_table_[MAX_STRATEGY_COUNT];
 
@@ -112,6 +100,9 @@ class UniConsumer
 		 *						 *
 		 *								 */
 		int32_t pending_signals_[MAX_STRATEGY_COUNT][MAX_PENDING_SIGNAL_COUNT];
+
+
+		QuoteDataSave<YaoQuote> *p_yao_md_save_;
 
 #ifdef COMPLIANCE_CHECK
 		Compliance compliance_;

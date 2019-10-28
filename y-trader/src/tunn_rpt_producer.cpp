@@ -30,6 +30,8 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 	for(auto &item : cancel_requests_) item = false;
 	memset(rpt_buffer_,0,sizeof(rpt_buffer_));
 
+	memset(&init_positions_, 0, sizeof(init_positions_));
+
 	this->ParseConfig();
 
 	clog_warning("[%s] RPT_BUFFER_SIZE: %d;", module_name_, RPT_BUFFER_SIZE);
@@ -54,8 +56,11 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 	char pSystemInfo[344];
 	int len;
 	int rtn = CTP_GetSystemInfo(pSystemInfo, len);
-	clog_warning("[%s] CTP_GetSystemInfo:%d; systeminfo:%s",
-				module_name_, rtn, pSystemInfo);
+	clog_warning("[%s] CTP_GetSystemInfo:%d; systeminfo:%s", 
+				module_name_, 
+				rtn, 
+				pSystemInfo);
+
 	// create ctp object
 	char addr[2048];
 	strcpy(addr, this->config_.address.c_str());
@@ -66,8 +71,14 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
     char cur_path[256];
     char full_path[256];
     getcwd(cur_path, sizeof(cur_path));
-    sprintf(full_path, "%s/ctp_flow_dir_%s", cur_path, this->config_.userid.c_str());
-	if (opendir(full_path) == NULL) mkdir(full_path, 0755);    
+    sprintf(full_path, 
+				"%s/ctp_flow_dir_%s", 
+				cur_path, 
+				this->config_.userid.c_str());
+	if (opendir(full_path) == NULL)
+	{
+		mkdir(full_path, 0755);    
+	}
     api_ = CThostFtdcTraderApi::CreateFtdcTraderApi(full_path); 
     api_->RegisterSpi(this);
     api_->SubscribePrivateTopic(THOST_TERT_QUICK);
@@ -187,9 +198,15 @@ void TunnRptProducer::ReqLogin()
 {
     CThostFtdcReqUserLoginField login_data;
     memset(&login_data, 0, sizeof(CThostFtdcReqUserLoginField));
-	strncpy(login_data.BrokerID, this->config_.brokerid.c_str(), sizeof(login_data.BrokerID));
-    strncpy(login_data.UserID, this->config_.userid.c_str(), sizeof(login_data.UserID));
-    strncpy(login_data.Password, this->config_.password.c_str(), sizeof(login_data.Password));
+	strncpy(login_data.BrokerID, 
+				this->config_.brokerid.c_str(), 
+				sizeof(login_data.BrokerID));
+    strncpy(login_data.UserID, 
+				this->config_.userid.c_str(), 
+				sizeof(login_data.UserID));
+    strncpy(login_data.Password, 
+				this->config_.password.c_str(), 
+				sizeof(login_data.Password));
     
 	int rtn = api_->ReqUserLogin(&login_data, 0);
 
@@ -251,9 +268,9 @@ int TunnRptProducer::GetTradingDay()
 	return this->TradingDay_;
 }
 
-bool TunnRptProducer::IsNightTrading()
+int TunnRptProducer::IsNightTrading()
 {
-	return this->IsNightTrading;
+	return this->IsNightTrading_;
 }
 
 void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, 
@@ -268,19 +285,20 @@ void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
 	this->TradingDay_ = stoi(pRspUserLogin->TradingDay);
 
 	char login_hour[3] = {0};
-	strncpy(login_hour, pRspUserLogin->loginTime, 2);
+	strncpy(login_hour, pRspUserLogin->LoginTime, 2);
 	int hours = stoi(login_hour);
 	if(hours>=8 && hours<16){
-		this->IsNightTrading = 0;
+		this->IsNightTrading_ = 0;
 	}
 	else
 	{
-		this->IsNightTrading = 1;
+		this->IsNightTrading_ = 1;
 	}
+
     clog_warning("[%s] TradingDay:%d; IsNightTrading:%d",
 				module_name_,
-				this->config_.TradingDay,
-				this->config_.IsNightTrading);
+				this->GetTradingDay(),
+				this->IsNightTrading());
 
 	this->frontid_ = pRspUserLogin->FrontID;	
 	this->sessionid_ = pRspUserLogin->SessionID;	
@@ -404,7 +422,7 @@ void TunnRptProducer::End()
 {
 	if(!ended_){
 		CThostFtdcUserLogoutField logoutinfo;
-		memest(&logoutinfo, 0, sizeof(logoutinfo));		 
+		memset(&logoutinfo, 0, sizeof(logoutinfo));		 
 		strncpy(logoutinfo.BrokerID, 
 					this->config_.brokerid.c_str(), 
 					sizeof(logoutinfo.BrokerID));
@@ -653,38 +671,51 @@ void TunnRptProducer::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *
 	}
 }
 
-void TunnRptProducer::FillInitPosition(CThostFtdcInvestorPositionField *posiField)
+symbol_pos_t* TunnRptProducer::GetContractPosition(char *contract,
+			position_t* position )
 {
-	int index = 0;
+	int i=0;
+	for(; i<MAX_CONTRACT_COUNT; i++)
+	{
+		if(0 == position->s_pos[i].symbol[0])
+		{
+			strcpy(position->s_pos[i].symbol, contract);
+			position->symbol_cnt = i + 1;
+			break;
+		}
 
+		if(strcmp(position->s_pos[i].symbol, contract)==0)
+		{
+			break;
+		}
+	}
+
+	return &(position->s_pos[i]);
+}
+
+// TODO: to here
+void TunnRptProducer::FillInitPosition(CThostFtdcInvestorPositionField *posField)
+{
 	// 同一合约，保证存储在_cur_pos，_yesterday_pos中存储在同一个索引位置，方便查找
 	if (posField != NULL)
 	{		
-		int i=0;
-		for(; i<init_positions._cur_pos.symbol_cnt_; i++)
-		{
-			if(strcmp(init_positions._cur_pos[i].symbol,posField->InstrumentID)==0)
-			{
-				break;
-			}
-		}
-		index = i;
-		strncpy(init_positions._cur_pos[i].symbol, 
-					posField->InstrumentID, 
-					sizeof(init_positions._cur_pos[i].symbol);
-		strncpy(init_positions._yesterday_pos[i].symbol, 
-					posField->InstrumentID, 
-					sizeof(init_positions._yesterday_pos[i].symbol);
+		position_t& today_pos = init_positions_._cur_pos;
+		position_t& yesterday_pos = init_positions_._yesterday_pos;
+
+		symbol_pos_t* yd_contract_pos = 
+			this->GetContractPosition(posField->InstrumentID, &yesterday_pos);
+		symbol_pos_t* td_contract_pos = 
+			this->GetContractPosition(posField->InstrumentID, &today_pos);
 
 		if(posField->PosiDirection==THOST_FTDC_PD_Long)
 		{
-			init_positions._cur_pos[i].long_volume = posField->TodayPosition;
-			init_positions._yesterday_pos[i].long_volume = posField->Position - posField->TodayPosition;
+			td_contract_pos->long_volume = posField->TodayPosition;
+			yd_contract_pos->long_volume = posField->Position - posField->TodayPosition;
 		}
 		else if(posField->PosiDirection==THOST_FTDC_PD_Short)
 		{
-			init_positions._cur_pos[i].short_volume = posField->TodayPosition;
-			init_positions._yesterday_pos[i].short_volume = posField->Position - posField->TodayPosition;
+			td_contract_pos->short_volume = posField->TodayPosition;
+			yd_contract_pos->short_volume = posField->Position - posField->TodayPosition;
 		}
 		else
 		{
@@ -709,37 +740,43 @@ void TunnRptProducer::SavePosition()
 	of.open("pos_sum.pos",std::ofstream::trunc);
 	if (of.good()) 
 	{
-		for(int i=0; i<init_positions._cur_pos.symbol_cnt_; i++)
+		position_t& today_pos = init_positions_._cur_pos;
+		position_t& yesterday_pos = init_positions_._yesterday_pos;
+
+		for(int i=0; i<today_pos.symbol_cnt; i++)
 		{
 			char buffer[10];
-			const char *contract = init_positions._cur_pos[i].symbol;
+			const char *contract = today_pos.s_pos[i].symbol;
 			// contract
 			of.write(contract, strlen(contract));	
 			of.write(";", 1);	
 			// yesterday long position
 			snprintf (buffer, sizeof(buffer), 
 						"%d", 
-						init_positions._yesterday_pos[i].long_volume);
+						yesterday_pos.s_pos[i].long_volume);
 			of.write(buffer, strlen(buffer));
 			of.write(";", 1);	
 			// yesterday short position
 			snprintf (buffer, sizeof(buffer), 
 						"%d", 
-						init_positions._yesterday_pos[i].short_volume);
+						yesterday_pos.s_pos[i].short_volume);
 			of.write(buffer, strlen(buffer));
 			of.write(";", 1);	
 			// today long position
-			snprintf (buffer, sizeof(buffer), "%d", init_positions._cur_pos[i].long_volume);
+			snprintf (buffer, 
+						sizeof(buffer), 
+						"%d", 
+						today_pos.s_pos[i].long_volume);
 			of.write(buffer, strlen(buffer));
 			of.write(";", 1);	
 			// today short position
 			snprintf (buffer, sizeof(buffer), 
 						"%d", 
-						init_positions._cur_pos[i].short_volume);
+						today_pos.s_pos[i].short_volume);
 			of.write(buffer, strlen(buffer));
 			of.write(";", 1);	
 			of.write("\n", 1);	
-		} // end for(int i=0; i<init_positions._cur_pos.symbol_cnt_; i++){
+		} // end for(int i=0; i<init_positions_._cur_pos.symbol_cnt; i++){
 	}
 	else
 	{

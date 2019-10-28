@@ -59,7 +59,7 @@ class CtpFieldConverter
 			{
 				return CTP_EXCHANGE_SHFE;
 			}
-			else if(exchange_names::XDCE == yExc)i
+			else if(exchange_names::XDCE == yExc)
 			{
 				return CTP_EXCHANGE_DCE;
 			}
@@ -258,16 +258,18 @@ class TunnRptProducer: public CThostFtdcTraderSpi
 
 		bool Ended();
 		void FillInitPosition(CThostFtdcInvestorPositionField *posField);
+
+		/*
+		 * 获取指定合约的仓位对象，如果指定的合约还没有仓位对象，
+		 * 则取第一个未使用的仓位对象，并指定最新的仓位对象个数
+		 */
+		symbol_pos_t* GetContractPosition(char *contract,
+					position_t* position );
+
 		void SavePosition();
 		int GetTradingDay();
 		int IsNightTrading();
 
-		int TradingDay;
-		/*
-		 * true:夜盘交易
-		 * false：日盘交易
-		 */
-		int IsNightTrading;
 	private:
 		/*
 		 * things relating to ctp API
@@ -320,7 +322,6 @@ class TunnRptProducer: public CThostFtdcTraderSpi
 		int32_t Push();
 
 		CThostFtdcTraderApi *api_;
-		char TradingDay_[9];
 		TThostFtdcFrontIDType	frontid_;
 		///会话编号
 		TThostFtdcSessionIDType	sessionid_;
@@ -333,6 +334,13 @@ class TunnRptProducer: public CThostFtdcTraderSpi
 		bool position_ready_;
 		char appid_[30];
 		char authcode_[40];
+
+		int TradingDay_;
+		/*
+		 * true:夜盘交易
+		 * false：日盘交易
+		 */
+		int IsNightTrading_;
 	
 };
 

@@ -9,8 +9,6 @@
 
 #include <signal.h>     /* signal */
 #include "vrt_value_obj.h"
-#include "l2md_producer.h"
-#include "tap_md_producer.h"
 #include "tunn_rpt_producer.h"
 #include "uni_consumer.h"
 #include "pos_calcu.h"

@@ -1,5 +1,4 @@
-#ifndef __L2MD_PRODUCER_H__
-#define __L2MD_PRODUCER_H__
+#pragma once
 
 #include <functional>
 #include <array>
@@ -7,19 +6,18 @@
 #include <thread>         
 #include <chrono>        
 #include "vrt_value_obj.h"
+#include "quote_datatype_shfe_deep.h"
 #include <tinyxml.h>
 #include <tinystr.h>
-#include "quote_cmn_utility.h"
-#include "ZceLevel2ApiStruct.h"
 
 /*
  * 缓存的最大的行情数量
  */
-#define L2MD_BUFFER_SIZE 8192 
+#define FULL_DEPTH_MD_BUFFER_SIZE 8192 
 
 using namespace std;
 
-struct L2MDConfig 
+struct FulldepthMDConfig 
 {
 	string addr;
 	char ip[30];
@@ -28,53 +26,56 @@ struct L2MDConfig
 	char yield[20]; // disruptor yield strategy
 };
 
-class L2MDProducer
+class ShfeFullDepthMDProducer
 {
 	public:
-		L2MDProducer(struct vrt_queue  *queue);
-		~L2MDProducer();
+		ShfeFullDepthMDProducer(struct vrt_queue  *queue);
+		~ShfeFullDepthMDProducer();
 
-		StdQuote5* GetData(int32_t index);
+		MDPackEx* GetData(int32_t index);
 		void End();
 		/*
 		 * check whether the given contract is dominant.
 		 */
 		bool IsDominant(const char *contract);
 
+		std::string ToString(const MDPackEx &d);
+		std::string ToString(const MDPack &d);
+
 	private:
 		/*
 		 * 与API相关
 		 */
-		int InitMDApi();
-		int udp_client_fd_;
+		int Init();
 
 		/*
 		 * 逻辑相关
 		 */
-		void RevData();
 
+		void Process(MDPack *data);
+		void RevData();
 		std::thread *thread_rev_;
 		int32_t dominant_contract_count_;
-		char dominant_contracts_[20][10];
+		char dominant_contracts_[MAX_CONTRACT_COUNT][10];
 
 		/*
 		 *disruptor相关
 		 */
-		int32_t Push(const StdQuote5& md);
+		int32_t Push(const MDPackEx& md);
 		struct vrt_producer  *producer_;
-		std::array<StdQuote5, L2MD_BUFFER_SIZE> md_buffer_;
+		std::array<MDPackEx, FULL_DEPTH_MD_BUFFER_SIZE> shfemarketdata_buffer_;
 		bool ended_;
 
 		/*
 		 *日志相关
 		 */
 		const char *module_name_;  
+		int udp_fd_;
 
 		/*
 		 * 配置相关
 		 */
-		L2MDConfig config_;
+		FulldepthMDConfig config_;
 		void ParseConfig();
 };
 
-#endif

@@ -85,8 +85,9 @@ bool Compliance::TryReqOrderInsert(int ord_counter,
 {
     bool ret = true;
 
+	int32_t cancel_times = GetCancelTimes(contract);
 	if(offset == THOST_FTDC_OF_Open && 
-				(GetCancelTimes(contract) >= cancel_upper_limit_))
+				(cancel_times >= cancel_upper_limit_))
 	{
 		char time[80];
 		get_curtime(time,sizeof(time));

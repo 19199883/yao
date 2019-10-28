@@ -29,6 +29,9 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue,
 	log_write_count_ = 0;
 	log_w_ = vector<strat_out_log>(MAX_LINES_FOR_LOG);
 
+#ifdef PERSISTENCE_ENABLED 
+    p_yao_md_save_ = new QuoteDataSave<YaoQuote>("yao_md", MY_YAO_QUOTE_TYPE);
+#endif
 
 #if FIND_STRATEGIES == 3 // strcmp
 	clog_info("[%s] method for finding strategies by contract:strcmp", module_name_);
@@ -63,7 +66,9 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue,
 
 UniConsumer::~UniConsumer()
 {
-
+#ifdef PERSISTENCE_ENABLED 
+    if (p_yao_md_save_) delete p_yao_md_save_;
+#endif
 
 //	if (this->consumer_ != NULL){
 //		vrt_consumer_free(this->consumer_);
@@ -173,11 +178,69 @@ void UniConsumer::CreateStrategies()
 	}
 }
 
+void UniConsumer::ProcYaoQuote(YaoQuote* md)
+{
+	//clog_info("[test] proc [%s] [ProcShfeMarketData] contract:%s, time:%s", module_name_, 
+	//	md->InstrumentID, md->GetQuoteTime().c_str());
+
+#ifdef LATENCY_MEASURE
+		 static int cnt = 0;
+		 perf_ctx::insert_t0(cnt);
+		 cnt++;
+#endif
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t0 = high_resolution_clock::now();
+#endif
+
+	for(int i = 0; i < strategy_counter_; i++)
+	{ 
+		int sig_cnt = 0;
+		Strategy &strategy = stra_table_[i];
+
+#ifdef ONE_PRODUCT_ONE_CONTRACT
+		// 如果一个交易程序中一个品种只有一种合约，那么只需要比较品种部分即可
+		const char *contract = strategy.GetContract();
+		if ((contract[0]== md->InstrumentID[0] &&
+			 contract[1]== md->InstrumentID[1]))
+		{
+#else
+		if (IsEqualContract((char*)strategy.GetContract(), md->InstrumentID))
+		{
+#endif
+			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
+			WriteStrategyLog(strategy);
+			ProcSigs(strategy, sig_cnt, sig_buffer_);
+		}
+	}
+
+#ifdef PERSISTENCE_ENABLED 
+    timeval t;
+    gettimeofday(&t, NULL);
+    p_yao_md_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, md);
+#endif
+
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
+		clog_warning("[%s] ProcL2QuoteSnapshot latency:%d us", module_name_, latency); 
+#endif
+}
 void UniConsumer::Start()
 {
 	running_  = true;
 	// strategy log
 	thread_log_ = new std::thread(&UniConsumer::WriteLogImp,this);
+
+	MYQuoteData myquotedata(fulldepth_md_producer_, l1_md_producer_);
+	auto f_shfemarketdata = std::bind(&UniConsumer::ProcShfeMarketData, this,_1);
+	myquotedata.SetQuoteDataHandler(f_shfemarketdata);
+
+	// INE sc 
+	MYIneQuoteData myinequotedata(fulldepth_md_producer_,
+				l1_md_producer_,
+				myquotedata.p_my_shfe_md_save_);
+	auto f_inemarketdata = std::bind(&UniConsumer::ProcShfeMarketData, this,_1);
+	myinequotedata.SetQuoteDataHandler(f_inemarketdata);
 
 	int rc = 0;
 	struct vrt_value  *vvalue;
@@ -190,6 +253,18 @@ void UniConsumer::Start()
 				cork_container_of(vvalue, struct vrt_hybrid_value, parent);
 			switch (ivalue->data)
 			{
+				case SHFE_L1_MD:
+					myquotedata.ProcShfeL1MdData(ivalue->index);
+					myinequotedata.ProcShfeL1MdData(ivalue->index);
+					break;
+				// 解决原油(SC)因序号与上期其它品种的序号是独立的，从而造成数据问题。
+				// 解决方法：将sc与其它品种行情分成2种独立行情
+				case INE_FULL_DEPTH_MD:
+					myinequotedata.ProcShfeFullDepthData(ivalue->index);
+					break;
+				case SHFE_FULL_DEPTH_MD:
+					myquotedata.ProcShfeFullDepthData(ivalue->index);
+					break;
 				case YAO_DATA:
 					ProcYaoData(ivalue->index);
 					break;
