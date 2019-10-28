@@ -66,12 +66,6 @@ ShfeL1MDProducer::ShfeL1MDProducer(struct vrt_queue  *queue)
 				dominant_contracts_);
 	max_traverse_count_ = contract_count_ * 4;
 
-#ifdef PERSISTENCE_ENABLED 
-    p_level1_save_ = 
-		new QuoteDataSave<CDepthMarketDataField>("quote_level1", 
-					SHFE_EX_QUOTE_TYPE);
-#endif
-
 	memset(&md_buffer_, 0, sizeof(md_buffer_));
 	InitMDApi();
 
@@ -163,9 +157,6 @@ void ShfeL1MDProducer::ParseConfig()
 
 ShfeL1MDProducer::~ShfeL1MDProducer()
 {
-#ifdef PERSISTENCE_ENABLED 
-    if (p_level1_save_) delete p_level1_save_;
-#endif
 }
 
 
@@ -332,7 +323,9 @@ void ShfeL1MDProducer::OnFrontConnected()
 
 void ShfeL1MDProducer::OnFrontDisconnected(int nReason)
 {
-    clog_warning("[%s] CTP - OnFrontDisconnected, nReason: %d", module_name_, nReason);
+    clog_warning("[%s] CTP - OnFrontDisconnected, nReason: %d", 
+				module_name_, 
+				nReason);
 }
 
 void ShfeL1MDProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, 
@@ -485,28 +478,54 @@ void ShfeL1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *data
 	// 抛弃非主力合约
 	if(!(IsDominant(data->InstrumentID))) return;
 
-	Convert(quote_level1_, *data);
-	RalaceInvalidValue_Femas(quote_level1_);
-	
-	// debug
-	// ToString(quote_level1_ );
+	if((md->instrument[0]=='s' && md->instrument[1]=='c') ||
+		md->instrument[0]=='n' && md->instrument[1]=='r')
+	{
+		Convert(quote_level1_, *data);
+		RalaceInvalidValue_Femas(quote_level1_);
+		
+		// debug
+		// ToString(quote_level1_ );
 
-	//clog_info("[%s] OnRtnDepthMarketData InstrumentID:%s,UpdateTime:%s,UpdateMillisec:%d",
-	//	module_name_,quote_level1_.InstrumentID,quote_level1_.UpdateTime,quote_level1_.UpdateMillisec);
+		clog_info("[%s] OnRtnDepthMarketData InstrumentID:%s, "
+					"UpdateTime:%s,UpdateMillisec:%d",
+					module_name_,
+					quote_level1_.InstrumentID,
+					quote_level1_.UpdateTime,
+					quote_level1_.UpdateMillisec);
 
-	struct vrt_value  *vvalue;
-	struct vrt_hybrid_value  *ivalue;
-	vrt_producer_claim(producer_, &vvalue);
-	ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
-	ivalue->index = Push(quote_level1_);
-	ivalue->data = L1_MD;
-	vrt_producer_publish(producer_);
+		struct vrt_value  *vvalue;
+		struct vrt_hybrid_value  *ivalue;
+		vrt_producer_claim(producer_, &vvalue);
+		ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
+		ivalue->index = Push(quote_level1_);
+		ivalue->data = INE_L1_MD;
+		vrt_producer_publish(producer_);
 
-#ifdef PERSISTENCE_ENABLED 
-    timeval t;
-    gettimeofday(&t, NULL);
-    p_level1_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &quote_level1_);
-#endif
+	}
+	else
+	{
+		Convert(quote_level1_, *data);
+		RalaceInvalidValue_Femas(quote_level1_);
+		
+		// debug
+		// ToString(quote_level1_ );
+
+		clog_info("[%s] OnRtnDepthMarketData InstrumentID:%s, "
+					"UpdateTime:%s,UpdateMillisec:%d",
+					module_name_,
+					quote_level1_.InstrumentID,
+					quote_level1_.UpdateTime,
+					quote_level1_.UpdateMillisec);
+
+		struct vrt_value  *vvalue;
+		struct vrt_hybrid_value  *ivalue;
+		vrt_producer_claim(producer_, &vvalue);
+		ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
+		ivalue->index = Push(quote_level1_);
+		ivalue->data = SHFE_L1_MD;
+		vrt_producer_publish(producer_);
+	}
 }
 
 void ShfeL1MDProducer::RalaceInvalidValue_Femas(CDepthMarketDataField &d)
@@ -746,11 +765,6 @@ void ShfeL1MDProducer::OnQuoteUpdated(EesEqsIntrumentType chInstrumentType,
 	ivalue->data = L1_MD;
 	vrt_producer_publish(producer_);
 
-#ifdef PERSISTENCE_ENABLED 
-    timeval t;
-    gettimeofday(&t, NULL);
-    p_level1_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, data);
-#endif
 }
 
 void ShfeL1MDProducer::RalaceInvalidValue_EES(EESMarketDepthQuoteData &data_src, 
@@ -878,11 +892,6 @@ void ShfeL1MDProducer::Rev(const struct guava_udp_normal* data)
 	ivalue->data = L1_MD;
 	vrt_producer_publish(producer_);
 
-#ifdef PERSISTENCE_ENABLED 
-    timeval t;
-    gettimeofday(&t, NULL);
-    p_level1_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, data);
-#endif
 }
 
 void ShfeL1MDProducer::RalaceInvalidValue_EES(CDepthMarketDataField &d)

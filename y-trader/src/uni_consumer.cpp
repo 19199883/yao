@@ -10,12 +10,14 @@
 #include "YaoQuote.h"
 
 
-UniConsumer::UniConsumer(struct vrt_queue  *queue, 
-			DceMDProducer *md_producer, 
+UniConsumer::UniConsumer(struct vrt_queue* queue, 
+			ShfeL1MDProducer* shfeL1MDProducer, 
+			ShfeFullDepthMDProducer* shfeFullDepthMDProducer,
 			TunnRptProducer *tunn_rpt_producer) 
 		: module_name_("uni_consumer"),
 		running_(true), 
-		md_producer_(md_producer),
+		shfeL1MDProducer_(shfeL1MDProducer), 
+		shfeFullDepthMDProducer_(shfeFullDepthMDProducer),
 		tunn_rpt_producer_(tunn_rpt_producer),
 		lock_log_(ATOMIC_FLAG_INIT)
 {
@@ -183,30 +185,13 @@ void UniConsumer::ProcYaoQuote(YaoQuote* md)
 	//clog_info("[test] proc [%s] [ProcShfeMarketData] contract:%s, time:%s", module_name_, 
 	//	md->InstrumentID, md->GetQuoteTime().c_str());
 
-#ifdef LATENCY_MEASURE
-		 static int cnt = 0;
-		 perf_ctx::insert_t0(cnt);
-		 cnt++;
-#endif
-#ifdef LATENCY_MEASURE
-		high_resolution_clock::time_point t0 = high_resolution_clock::now();
-#endif
-
 	for(int i = 0; i < strategy_counter_; i++)
 	{ 
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
 
-#ifdef ONE_PRODUCT_ONE_CONTRACT
-		// 如果一个交易程序中一个品种只有一种合约，那么只需要比较品种部分即可
-		const char *contract = strategy.GetContract();
-		if ((contract[0]== md->InstrumentID[0] &&
-			 contract[1]== md->InstrumentID[1]))
+		if (strategy.Subscribed(md->Contract))
 		{
-#else
-		if (IsEqualContract((char*)strategy.GetContract(), md->InstrumentID))
-		{
-#endif
 			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
 			WriteStrategyLog(strategy);
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
@@ -218,12 +203,6 @@ void UniConsumer::ProcYaoQuote(YaoQuote* md)
     gettimeofday(&t, NULL);
     p_yao_md_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, md);
 #endif
-
-#ifdef LATENCY_MEASURE
-		high_resolution_clock::time_point t1 = high_resolution_clock::now();
-		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
-		clog_warning("[%s] ProcL2QuoteSnapshot latency:%d us", module_name_, latency); 
-#endif
 }
 void UniConsumer::Start()
 {
@@ -231,15 +210,13 @@ void UniConsumer::Start()
 	// strategy log
 	thread_log_ = new std::thread(&UniConsumer::WriteLogImp,this);
 
-	MYQuoteData myquotedata(fulldepth_md_producer_, l1_md_producer_);
-	auto f_shfemarketdata = std::bind(&UniConsumer::ProcShfeMarketData, this,_1);
+	MYQuoteData myquotedata(shfeFullDepthMDProducer_, shfeL1MDProducer_);
+	auto f_shfemarketdata = std::bind(&UniConsumer::ProcYaoQuote, this,_1);
 	myquotedata.SetQuoteDataHandler(f_shfemarketdata);
 
 	// INE sc 
-	MYIneQuoteData myinequotedata(fulldepth_md_producer_,
-				l1_md_producer_,
-				myquotedata.p_my_shfe_md_save_);
-	auto f_inemarketdata = std::bind(&UniConsumer::ProcShfeMarketData, this,_1);
+	MYIneQuoteData myinequotedata(shfeFullDepthMDProducer_, shfeL1MDProducer_);
+	auto f_inemarketdata = std::bind(&UniConsumer::ProcYaoQuote, this,_1);
 	myinequotedata.SetQuoteDataHandler(f_inemarketdata);
 
 	int rc = 0;
@@ -253,20 +230,24 @@ void UniConsumer::Start()
 				cork_container_of(vvalue, struct vrt_hybrid_value, parent);
 			switch (ivalue->data)
 			{
+				case INE_L1_MD:
+					myinequotedata.ProcIneL1MdData(ivalue->index);
 				case SHFE_L1_MD:
 					myquotedata.ProcShfeL1MdData(ivalue->index);
-					myinequotedata.ProcShfeL1MdData(ivalue->index);
 					break;
 				// 解决原油(SC)因序号与上期其它品种的序号是独立的，从而造成数据问题。
 				// 解决方法：将sc与其它品种行情分成2种独立行情
 				case INE_FULL_DEPTH_MD:
-					myinequotedata.ProcShfeFullDepthData(ivalue->index);
+					myinequotedata.ProcIneFullDepthData(ivalue->index);
 					break;
 				case SHFE_FULL_DEPTH_MD:
 					myquotedata.ProcShfeFullDepthData(ivalue->index);
 					break;
-				case YAO_DATA:
-					ProcYaoData(ivalue->index);
+				case DCE_YAO_DATA:
+					ProcDceYaoData(ivalue->index);
+					break;
+				case ZCE_YAO_DATA:
+					ProcZceYaoData(ivalue->index);
 					break;
 				case TUNN_RPT:
 					ProcTunnRpt(ivalue->index);
@@ -291,7 +272,8 @@ void UniConsumer::Stop()
 {
 	if(running_)
 	{
-		md_producer_->End();
+		shfeL1MDProducer_->End();
+		shfeFullDepthMDProducer_->End();
 		tunn_rpt_producer_->End();
 
 #ifdef COMPLIANCE_CHECK
@@ -317,41 +299,20 @@ void UniConsumer::Stop()
 	fflush (Log::fp);
 }
 
-void UniConsumer::ProcYaoData(int32_t index)
+void UniConsumer::ProcDceYaoData(int32_t index)
 {
-#ifdef LATENCY_MEASURE
-		 static int cnt = 0;
-		 perf_ctx::insert_t0(cnt);
-		 cnt++;
-#endif
-#ifdef LATENCY_MEASURE
-		high_resolution_clock::time_point t0 = high_resolution_clock::now();
-#endif
+	// TODO: code here
+//	YaoQuote* md = md_producer_->Data(index);
+//	ProcYaoQuote(md);
 
-	YaoQuote* md = md_producer_->Data(index);
+}
 
-	clog_debug("[%s] [YaoQuote] index: %d; contract: %s", 
-				module_name_, 
-				index, 
-				md->Contract);
+void UniConsumer::ProcZceYaoData(int32_t index)
+{
+	// TODO: code here
+//	YaoQuote* md = md_producer_->Data(index);
+//	ProcYaoQuote(md);
 
-	for(int i = 0; i < strategy_counter_; i++)
-	{ 
-		int sig_cnt = 0;
-		Strategy &strategy = stra_table_[i];
-		if (strategy.Subscribed(md->Contract))
-		{
-			 strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-			WriteStrategyLog(strategy);
-			ProcSigs(strategy, sig_cnt, sig_buffer_);
-		}
-	}
-
-#ifdef LATENCY_MEASURE
-		high_resolution_clock::time_point t1 = high_resolution_clock::now();
-		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
-		clog_warning("[%s] ProcBestAndDeep latency:%d us", module_name_, latency); 
-#endif
 }
 
 void UniConsumer::ProcTunnRpt(int32_t index)

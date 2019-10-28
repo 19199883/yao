@@ -17,6 +17,8 @@
 #include "loadlibraryproxy.h"
 #include "compliance.h"
 #include "quote_datatype_dce_level2.h"
+#include "shfe_fulldepthmd_producer.h"
+#include "shfe_l1md_producer.h"
 
 #define SIG_BUFFER_SIZE 32 
 
@@ -40,7 +42,8 @@ class UniConsumer
 {
 	public:
 		UniConsumer(struct vrt_queue *queue, 
-					DceMDProducer *md_producer, 
+					ShfeL1MDProducer* shfeL1MDProducer, 
+					ShfeFullDepthMDProducer* shfeFullDepthMDProducer,
 					TunnRptProducer *tunn_rpt_producer);
 		~UniConsumer();
 
@@ -83,9 +86,9 @@ class UniConsumer
 		void CreateStrategies();
 
 		// business logic
-		void ProcBestAndDeep(int32_t index);
-		void FeedBestAndDeep(int32_t straidx);
-		void ProcOrderStatistic(int32_t index);
+		void ProcYaoQuote(YaoQuote* md);
+		void ProcDceYaoData(int32_t index);
+		void ProcZceYaoData(int32_t index);
 		void ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs);
 		void ProcTunnRpt(int32_t index);
 		void CancelOrder(Strategy &strategy,signal_t &sig);
@@ -103,6 +106,8 @@ class UniConsumer
 
 
 		QuoteDataSave<YaoQuote> *p_yao_md_save_;
+		ShfeL1MDProducer shfeL1MDProducer_; 
+		ShfeFullDepthMDProducer shfeFullDepthMDProducer_;
 
 #ifdef COMPLIANCE_CHECK
 		Compliance compliance_;
