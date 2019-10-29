@@ -250,7 +250,7 @@ void MYIneQuoteData::Send(const char* contract)
 void MYIneQuoteData::SetQuoteDataHandler(std::function<void(YaoQuote*)> quote_handler)
 {
 	clog_warning("[%s] SetQuoteDataHandler invoked.", module_name_);
-	fulldepthmd_handler_ = quote_handler;
+	yaoquote_handler_= quote_handler;
 }
 
 void MYIneQuoteData::ProcIneL1MdData(int32_t index)

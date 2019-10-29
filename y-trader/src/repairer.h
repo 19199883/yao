@@ -4,7 +4,7 @@
 #include <string>
 #include "quote_datatype_shfe_my.h"
 #include "quote_datatype_shfe_deep.h"
-//#include "my_int_deque.h"
+#include "my_int_deque.h"
 #include "shfe_fulldepthmd_producer.h"
 #include "vrt_value_obj.h"
 
@@ -17,7 +17,7 @@ using namespace std;
 class repairer
 {
 	public:
-		repairer(FullDepthMDProducer *full_depth_md_producer);
+		repairer(ShfeFullDepthMDProducer *full_depth_md_producer);
 
 		/* receive data from UDP. repaires data if it is damaged
 		 */
@@ -81,7 +81,7 @@ class repairer
 		// record current serial number of UDP data	
 		int seq_no_;
 		const char * module_name_;  
-		FullDepthMDProducer *full_depth_md_producer_;
+		ShfeFullDepthMDProducer *full_depth_md_producer_;
 
 };
 

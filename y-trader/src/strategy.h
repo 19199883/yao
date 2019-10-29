@@ -123,6 +123,7 @@ public:
 	bool Deferred(int sig_id, 
 				unsigned short sig_openclose, 
 				unsigned short int sig_act);
+
 	void PrepareForExecutingSig(int localorderid, 
 				const signal_t &sig, 
 				int32_t actual_vol);
@@ -130,6 +131,7 @@ public:
 				const TunnRpt &rpt, 
 				int *sig_cnt, 
 				signal_t* sigs);
+
 	bool HasFrozenPosition(const char *contract);
 	int32_t GetCounterByLocalOrderID(int local_ord_id);
 	signal_t* GetSignalBySigID(int32_t sig_id);

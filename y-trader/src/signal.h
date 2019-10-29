@@ -2,11 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <string>
+#include "vrt_value_obj.h"
 
 using namespace std;
-
-// 单个策略最大支持的策略数
-#define MAX_CONTRACT_COUNT_FOR_STRATEDY 100
 
 struct StrategyLog1{
 
@@ -188,7 +186,7 @@ public:
 	 * specific element number is given by symbol_cnt member.
 	 */
 	// TODO: yao
-	symbol_pos_t s_pos[MAX_CONTRACT_COUNT_FOR_STRATEDY];
+	symbol_pos_t s_pos[MAX_CONTRACT_COUNT_FOR_STRATEGY];
 } ;
 
 class strategy_init_pos_t 

@@ -14,7 +14,7 @@
 #include "pos_calcu.h"
 #include "ctp_data_formater.h"
 #include "shfe_fulldepthmd_producer.h"
-#include " shfe_l1md_producer.h"
+#include "shfe_l1md_producer.h"
 
 /* Note that the parameter for queue size is a power of 2. */
 #define  QUEUE_SIZE  4096
@@ -83,8 +83,8 @@ int main(/*int argc, const char **argv*/)
 		std::this_thread::sleep_for (std::chrono::seconds(1));
 	}
 	uniConsumer = new UniConsumer (queue, 
-				shfe_full_producer, 
 				shfe_l1_md_producer ,
+				shfe_full_producer, 
 				tunnRptProducer);
 	uniConsumer->Start();
 
@@ -101,7 +101,7 @@ int main(/*int argc, const char **argv*/)
 	delete uniConsumer;
 
 // clog: free resources
-	pos_calc::destroy_instance();
+	//pos_calc::destroy_instance();
 	clog_handler_free(clog_handler);
 
 	return 0;

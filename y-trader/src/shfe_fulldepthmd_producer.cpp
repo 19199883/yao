@@ -2,7 +2,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
-#include "fulldepthmd_producer.h"
+#include "shfe_fulldepthmd_producer.h"
 #include "quote_cmn_utility.h"
 #include <chrono>
 #include <ctime>
@@ -145,8 +145,9 @@ void ShfeFullDepthMDProducer::End()
 		ended_ = true;
 
 		shutdown(udp_fd_, SHUT_RDWR);
-		int err = close(udp_fd_);
-		clog_warning("close udp:%d.", err); 
+		// TODO: debug
+		//int err = close(udp_fd_);
+		//clog_warning("close udp:%d.", err); 
 		thread_rev_->join();
 
 		vrt_producer_eof(producer_);

@@ -57,7 +57,7 @@ class UniConsumer
 		bool running_;
 		const char* module_name_;  
 		struct vrt_consumer *consumer_;
-		DceMDProducer *md_producer_;
+		// DceMDProducer *md_producer_;
 		TunnRptProducer *tunn_rpt_producer_;
 		CLoadLibraryProxy *pproxy_;
 		int32_t strategy_counter_;
@@ -105,8 +105,8 @@ class UniConsumer
 
 
 		QuoteDataSave<YaoQuote> *p_yao_md_save_;
-		ShfeL1MDProducer shfeL1MDProducer_; 
-		ShfeFullDepthMDProducer shfeFullDepthMDProducer_;
+		ShfeL1MDProducer *shfeL1MDProducer_; 
+		ShfeFullDepthMDProducer *shfeFullDepthMDProducer_;
 
 #ifdef COMPLIANCE_CHECK
 		Compliance compliance_;

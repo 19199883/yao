@@ -1,6 +1,7 @@
 // done
 #include <thread>         
 #include <chrono>        
+#include <functional>   // std::bind
 #include <algorithm>    
 #include "uni_consumer.h"
 #include "pos_calcu.h"
@@ -8,7 +9,10 @@
 #include <tinyxml.h>
 #include <tinystr.h>
 #include "YaoQuote.h"
+#include "quote_interface_ine_my.h"
+#include "quote_interface_shfe_my.h"
 
+using namespace std::placeholders; 
 
 UniConsumer::UniConsumer(struct vrt_queue* queue, 
 			ShfeL1MDProducer* shfeL1MDProducer, 
@@ -158,8 +162,8 @@ void UniConsumer::CreateStrategies()
 		Strategy &strategy = stra_table_[strategy_counter_];
 
 		// TODO: yao
-		seting.config.TradingDay = this->tunn_rpt_producer_->TradingDay;
-		seting.config.IsNightTrading = this->tunn_rpt_producer_->IsNightTrading;
+		setting.config.TradingDay = this->tunn_rpt_producer_->GetTradingDay();
+		setting.config.IsNightTrading = this->tunn_rpt_producer_->IsNightTrading();
 
 		strategy.Init(setting, this->pproxy_);
 		// mapping table
@@ -190,7 +194,7 @@ void UniConsumer::ProcYaoQuote(YaoQuote* md)
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
 
-		if (strategy.Subscribed(md->Contract))
+		if (strategy.Subscribed(md->symbol))
 		{
 			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
 			WriteStrategyLog(strategy);
@@ -211,7 +215,7 @@ void UniConsumer::Start()
 	thread_log_ = new std::thread(&UniConsumer::WriteLogImp,this);
 
 	MYQuoteData myquotedata(shfeFullDepthMDProducer_, shfeL1MDProducer_);
-	auto f_shfemarketdata = std::bind(&UniConsumer::ProcYaoQuote, this,_1);
+	auto f_shfemarketdata = std::bind(&UniConsumer::ProcYaoQuote, this, _1);
 	myquotedata.SetQuoteDataHandler(f_shfemarketdata);
 
 	// INE sc 
@@ -336,7 +340,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
 	int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt->LocalOrderID);
-	const char* contract = strategy.GetContractBySigIdx(sig_idx);
+	const char* contract = strategy.GetContractBySigIdx(sigidx);
 	strategy.FeedTunnRpt(sigidx, *rpt, &sig_cnt, sig_buffer_);
 	WriteStrategyLog(strategy);
 

@@ -18,7 +18,7 @@
 	 return "";
 }
 
-repairer::repairer(FullDepthMDProducer *full_depth_md_producer)
+repairer::repairer(ShfeFullDepthMDProducer *full_depth_md_producer)
 :module_name_("repairer")
 {
 	full_depth_md_producer_ = full_depth_md_producer;

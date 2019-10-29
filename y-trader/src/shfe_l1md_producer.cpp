@@ -478,8 +478,8 @@ void ShfeL1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *data
 	// 抛弃非主力合约
 	if(!(IsDominant(data->InstrumentID))) return;
 
-	if((md->instrument[0]=='s' && md->instrument[1]=='c') ||
-		md->instrument[0]=='n' && md->instrument[1]=='r')
+	if((data->InstrumentID[0]=='s' && data->InstrumentID[1]=='c') ||
+		data->InstrumentID[0]=='n' && data->InstrumentID[1]=='r')
 	{
 		Convert(quote_level1_, *data);
 		RalaceInvalidValue_Femas(quote_level1_);

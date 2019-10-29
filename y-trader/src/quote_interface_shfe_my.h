@@ -8,15 +8,15 @@
 #include "quote_datatype_shfe_my.h"
 #include "quote_datatype_shfe_deep.h"
 #include "quote_datatype_level1.h"
-#include "l1md_producer.h"
+#include "shfe_l1md_producer.h"
 #include "repairer.h"
-#include "fulldepthmd_producer.h"
+#include "shfe_fulldepthmd_producer.h"
 #include "vrt_value_obj.h"
 #include "quote_cmn_save.h"
 #include "my_cmn_util_funcs.h"
 #include "quote_cmn_utility.h"
 #include "quote_cmn_save.h"
-
+#include "YaoQuote.h"
 
 using namespace std;
 
@@ -89,6 +89,6 @@ class DLL_PUBLIC MYQuoteData
 		const char *module_name_;  
 
 	    // 数据处理函数对象
-	    std::function<void(YaoQuote *)> fulldepthmd_handler_;
+	    std::function<void(YaoQuote *)> yaoquote_handler_;
 };
 

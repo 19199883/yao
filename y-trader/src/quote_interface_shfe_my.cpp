@@ -1,5 +1,6 @@
 ﻿#include <thread>         // std::thread
 #include "quote_interface_shfe_my.h"
+#include "yao_utils.h"
 
 std::string MYQuoteData::ToString(const MYShfeMarketData &d) 
 {
@@ -249,7 +250,7 @@ void MYQuoteData::Send(const char* contract)
 void MYQuoteData::SetQuoteDataHandler(std::function<void(YaoQuote*)> quote_handler)
 {
 	clog_warning("[%s] SetQuoteDataHandler invoked.", module_name_);
-	fulldepthmd_handler_ = quote_handler;
+	yaoquote_handler_ = quote_handler;
 }
 
 void MYQuoteData::ProcShfeL1MdData(int32_t index)

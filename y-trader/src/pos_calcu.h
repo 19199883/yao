@@ -34,7 +34,7 @@ class pos_calc
 		static void get_pos(string &strategy, const char* contract, int &yLong, int &yShort, 
 					int &tLong, int &tShort)
 		{
-			string pos_file = stra + ".pos";
+			string pos_file = strategy + ".pos";
 			char buf[1024];
 			string line = "";
 			int cur_pos = 0;
@@ -48,7 +48,7 @@ class pos_calc
 				next_pos = 0;
 				// contract
 				next_pos = line.find(';', cur_pos);
-				char *cur_contract = line.substr(cur_pos, next_pos-cur_pos);
+				char *cur_contract = (char*)line.substr(cur_pos, next_pos-cur_pos).c_str();
 				if(strcmp(contract, cur_contract)==0) break;
 			}
 			is.close();

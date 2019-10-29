@@ -16,7 +16,7 @@
 #include "my_cmn_util_funcs.h"
 #include "quote_cmn_utility.h"
 #include "quote_cmn_save.h"
-
+#include "YaoQuote.h"
 
 using namespace std;
 

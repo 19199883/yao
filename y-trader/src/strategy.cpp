@@ -22,7 +22,7 @@ Strategy::Strategy()
 	cursor_ = 0;
 
 	pfn_init_;
-	pfn_feedshfemarketdata_ = NULL;
+	pfn_feedyaomarketdata_ = NULL;
 	pfn_feedsignalresponse_ = NULL;
 	pfn_feedinitposition_ = NULL;
 	pfn_destroy_ = NULL;
@@ -134,9 +134,9 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 					errno);
 	}
 
-	pfn_feedshfemarketdata_ = 
+	pfn_feedyaomarketdata_ = 
 		(FeedYaoMarketData_ptr )pproxy_->findObject( bar_so, STRATEGY_METHOD_FEED_MD_YAO);
-	if (!pfn_feedshfemarketdata_ )
+	if (!pfn_feedyaomarketdata_ )
 	{
 		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, 
@@ -226,7 +226,7 @@ void Strategy::FeedMd(YaoQuote* md, int *sig_cnt, signal_t* sigs)
 	
 	*sig_cnt = 0;
 	(log_.data()+log_cursor_)->exch_time = 0;
-	this->pfn_feedshfemarketdata_(md, sig_cnt, sigs, log_.data()+log_cursor_);
+	this->pfn_feedyaomarketdata_(md, sig_cnt, sigs, log_.data()+log_cursor_);
 	if((log_.data()+log_cursor_)->exch_time > 0)
 	{
 		log_cursor_++;
@@ -241,23 +241,23 @@ void Strategy::FeedMd(YaoQuote* md, int *sig_cnt, signal_t* sigs)
 #endif
 		sigs[i].st_id = this->GetId();
 
-		 clog_info("[%s] FeedMd MDBestAndDeep(data_flag=%d) signal: "
-					 "strategy id:%d; sig_id:%d; exchange:%d; symbol:%s;"
-					 "open_volume:%d; buy_price:%f; close_volume:%d; "
-					 "sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
-					module_name_, 
-					md->data_flag, 
-					sigs[i].st_id, 
-					sigs[i].sig_id,
-					sigs[i].exchange, 
-					sigs[i].symbol, 
-					sigs[i].open_volume, 
-					sigs[i].buy_price,
-					sigs[i].close_volume, 
-					sigs[i].sell_price, 
-					sigs[i].sig_act, 
-					sigs[i].sig_openclose, 
-					sigs[i].orig_sig_id); 
+//		 clog_info("[%s] FeedMd MDBestAndDeep(data_flag=%d) signal: "
+//					 "strategy id:%d; sig_id:%d; exchange:%d; symbol:%s;"
+//					 "open_volume:%d; buy_price:%f; close_volume:%d; "
+//					 "sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
+//					module_name_, 
+//					md->data_flag, 
+//					sigs[i].st_id, 
+//					sigs[i].sig_id,
+//					sigs[i].exchange, 
+//					sigs[i].symbol, 
+//					sigs[i].open_volume, 
+//					sigs[i].buy_price,
+//					sigs[i].close_volume, 
+//					sigs[i].sell_price, 
+//					sigs[i].sig_act, 
+//					sigs[i].sig_openclose, 
+//					sigs[i].orig_sig_id); 
 	}
 }
 
@@ -351,7 +351,7 @@ int Strategy::GetVol(const signal_t &sig)
 	} 
 	else if ((sig.sig_openclose == alloc_position_effect_t::CLOSE ||  
 					sig.sig_openclose == alloc_position_effect_t::CLOSE_TOD || 
-					sig_openclose==alloc_position_effect_t::CLOSE_YES))
+					sig.sig_openclose==alloc_position_effect_t::CLOSE_YES))
 	{
 		vol = sig.close_volume;
 	} 
@@ -425,7 +425,7 @@ void Strategy::Push(const signal_t &sig)
 	}
 	else if (sig.sig_openclose == alloc_position_effect_t::CLOSE || 
 				sig.sig_openclose == alloc_position_effect_t::CLOSE_TOD ||
-				sig_openclose==alloc_position_effect_t::CLOSE_YES)
+				sig.sig_openclose==alloc_position_effect_t::CLOSE_YES)
 	{
 		sigrpt_table_[cursor_].order_volume = sig.close_volume;
 	}
@@ -502,8 +502,13 @@ if_sig_state_t Strategy::ConvertStatusFromCtp(TThostFtdcOrderStatusType ctp_stat
 	{
 		inner_state = SIG_STATUS_ENTRUSTED;
 	}
+	else
+	{
+		clog_error("[%s] unkonwn tunnel status: %c; ", module_name_, ctp_state);
+	}
 
 }
+
 
 // improve place, cancel
 void Strategy::FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
@@ -513,14 +518,15 @@ void Strategy::FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, sig
 	// TODO: yao cancel ctp
 	strncpy(sys_order_id_[sigidx], rpt.OrderSysID, sizeof(sys_order_id_[sigidx]));
 
-	if_sig_state_t status = ConvertFromCtp(rpt.OrderStatus);
+	if_sig_state_t status = ConvertStatusFromCtp(rpt.OrderStatus);
 	int lastqty = rpt.MatchedAmount - sigrpt.acc_volume;
 	// update signal report
 	UpdateSigrptByTunnrpt(lastqty, rpt.MatchedPrice, sigrpt, status, rpt.ErrorID);
 	// update strategy's position
-	StrategyPosition *cur_pos = GetPosition(contract);
+	StrategyPosition *cur_pos = GetPosition(sig.symbol);
 	UpdatePosition(cur_pos, lastqty, status, sig.sig_openclose, sig.sig_act, rpt.ErrorID);
-	if (rpt.MatchedAmount > 0){
+	if (rpt.MatchedAmount > 0)
+	{
 		// fill signal position report by tunnel report
 		FillPositionRpt();
 	}
@@ -679,7 +685,6 @@ void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty,
 // done
 void Strategy::LoadPosition()
 {
-	char* strategy;
 	char* contract;
 	int yLong;
 	int yShort;
@@ -688,16 +693,16 @@ void Strategy::LoadPosition()
 
 	// TODO: yao position
 	memset(&init_pos_, 0, sizeof(strategy_init_pos_t));
-	position_t &today_pos = init_pos._cur_pos;
+	position_t &today_pos = init_pos_._cur_pos;
 	today_pos.symbol_cnt = this->setting_.config.symbols_cnt; 
-	position_t &yesterday_pos = init_pos._yesterday_pos;
+	position_t &yesterday_pos = init_pos_._yesterday_pos;
 	yesterday_pos.symbol_cnt = this->setting_.config.symbols_cnt; 
 
 	memset(&pos_cache_, 0, sizeof(pos_cache_));
 	pos_cache_.symbol_cnt = this->setting_.config.symbols_cnt;
 
 	memset(&position_, 0, sizeof(position_));
-	strategy = GetSoFile();
+	string strategy = (char*)GetSoFile();
 	
 	// 注意pos.s_pos与position_以同样的合约顺序存储
 	for(int i=0; i< this->setting_.config.symbols_cnt; i++)
@@ -711,12 +716,12 @@ void Strategy::LoadPosition()
 
 		strcpy(pos_cache_.s_pos[i].symbol, contract);
 		pos_cache_.s_pos[i].long_volume  = yLong + tLong;
-		pos_cache_.s_pos[i].short_volume = tLong + tshort;
+		pos_cache_.s_pos[i].short_volume = tLong + tShort;
 
 		symbol_pos_t &yesterday_sym_pos = yesterday_pos.s_pos[i];
 		strncpy(yesterday_sym_pos.symbol, contract, sizeof(yesterday_sym_pos.symbol));
 		yesterday_sym_pos.long_volume = yLong;
-		yesterday_sym_pos.short_volume = yshort;
+		yesterday_sym_pos.short_volume = yShort;
 		yesterday_sym_pos.exchg_code = this->GetExchange(contract); 
 
 		symbol_pos_t &today_sym_pos = today_pos.s_pos[i];
@@ -735,8 +740,8 @@ void Strategy::LoadPosition()
 					yesterday_sym_pos.short_volume,
 					today_sym_pos.long_volume, 
 					today_sym_pos.short_volume,
-					position_[i].long_volume,
-					position_[i].short_volume);
+					position_[i].cur_long,
+					position_[i].cur_short);
 	}
 }
 

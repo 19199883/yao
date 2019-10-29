@@ -675,7 +675,7 @@ symbol_pos_t* TunnRptProducer::GetContractPosition(char *contract,
 			position_t* position )
 {
 	int i=0;
-	for(; i<MAX_CONTRACT_COUNT; i++)
+	for(; i<MAX_CONTRACT_COUNT_FOR_STRATEGY; i++)
 	{
 		if(0 == position->s_pos[i].symbol[0])
 		{
