@@ -16,23 +16,27 @@ from datetime import date
 import logging
 
 # modify it according to account
-stra_setting = './tools/stra_sett_dce_day100.csv'
+stra_setting = './tools/stra_sett_shfe_day031.csv'
 pos_sum_file = './pos_sum.pos'
 ex = "dl"
 
 class Pos:
 	def __init__(self):
-		self.conf = ""
-		self.longPos = 0
-		self.shortPos = 0
+		self.contract = ""
+		self.yd_long = 0	# yesterday long position
+		self.yd_short = 0	# yesterday short position
+		self.td_long = 0	# today long position		
+		self.td_short = 0	# today short position
 
 class Strategy:
 	def __init__(self,stra_id):
 		self.stra_id = stra_id
-		self.comm_no = ""
-		self.pos_long = 0
-		self.pos_short = 0
-		self.stra_name = ""
+		self.commodity_no = ""
+		self.yd_long = 0	# yesterday long position
+		self.yd_short = 0	# yesterday short position
+		self.td_long = 0	# today long position
+		self.td_short = 0	# today short position
+		self.straitegy_name = ""
 		self.contract = ""
 
 class Distributor:

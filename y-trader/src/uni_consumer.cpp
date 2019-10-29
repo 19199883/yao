@@ -186,8 +186,7 @@ void UniConsumer::CreateStrategies()
 
 void UniConsumer::ProcYaoQuote(YaoQuote* md)
 {
-	//clog_info("[test] proc [%s] [ProcShfeMarketData] contract:%s, time:%s", module_name_, 
-	//	md->InstrumentID, md->GetQuoteTime().c_str());
+	clog_info("[test] proc [%s] [ProcShfeMarketData] contract:%s, time:%s", module_name_, md->InstrumentID, md->GetQuoteTime().c_str());
 
 	for(int i = 0; i < strategy_counter_; i++)
 	{ 

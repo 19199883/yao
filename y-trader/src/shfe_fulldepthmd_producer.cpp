@@ -64,7 +64,7 @@ void ShfeFullDepthMDProducer::ParseConfig()
 		clog_error("[%s] x-shmd.config error: Disruptor node missing.", module_name_); 
 	}
 
-    TiXmlElement *fdmd_node = RootElement->FirstChildElement("FullDepthMd");
+    TiXmlElement *fdmd_node = RootElement->FirstChildElement("ShfeFullDepthMd");
 	if (fdmd_node != NULL)
 	{
 		config_.addr = fdmd_node->Attribute("addr");
@@ -189,13 +189,21 @@ bool ShfeFullDepthMDProducer::IsDominant(const char *contract)
 std::string ShfeFullDepthMDProducer::ToString(const MDPack &d) {
 //	clog_info("MDPack Data:instrument:%s;"
 //		"islast:%d seqno:%d direction:%c count:%d",
-//		d.instrument, (int)d.islast, d.seqno,
-//		d.direction, d.count);
-	for(int i = 0; i < d.count; i++) {
+//		d.instrument, 
+//		(int)d.islast, 
+//		d.seqno,
+//		d.direction, 
+//		d.count);
+//
+//	for(int i = 0; i < d.count; i++) 
+//	{
 //		 clog_info("price%d: %lf, volume%d: %d",
-//			 i, d.data[i].price, i, d.data[i].volume);
-	}
-  
+//					 i, 
+//					 d.data[i].price, 
+//					 i, 
+//					 d.data[i].volume);
+//	}
+
   return "";
 }
 

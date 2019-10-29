@@ -16,7 +16,7 @@
 using namespace std;
 
 #define STRATEGY_METHOD_INIT "st_init_"
-#define STRATEGY_METHOD_FEED_MD_YAO "st_feed_marketinfo_"
+#define STRATEGY_METHOD_FEED_MD_YAO "st_feed_future_quote_"
 #define STRATEGY_METHOD_FEED_SIG_RESP "st_feed_sig_resp_"
 #define STRATEGY_METHOD_FEED_DESTROY "st_destroy_"
 #define STRATEGY_METHOD_FEED_INIT_POSITION  "st_feed_init_position_"

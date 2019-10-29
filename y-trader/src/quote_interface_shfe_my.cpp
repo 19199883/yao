@@ -258,10 +258,10 @@ void MYQuoteData::ProcShfeL1MdData(int32_t index)
 	l1_md_last_index_ = index;
 	CDepthMarketDataField* md = l1_md_producer_->GetData(index);
 
-	clog_info("[%s] ProcL1MdData:constract:%s;index:%d", 
-				module_name_, 
-				md->InstrumentID, 
-				l1_md_last_index_); 
+//	clog_info("[%s] ProcL1MdData:constract:%s;index:%d", 
+//				module_name_, 
+//				md->InstrumentID, 
+//				l1_md_last_index_); 
 }
 
 void MYQuoteData::Reset()

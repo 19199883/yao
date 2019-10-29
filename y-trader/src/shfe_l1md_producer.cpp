@@ -104,7 +104,7 @@ void ShfeL1MDProducer::ParseConfig()
 				module_name_); 
 	}
 
-    TiXmlElement *l1md_node = RootElement->FirstChildElement("L1Md");
+    TiXmlElement *l1md_node = RootElement->FirstChildElement("ShfeL1Md");
 	if (l1md_node != NULL)
 	{
 		strcpy(config_.efh_sf_eth, l1md_node->Attribute("efh_sf_eth"));
@@ -136,7 +136,7 @@ void ShfeL1MDProducer::ParseConfig()
 	} 
 	else
 	{
-		clog_error("[%s] x-shmd.config error: L1Md node missing.", module_name_); 
+		clog_error("[%s] x-shmd.config error: ShfeL1Md node missing.", module_name_); 
 	}
 	
 	// contracts file
@@ -487,12 +487,12 @@ void ShfeL1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *data
 		// debug
 		// ToString(quote_level1_ );
 
-		clog_info("[%s] OnRtnDepthMarketData InstrumentID:%s, "
-					"UpdateTime:%s,UpdateMillisec:%d",
-					module_name_,
-					quote_level1_.InstrumentID,
-					quote_level1_.UpdateTime,
-					quote_level1_.UpdateMillisec);
+	//	clog_info("[%s] OnRtnDepthMarketData InstrumentID:%s, "
+	//				"UpdateTime:%s,UpdateMillisec:%d",
+	//				module_name_,
+	//				quote_level1_.InstrumentID,
+	//				quote_level1_.UpdateTime,
+	//				quote_level1_.UpdateMillisec);
 
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;
@@ -511,12 +511,12 @@ void ShfeL1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *data
 		// debug
 		// ToString(quote_level1_ );
 
-		clog_info("[%s] OnRtnDepthMarketData InstrumentID:%s, "
-					"UpdateTime:%s,UpdateMillisec:%d",
-					module_name_,
-					quote_level1_.InstrumentID,
-					quote_level1_.UpdateTime,
-					quote_level1_.UpdateMillisec);
+	//	clog_info("[%s] OnRtnDepthMarketData InstrumentID:%s, "
+	//				"UpdateTime:%s,UpdateMillisec:%d",
+	//				module_name_,
+	//				quote_level1_.InstrumentID,
+	//				quote_level1_.UpdateTime,
+	//				quote_level1_.UpdateMillisec);
 
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;

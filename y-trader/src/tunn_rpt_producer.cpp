@@ -101,9 +101,14 @@ void TunnRptProducer::ParseConfig()
 
 	// yield strategy
     TiXmlElement *comp_node = RootElement->FirstChildElement("Disruptor");
-	if (comp_node != NULL){
+	if (comp_node != NULL)
+	{
 			strcpy(config_.yield, comp_node->Attribute("yield"));
-	} else { clog_error("[%s] x-trader.config error: Disruptor node missing.", module_name_); }
+	}
+	else 
+	{ 
+		clog_error("[%s] x-trader.config error: Disruptor node missing.", module_name_); 
+	}
 
     TiXmlElement *tunn_node = RootElement->FirstChildElement("Tunnel");
 	if (tunn_node != NULL)
@@ -663,9 +668,9 @@ void TunnRptProducer::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *
 
 		// TODO: yao. pos_redist.py代码在实盘时需要修改
 		// 为每个策略重新分配仓位
-		char cmd[200];
-		sprintf(cmd, "sh pos_redis.sh");
-		system(cmd);
+		//char cmd[200];
+		//sprintf(cmd, "sh pos_redis.sh");
+		//system(cmd);
 
 		position_ready_ = true;
 	}
@@ -731,8 +736,6 @@ void TunnRptProducer::FillInitPosition(CThostFtdcInvestorPositionField *posField
  * ag1912;12;13;23;22
  * OI001;33;21;34;67
  * contract;yesterday long;yesterday short;today long;today short
- *
- *
  */
 void TunnRptProducer::SavePosition()
 {

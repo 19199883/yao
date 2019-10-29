@@ -41,7 +41,8 @@ class pos_calc
 			int next_pos = 0;
 			std::ifstream is;
 			is.open (pos_file);
-			while(is.good()) {
+			while(is.good()) 
+			{
 				is.getline(buf, sizeof(buf));
 				line = buf;
 				cur_pos = 0;
