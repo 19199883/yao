@@ -34,9 +34,10 @@ uni_consumer.o: ../y-zcequote/src/uni_consumer.cpp \
  ../y-zcequote/src/l2md_producer.h \
  ../3rd/utils/include/moduleloadlibrarylinux.h \
  ../3rd/utils/include/moduleloadlibrary.h \
- ../3rd/utils/include/loadlibraryproxy.h ../3rd/yao/include/YaoQuote.h \
+ ../3rd/utils/include/loadlibraryproxy.h ../y-zcequote/src/YaoQuote.h \
  ../y-zcequote/src/md_helper.h ../y-zcequote/src/quote_cmn_save.h \
  ../y-zcequote/src/my_cmn_util_funcs.h
+perfctx.o: ../y-zcequote/src/perfctx.cpp ../y-zcequote/src/perfctx.h
 quote_cmn_save.o: ../y-zcequote/src/quote_cmn_save.cpp \
  ../y-zcequote/src/quote_cmn_save.h ../y-zcequote/src/my_cmn_util_funcs.h \
  ../y-zcequote/src/quote_cmn_utility.h ../y-zcequote/src/vrt_value_obj.h
@@ -53,7 +54,7 @@ main.o: ../y-zcequote/src/main.cpp ../y-zcequote/src/vrt_value_obj.h \
  ../y-zcequote/src/uni_consumer.h \
  ../3rd/utils/include/moduleloadlibrarylinux.h \
  ../3rd/utils/include/moduleloadlibrary.h \
- ../3rd/utils/include/loadlibraryproxy.h ../3rd/yao/include/YaoQuote.h
+ ../3rd/utils/include/loadlibraryproxy.h ../y-zcequote/src/YaoQuote.h
 md_helper.o: ../y-zcequote/src/md_helper.cpp \
  ../y-zcequote/src/md_helper.h ../y-zcequote/src/l2md_producer.h \
  ../y-zcequote/src/vrt_value_obj.h ../3rd/tinyxml/include/tinyxml.h \
@@ -66,4 +67,4 @@ md_helper.o: ../y-zcequote/src/md_helper.cpp \
  ../3rd/zce_md/include/quote_datatype_tap.h \
  ../3rd/zce_md/include/quote_datatype_czce_level2.h \
  ../y-zcequote/src/quote_cmn_save.h ../y-zcequote/src/my_cmn_util_funcs.h \
- ../3rd/yao/include/YaoQuote.h
+ ../y-zcequote/src/YaoQuote.h

@@ -38,7 +38,7 @@ public:
 			snprintf(buf, sizeof(buf), "structName=YaoQuote\n"
 				"\tfeed_type=%d\n"
 				"\tsymbol=%s\n"
-				"\texchange=%d\n"
+				"\texchange=%c\n"
 				"\tint_time=%d\n"
 				"\tpre_close_px=%f\n"
 				"\tpre_settle_px=%f\n"
@@ -57,7 +57,6 @@ public:
 				"\tsettle_px=%f\n"
 				"\ttotal_buy_ordsize=%d\n"
 				"\ttotal_sell_ordsize=%d\n"
-				
 				
 				"\tBidPrice1=%f\n"
 				"\tBidPrice2=%f\n"
@@ -84,7 +83,7 @@ public:
 				"\tAskLot5=%i\n",
 				(int)p->feed_type,             
 				p->symbol,
-				(int)p->exchange,        
+				p->exchange,        
 				p->int_time,         
 				p->pre_close_px,  
 				p->pre_settle_px,        
@@ -137,7 +136,7 @@ public:
 public:
 	FeedTypes feed_type;				
 	char symbol[48];			//	合约代码: 如'm1801','SR801','Au(T+D)'
-	YaoExchanges exchange;			//	交易所代码
+	char exchange;			//	交易所代码
 	//	交易所行情时间(HHMMssmmm), 如：90000306表示09:00:00 306. 0点-3点的数据 +24hrs
 	int int_time;				
 	float pre_close_px;			//	昨收盘价
@@ -165,7 +164,6 @@ public:
 	int total_sell_ordsize;		//	总卖量 DCE OrderStat quote
 	float weighted_buy_px;		//	平均买价 DCE OrderStat quote
 	float weighted_sell_px;		//	平均卖价 DCE OrderStat quote	
-
 };
 
 #endif // YAOQUOTE_H_

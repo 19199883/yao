@@ -5,24 +5,57 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
+#include "quote_datatype_shfe_deep.h"
 
-#define CLOG_CHANNEL  "y-quote.log"
+#define gettid() syscall(__NR_gettid)
 
-//#define LATENCY_MEASURE
-// 行情持久化开关
-// #define PERSISTENCE_ENABLED
-
-
-#ifdef PERSISTENCE_ENABLED 
-	#define MAX_CONTRACT_COUNT 1200
-#else
-	#define MAX_CONTRACT_COUNT 120 
-#endif
+// 如果要支持INE的行情，需要定义INE_ENABLE宏
+#define INE_ENABLE
 
 /*
- * 行情UDP通讯设置成非阻塞模式
- */
-//#define MD_UDP_NOBLOCK
+ * 如下宏根据情况进行定义
+*/
+// 行情持久化开关
+#define PERSISTENCE_ENABLED
+//#define LATENCY_MEASURE
+
+// 一档行情的选择
+// 飞马极速行情
+#define FEMAS_TOPSPEED_QUOTE
+// 盛立极速行情 API multicast
+//#define EES_UDP_TOPSPEED_QUOTE
+
+// software license
+#define SERVER_NAME  "zjtest1"
+
+// 合规检查开关
+#define COMPLIANCE_CHECK
+
+
+#define CLOG_CHANNEL  "x-trader"
+// 通过合约查找订阅该合约行情的方法:
+
+// 1: unordered_multimap  
+// 2: two-dimensional array
+// 3: strcmp
+#define FIND_STRATEGIES 3
+
+// 一个trader支持最多信号数 
+#define COUNTER_UPPER_LIMIT 15000
+#define INVALID_PENDING_SIGNAL 999999
+// 满足一天足够的下单量，以空间换时间
+#define RPT_BUFFER_SIZE 15000
+
+#ifdef PERSISTENCE_ENABLED 
+	#define MAX_DOMINANT_CONTRACT_COUNT 1000
+#else
+	#define MAX_DOMINANT_CONTRACT_COUNT 25
+#endif
+
+#define	RCV_BUF_SIZE		65535
+
+// 单个策略最大支持的合约数
+#define MAX_CONTRACT_COUNT_FOR_STRATEGY 100
 
 
 #ifdef __cplusplus
@@ -44,6 +77,20 @@ extern "C" {
 	 * x-trader varon-t value and type
 	 */
 
+	class MDPackEx
+	{
+		public:
+			MDPackEx(): damaged(false) { }
+
+			MDPackEx(MDPack &cur_content): damaged(false)
+			{
+				this->content = cur_content;
+			}
+
+			MDPack content;
+			bool damaged;
+	};
+
 class Log
 {
 	public:
@@ -51,9 +98,15 @@ class Log
 };
 
 	enum HybridData {
-		YAO_QUOTE = 0, 
+		DCE_YAO_DATA = 0, 
+		ZCE_YAO_DATA,
+		SHFE_FULL_DEPTH_MD,
+		INE_FULL_DEPTH_MD,
+		SHFE_L1_MD,
+		INE_L1_MD,
 		ZCE_L1_MD,
 		ZCE_L2_MD, 
+		TUNN_RPT,
 	};
 
 	struct vrt_hybrid_value {
@@ -89,4 +142,13 @@ class Log
 	}
 
 
+/*
+ * 合约只需要比较品种部分和日期部分的后3位，如：rb1910,只需要比较rb和910
+ */
+bool IsEqualContract(char *contract1, char* contract2);
+
+bool IsEmptyString(char *str);
+
+
+void get_curtime(char buffer[],int size);
 #endif

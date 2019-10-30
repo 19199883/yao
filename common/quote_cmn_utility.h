@@ -82,7 +82,7 @@ IPAndPortStr ParseIPAndPortStr(const std::string &addr_cfg);
  * contract: e.g. SR801
  * @return:返回主力合约个数
  */
-int32_t LoadDominantContracts(string file, char buffer[MAX_CONTRACT_COUNT][10]);
+int32_t LoadDominantContracts(string file, char buffer[MAX_DOMINANT_CONTRACT_COUNT][10]);
 
 /*
 * check whether the given contract is dominant.
@@ -90,7 +90,7 @@ int32_t LoadDominantContracts(string file, char buffer[MAX_CONTRACT_COUNT][10]);
 * contract_no:判断是否是主力合约的合约的月份部分,e.g 801
 * buffer: dominant contract list
 */
-bool IsDominantImp(const char*commodity_no, const char* contract_no, char buffer[MAX_CONTRACT_COUNT][10], 
+bool IsDominantImp(const char*commodity_no, const char* contract_no, char buffer[MAX_DOMINANT_CONTRACT_COUNT][10], 
 	int32_t buffer_size);
 
 /*
@@ -98,7 +98,7 @@ bool IsDominantImp(const char*commodity_no, const char* contract_no, char buffer
 * contract:SR1802, 要判断是否是主力合约的合约
 * buffer: dominant contract list
 */
-bool IsDominantImp(const char* contract, char buffer[MAX_CONTRACT_COUNT][10], 
+bool IsDominantImp(const char* contract, char buffer[MAX_DOMINANT_CONTRACT_COUNT][10], 
 	int32_t buffer_size);
 
 /*

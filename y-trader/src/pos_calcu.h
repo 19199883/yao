@@ -34,11 +34,19 @@ class pos_calc
 		static void get_pos(string &strategy, const char* contract, int &yLong, int &yShort, 
 					int &tLong, int &tShort)
 		{
+			yLong = 0;
+			yShort = 0; 
+			tLong = 0;
+			tShort = 0; 
+		
+			bool fund = false;
+
 			string pos_file = strategy + ".pos";
 			char buf[1024];
 			string line = "";
 			int cur_pos = 0;
 			int next_pos = 0;
+
 			std::ifstream is;
 			is.open (pos_file);
 			while(is.good()) 
@@ -50,27 +58,34 @@ class pos_calc
 				// contract
 				next_pos = line.find(';', cur_pos);
 				char *cur_contract = (char*)line.substr(cur_pos, next_pos-cur_pos).c_str();
-				if(strcmp(contract, cur_contract)==0) break;
+				if(strcmp(contract, cur_contract)==0)
+				{
+					fund =true;
+					break;
+				}
 			}
 			is.close();
 
-			// yesterday long position
-			cur_pos = next_pos + 1;
-			next_pos = line.find(';', cur_pos);
-			yLong = stoi(line.substr(cur_pos, next_pos-cur_pos));
+			if(fund)
+			{
+				// yesterday long position
+				cur_pos = next_pos + 1;
+				next_pos = line.find(';', cur_pos);
+				yLong = stoi(line.substr(cur_pos, next_pos-cur_pos));
 
-			// yesterday short position
-			cur_pos = next_pos + 1;
-			yShort = stoi(line.substr(cur_pos));
+				// yesterday short position
+				cur_pos = next_pos + 1;
+				yShort = stoi(line.substr(cur_pos));
 
-			// today long position
-			cur_pos = next_pos + 1;
-			next_pos = line.find(';', cur_pos);
-			tLong = stoi(line.substr(cur_pos, next_pos-cur_pos));
+				// today long position
+				cur_pos = next_pos + 1;
+				next_pos = line.find(';', cur_pos);
+				tLong = stoi(line.substr(cur_pos, next_pos-cur_pos));
 
-			// today short position
-			cur_pos = next_pos + 1;
-			tShort = stoi(line.substr(cur_pos));
+				// today short position
+				cur_pos = next_pos + 1;
+				tShort = stoi(line.substr(cur_pos));
+			}
 		}
 };
 

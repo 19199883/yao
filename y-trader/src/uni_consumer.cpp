@@ -101,7 +101,7 @@ void UniConsumer::ParseConfig()
 		clog_error("[%s] x-trader.config error: Disruptor node missing.", module_name_); 
 	}
 
-    TiXmlElement *strategies_ele = root->FirstChildElement("strategies");
+    TiXmlElement *strategies_ele = root->FirstChildElement("models");
 	if (strategies_ele != 0)
 	{
 		TiXmlElement *strategy_ele = strategies_ele->FirstChildElement();
@@ -186,7 +186,10 @@ void UniConsumer::CreateStrategies()
 
 void UniConsumer::ProcYaoQuote(YaoQuote* md)
 {
-	clog_info("[test] proc [%s] [ProcShfeMarketData] contract:%s, time:%s", module_name_, md->InstrumentID, md->GetQuoteTime().c_str());
+	clog_info("[test] [%s] [ProcYaoQuote] contract:%s, time:%d",
+				module_name_, 
+				md->symbol,
+				md->int_time);
 
 	for(int i = 0; i < strategy_counter_; i++)
 	{ 

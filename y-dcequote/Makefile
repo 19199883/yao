@@ -17,7 +17,8 @@ OBJPATH:=./obj
 BINPATH:=./bin
 
 LIBS:=-lpthread -ltinyxml -lutils -ldl -lpthread -lbowsprit \
-	  -lcheck -lclogger -lcork -lvrt -lssl -luuid -lboost_filesystem -lboost_system
+	  -lcheck -lclogger -lcork -lvrt -lssl -luuid -lboost_filesystem \
+	  -lboost_system
 
 DEPS:=.depends
 OUT:=y-dcequote

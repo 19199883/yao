@@ -9,12 +9,10 @@
 #include <fcntl.h>
 #include "md_producer.h"
 #include "quote_cmn_utility.h"
-#include "DFITCL2ApiDataType.h"
 #include "perfctx.h"
 
 using namespace std;
 using namespace std::placeholders;
-using namespace DFITC_L2;
 
 static void Convert(const MDBestAndDeep &other, YaoQuote &data)
 {
@@ -463,7 +461,7 @@ void MDProducer::ToString(MDBestAndDeep* quote)
 			"\tSellImplyQtyThree=%d\n"
 			"\tSellImplyQtyFour=%d\n"
 			"\tSellImplyQtyFive=%d\n",
-			quote.GenTime,               // 时间			
+			quote->GenTime,               // 时间			
 			quote.Contract,                      // 合约代码
 			InvalidToZeroF(quote.LastPrice),        // 成交价
 			quote.MatchTotQty,                   // 成交量（总量）
@@ -518,29 +516,29 @@ void MDProducer::ToString(MDBestAndDeep* quote)
 			quote.SellImplyQtyTwo,
 			quote.SellImplyQtyThree,
 			quote.SellImplyQtyFour,
-			quote.SellImplyQtyFive,
+			quote.SellImplyQtyFive
 			);
 	}
+}
 	
-	void MDProducer::ToString(MDOrderStatistic_MY* quote)
-	{
-		char buffer[10240];		
-		if(NULL == quote){
-			sprintf(buffer,"StructName=MDOrderStatistic=NULL\n");
-		}
-		else{
-			sprintf(buffer,
-			"\tContractID=%s\n"
-			"\tTotalBuyOrderNum=%u\n"
-			"\tTotalSellOrderNum=%u\n"
-			"\tWeightedAverageBuyOrderPrice=%.6f\n"
-			"\tWeightedAverageSellOrderPrice=%.6f\n",						
-			quote.ContractID,					// 合约代码
-			quote.TotalBuyOrderNum,			// 买委托总量
-			quote.TotalSellOrderNum,			// 卖委托总量
-			InvalidToZeroD(quote.WeightedAverageBuyOrderPrice),	// 加权平均委买价格
-			InvalidToZeroD(quote.WeightedAverageSellOrderPrice),	// 加权平均委卖价格
-			);
-		}
+void MDProducer::ToString(MDOrderStatistic_MY* quote)
+{
+	char buffer[10240];		
+	if(NULL == quote){
+		sprintf(buffer,"StructName=MDOrderStatistic=NULL\n");
+	}
+	else{
+		sprintf(buffer,
+		"\tContractID=%s\n"
+		"\tTotalBuyOrderNum=%u\n"
+		"\tTotalSellOrderNum=%u\n"
+		"\tWeightedAverageBuyOrderPrice=%.6f\n"
+		"\tWeightedAverageSellOrderPrice=%.6f\n",						
+		quote.ContractID,					// 合约代码
+		quote.TotalBuyOrderNum,			// 买委托总量
+		quote.TotalSellOrderNum,			// 卖委托总量
+		InvalidToZeroD(quote.WeightedAverageBuyOrderPrice),	// 加权平均委买价格
+		InvalidToZeroD(quote.WeightedAverageSellOrderPrice),	// 加权平均委卖价格
+		);
 	}
 }

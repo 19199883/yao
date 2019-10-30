@@ -112,6 +112,8 @@ class MDProducer
 		 */
 		MDOrderStatistic orderstat_buffer_[MAX_CONTRACT_COUNT];
 
+		void ToString(MDBestAndDeep* quote);
+
 #ifdef PERSISTENCE_ENABLED 
 	QuoteDataSave<YaoQuote> *p_save_quote_;
 

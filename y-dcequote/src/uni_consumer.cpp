@@ -48,10 +48,10 @@ void UniConsumer::ParseConfig()
     TiXmlElement *root = doc.RootElement();    
 	
 	// yield strategy
-    TiXmlElement *comp_node = root->FirstChildElement("Disruptor");
-	if (comp_node != NULL){
-		strcpy(config_.yield, comp_node->Attribute("yield"));
-		this->port_ = atoi(dis_node->Attribute("port"));
+    TiXmlElement *dist_node = root->FirstChildElement("Disruptor");
+	if (dist_node != NULL){
+		strcpy(config_.yield, dist_node->Attribute("yield"));
+		this->port_ = atoi(dist_node->Attribute("port"));
 	} 
 	else { 
 		clog_error("[%s] y-quote.config error: Disruptor node missing.", module_name_); 
@@ -137,6 +137,7 @@ void UniConsumer::ProcYaoQuote(int32_t index)
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
 		clog_warning("[%s] ProcBestAndDeep latency:%d us", module_name_, latency); 
 #endif
+	}
 }
 
 void UniConsumer::Server()

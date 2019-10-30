@@ -211,3 +211,7 @@ TapAPIQuoteWhole* MdHelper::GetData(const char *contract)
 	return data;
 }
 
+std::string MdHelper::ToString(const YaoQuote *quote)
+{
+	return "";
+}
