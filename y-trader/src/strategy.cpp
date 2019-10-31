@@ -44,7 +44,7 @@ Strategy::Strategy()
 
 void Strategy::End(void)
 {
-	fclose(pfDayLogFile_);
+	//fclose(pfDayLogFile_);
 	clog_warning("[%s] strategy(id:%d) close log file", 
 				module_name_, 
 				this->setting_.config.st_id);
@@ -82,8 +82,14 @@ string Strategy::generate_log_name(char* log_path)
 	// parse model name
 	string model_name = "";
 	unsigned found = this->setting_.file.find_last_of("/");
-	if(found==string::npos){ model_name = this->setting_.file; }
-	else{ model_name = this->setting_.file.substr(found+1); }
+	if(found==string::npos)
+	{ 
+		model_name = this->setting_.file; 
+	}
+	else
+	{
+		model_name = this->setting_.file.substr(found+1); 
+	}
 
 	time_t rawtime;
 	struct tm * timeinfo;
@@ -94,11 +100,18 @@ string Strategy::generate_log_name(char* log_path)
 
 	log_full_path = log_path;
 	log_full_path += "/";
-	log_full_path += model_name;
-	log_full_path += "_";
-
 	log_full_path += buffer;
-	log_full_path += ".txt";
+
+	if(setting_.config.IsNightTrading)
+	{
+		log_full_path += "_night";
+	}
+	else
+	{
+		log_full_path += "_day";
+	}
+
+	log_full_path += ".log";
 
 	return log_full_path;
 }
@@ -190,7 +203,7 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 		generate_log_name(setting_.config.symbols[0].symbol_log_name);
 	strcpy(setting_.config.symbols[0].symbol_log_name, sym_log_name.c_str());
 
-	pfDayLogFile_ = fopen (setting_.config.log_name, "w");
+	//pfDayLogFile_ = fopen (setting_.config.log_name, "w");
 	int err = 0;
 	this->pfn_init_(&this->setting_.config, &err, log_.data()+log_cursor_);
 	if((log_.data()+log_cursor_)->exch_time > 0) 

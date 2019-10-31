@@ -65,16 +65,16 @@ class UniConsumer
 		Strategy stra_table_[MAX_STRATEGY_COUNT];
 
 		// strategy log
-		void FlushStrategyLog();
-		void WriteLogTitle(FILE * pfDayLogFile);
-		void WriteLogImp();
-		void WriteOne(FILE *pfDayLogFile, struct strat_out_log *pstratlog);
-		void WriteStrategyLog(Strategy &strategy);
-		std::atomic_flag lock_log_;
-		vector<strat_out_log> log_w_;
-		std::thread *thread_log_;
-		int32_t log_write_count_;
-		FILE * pfDayLogFile_;
+//		void FlushStrategyLog();
+//		void WriteLogTitle(FILE * pfDayLogFile);
+//		void WriteLogImp();
+//		void WriteOne(FILE *pfDayLogFile, struct strat_out_log *pstratlog);
+//		void WriteStrategyLog(Strategy &strategy);
+//		std::atomic_flag lock_log_;
+//		vector<strat_out_log> log_w_;
+//		std::thread *thread_log_;
+//		int32_t log_write_count_;
+//		FILE * pfDayLogFile_;
 
 		// key: strategy id; value: index of strategy in stra_table_
 		int32_t straid_straidx_map_table_[MAX_STRATEGY_COUNT];
