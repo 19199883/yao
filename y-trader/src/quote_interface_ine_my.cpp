@@ -1,6 +1,7 @@
 ﻿#include <thread>         // std::thread
 #include "quote_interface_ine_my.h"
 #include "yao_utils.h"
+#include "quote_cmn_utility.h"
 
 std::string MYIneQuoteData::ToString(const MYShfeMarketData &d) {
 //	clog_debug("MYShfeMarketData: instrument:%s, "

@@ -16,6 +16,7 @@
 #include "ctp_data_formater.h"
 #include "DataCollect.h"
 #include "quote_cmn_utility.h"
+#include "vrt_value_obj.h"
 
 using namespace std::chrono;
 
@@ -742,7 +743,7 @@ void TunnRptProducer::FillInitPosition(CThostFtdcInvestorPositionField *posField
 void TunnRptProducer::SavePosition()
 {
 	std::ofstream of;
-	of.open("pos_sum.pos",std::ofstream::trunc);
+	of.open(POSITION_FILE, std::ofstream::trunc);
 	if (of.good()) 
 	{
 		position_t& today_pos = init_positions_._cur_pos;

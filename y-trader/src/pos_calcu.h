@@ -14,6 +14,7 @@
 #include <string>
 #include <vector>
 #include <fstream>      // std::ifstream
+#include "vrt_value_obj.h"
 
 using namespace std;
 
@@ -38,10 +39,8 @@ class pos_calc
 			yShort = 0; 
 			tLong = 0;
 			tShort = 0; 
-		
-			bool fund = false;
 
-			string pos_file = strategy + ".pos";
+			string pos_file = POSITION_FILE;
 			char buf[1024];
 			string line = "";
 			int cur_pos = 0;
@@ -60,32 +59,28 @@ class pos_calc
 				char *cur_contract = (char*)line.substr(cur_pos, next_pos-cur_pos).c_str();
 				if(strcmp(contract, cur_contract)==0)
 				{
-					fund =true;
+					// yesterday long position
+					cur_pos = next_pos + 1;
+					next_pos = line.find(';', cur_pos);
+					yLong = stoi(line.substr(cur_pos, next_pos-cur_pos));
+					// yesterday short position
+					cur_pos = next_pos + 1;
+					next_pos = line.find(';', cur_pos);
+					yShort = stoi(line.substr(cur_pos, next_pos - cur_pos));
+
+					// today long position
+					cur_pos = next_pos + 1;
+					next_pos = line.find(';', cur_pos);
+					tLong = stoi(line.substr(cur_pos, next_pos-cur_pos));
+
+					// today short position
+					cur_pos = next_pos + 1;
+					next_pos = line.find(';', cur_pos);
+					tShort = stoi(line.substr(cur_pos, next_pos - cur_pos));
 					break;
 				}
 			}
 			is.close();
-
-			if(fund)
-			{
-				// yesterday long position
-				cur_pos = next_pos + 1;
-				next_pos = line.find(';', cur_pos);
-				yLong = stoi(line.substr(cur_pos, next_pos-cur_pos));
-
-				// yesterday short position
-				cur_pos = next_pos + 1;
-				yShort = stoi(line.substr(cur_pos));
-
-				// today long position
-				cur_pos = next_pos + 1;
-				next_pos = line.find(';', cur_pos);
-				tLong = stoi(line.substr(cur_pos, next_pos-cur_pos));
-
-				// today short position
-				cur_pos = next_pos + 1;
-				tShort = stoi(line.substr(cur_pos));
-			}
 		}
 };
 

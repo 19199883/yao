@@ -5,6 +5,7 @@
 #include "compliance.h"
 #include <tinyxml.h>
 #include <tinystr.h>
+#include "quote_cmn_utility.h"
 
 Compliance::Compliance(): min_counter_(0), max_counter_(0),module_name_("Compliance")
 {
@@ -26,7 +27,7 @@ void Compliance::Save()
 {
 	int i = 0;
 	for(; i < MAX_CONTRACT_NUMBER; i++){
-		if (strcmp(contracts_[i], "") == 0) break;
+		if (IsEqualContract(contracts_[i], (char*)"")) break;
 
 		clog_warning("[%s] contract:%s; cancel times:%d",
 					module_name_, 
@@ -61,9 +62,9 @@ int Compliance::GetCancelTimes(const char* contract)
 	int i = 0;
 	for(; i < MAX_CONTRACT_NUMBER; i++)
 	{
-		if (strcmp(contracts_[i], "") == 0) break;
+		if (IsEqualContract(contracts_[i], (char*)"")) break;
 
-		if(strcmp(contract, contracts_[i]) == 0){
+		if(IsEqualContract((char*)contract, (char*)contracts_[i])){
 			return cur_cancel_times_[i];
 		}
 	}
@@ -109,7 +110,7 @@ bool Compliance::TryReqOrderInsert(int ord_counter,
 		OrderInfo& ord = ord_buffer_[i];
 		if (!ord.valid) continue;
 
-		if (strcmp(ord.contract, contract)==0 && 
+		if (IsEqualContract((char*)ord.contract, (char*)contract) && 
 					side != ord.side)
 		{
 			if ((side == THOST_FTDC_DEN_Buy && 
@@ -159,9 +160,9 @@ void Compliance::AccumulateCancelTimes(const char* contract)
 	int i = 0;
 	for(; i < MAX_CONTRACT_NUMBER; i++)
 	{
-		if (strcmp(contracts_[i], "") == 0) break;
+		if (IsEqualContract(contracts_[i], (char*)"")) break;
 
-		if(strcmp(contract, contracts_[i]) == 0)
+		if(IsEqualContract((char*)contract, (char*)contracts_[i]))
 		{
 			cur_cancel_times_[i]++;
 			return;

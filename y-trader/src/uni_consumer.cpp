@@ -175,7 +175,7 @@ void UniConsumer::CreateStrategies()
 
 		// TODO: 需要支持一个策略交易多个合约
 		// TODO: yao
-		clog_info("[%s] [CreateStrategies] id:%d;  so:%s ", 
+		clog_warning("[%s] [CreateStrategies] id:%d;  so:%s ", 
 					module_name_,
 					stra_table_[strategy_counter_].GetId(),
 					stra_table_[strategy_counter_].GetSoFile());
@@ -186,11 +186,6 @@ void UniConsumer::CreateStrategies()
 
 void UniConsumer::ProcYaoQuote(YaoQuote* md)
 {
-	clog_info("[test] [%s] [ProcYaoQuote] contract:%s, time:%d",
-				module_name_, 
-				md->symbol,
-				md->int_time);
-
 	for(int i = 0; i < strategy_counter_; i++)
 	{ 
 		int sig_cnt = 0;
@@ -259,7 +254,7 @@ void UniConsumer::Start()
 					ProcTunnRpt(ivalue->index);
 					break;
 				default:
-					clog_info("[%s] [start] unexpected index: %d", 
+					clog_warning("[%s] [start] unexpected index: %d", 
 								module_name_, 
 								ivalue->index);
 					break;
@@ -269,9 +264,9 @@ void UniConsumer::Start()
 
 	if (rc == VRT_QUEUE_EOF) 
 	{
-		clog_info("[%s] [start] rev EOF.", module_name_);
+		clog_warning("[%s] [start] rev EOF.", module_name_);
 	}
-	clog_info("[%s] [start] start exit.", module_name_);
+	clog_warning("[%s] [start] start exit.", module_name_);
 }
 
 void UniConsumer::Stop()
@@ -375,9 +370,9 @@ void UniConsumer::ProcSigs(Strategy &strategy,
 			int32_t sig_cnt, 
 			signal_t *sigs)
 {
-	clog_info("[%s] [ProcSigs] sig_cnt: %d; ", 
-				module_name_, 
-				sig_cnt);
+	//clog_info("[%s] [ProcSigs] sig_cnt: %d; ", 
+	//			module_name_, 
+	//			sig_cnt);
 
 	for (int i = 0; i < sig_cnt; i++)
 	{

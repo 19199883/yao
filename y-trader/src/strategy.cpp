@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include "strategy.h"
 #include "pos_calcu.h"
+#include "quote_cmn_utility.h"
 
 using namespace std;
 using namespace std::chrono;
@@ -228,11 +229,6 @@ void Strategy::FeedInitPosition()
 
 void Strategy::FeedMd(YaoQuote* md, int *sig_cnt, signal_t* sigs)
 {
-	 clog_info("[%s] FeedMd strategy id:%d; contract:%s", 
-				 module_name_, 
-				 GetId(),
-				 md->symbol);
-
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
@@ -313,7 +309,7 @@ exchange_names Strategy::GetExchange(const char* contract)
 {
 	for(int i=0; i< this->setting_.config.symbols_cnt; i++)
 	{
-		if (strcmp(this->setting_.config.symbols[i].name, contract) == 0)
+		if (IsEqualContract((char*)this->setting_.config.symbols[i].name, (char*)contract))
 		{
 			return this->setting_.config.symbols[i].exchange;
 		}
@@ -324,7 +320,7 @@ bool Strategy::Subscribed(const char* contract)
 {
 	for(int i=0; i< this->setting_.config.symbols_cnt; i++)
 	{
-		if (strcmp(this->setting_.config.symbols[i].name, contract) == 0)
+		if (IsEqualContract((char*)this->setting_.config.symbols[i].name, (char*)contract))
 		{
 			return true;
 		}
@@ -337,7 +333,7 @@ int32_t Strategy::GetMaxPosition(const char* contract)
 {
 	for(int i=0; i< this->setting_.config.symbols_cnt; i++)
 	{
-		if (strcmp(this->setting_.config.symbols[i].name, contract) == 0)
+		if (IsEqualContract((char*)this->setting_.config.symbols[i].name, (char*)contract))
 		{
 			return this->setting_.config.symbols[i].max_pos;
 		}
@@ -382,7 +378,7 @@ StrategyPosition* Strategy::GetPosition(const char* contract)
 	StrategyPosition *cur_pos = NULL;
 	for(int i=0; i<this->setting_.config.symbols_cnt; i++)
 	{
-		if(strcmp(position_[i].contract, contract)==0)
+		if(IsEqualContract((char*)position_[i].contract, (char*)contract))
 		{
 			cur_pos = &position_[i];
 			break;
@@ -519,6 +515,7 @@ if_sig_state_t Strategy::ConvertStatusFromCtp(TThostFtdcOrderStatusType ctp_stat
 		clog_error("[%s] unkonwn tunnel status: %c; ", module_name_, ctp_state);
 	}
 
+	return inner_state;
 }
 
 
@@ -545,7 +542,7 @@ void Strategy::FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, sig
 
 	for(int i=0; i<this->setting_.config.symbols_cnt; i++)
 	{
-		if(strcmp(pos_cache_.s_pos[i].symbol, sig.symbol)==0)
+		if(IsEqualContract(pos_cache_.s_pos[i].symbol, sig.symbol))
 		{
 			feed_sig_response(&sigrpt, &pos_cache_.s_pos[i], sig_cnt, sigs);
 
