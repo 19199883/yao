@@ -15,6 +15,7 @@
 #include <fstream>
 #include "ctp_data_formater.h"
 #include "DataCollect.h"
+#include "quote_cmn_utility.h"
 
 using namespace std::chrono;
 
@@ -552,6 +553,7 @@ void TunnRptProducer::OnRtnOrder(CThostFtdcOrderField *pOrder)
 	struct TunnRpt &rpt = rpt_buffer_[cursor];	
 	rpt.LocalOrderID = stoi(pOrder->OrderRef);
 	rpt.OrderStatus = pOrder->OrderStatus;
+	rpt.MatchedAmount = pOrder->VolumeTraded;
 	strcpy(rpt.OrderSysID, pOrder->OrderSysID);
 
 	struct vrt_value  *vvalue;
@@ -689,7 +691,7 @@ symbol_pos_t* TunnRptProducer::GetContractPosition(char *contract,
 			break;
 		}
 
-		if(strcmp(position->s_pos[i].symbol, contract)==0)
+		if(IsEqualContract(position->s_pos[i].symbol, contract))
 		{
 			break;
 		}
