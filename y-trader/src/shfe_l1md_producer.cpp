@@ -12,8 +12,7 @@ using namespace std;
 CDepthMarketDataField* ShfeL1MDProducerHelper::GetLastDataImp(const char *contract, 
 			int32_t last_index, 
 			CDepthMarketDataField *buffer, 
-			int32_t buffer_size,
-			int32_t traverse_count) 
+			int32_t buffer_size) 
 {
 	CDepthMarketDataField* data = NULL;
 
@@ -56,7 +55,6 @@ ShfeL1MDProducer::ShfeL1MDProducer(struct vrt_queue  *queue)
 	memset(dominant_contracts_, 0, sizeof(dominant_contracts_));
 	contract_count_ = LoadDominantContracts(config_.contracts_file, 
 				dominant_contracts_);
-	max_traverse_count_ = contract_count_ * 4;
 
 	memset(&md_buffer_, 0, sizeof(md_buffer_));
 	InitMDApi();
@@ -175,7 +173,6 @@ CDepthMarketDataField* ShfeL1MDProducer::GetLastDataForIllegaluser(const char *c
 		ShfeL1MDProducerHelper::GetLastDataImp( contract,
 					0,
 					md_buffer_,
-					L1MD_BUFFER_SIZE,
 					L1MD_BUFFER_SIZE);
 	return data;
 }
@@ -187,8 +184,7 @@ CDepthMarketDataField* ShfeL1MDProducer::GetLastData(const char *contract,
 		ShfeL1MDProducerHelper::GetLastDataImp(contract,
 					last_index,
 					md_buffer_,
-					L1MD_BUFFER_SIZE,
-					max_traverse_count_);
+					L1MD_BUFFER_SIZE);
 	return data;
 }
 

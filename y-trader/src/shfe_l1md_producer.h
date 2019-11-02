@@ -139,7 +139,6 @@ class ShfeL1MDProducer : public CThostFtdcMdSpi
 		 */
 		bool IsDominant(const char *contract);
 		char dominant_contracts_[MAX_DOMINANT_CONTRACT_COUNT][10];
-		int max_traverse_count_;
 		int  contract_count_;
 
 		QuoteDataSave<CDepthMarketDataField> *p_level1_save_;
