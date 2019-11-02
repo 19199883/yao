@@ -16,7 +16,7 @@
  * 如下宏根据情况进行定义
 */
 // 行情持久化开关
-#define PERSISTENCE_ENABLED
+// #define PERSISTENCE_ENABLED
 //#define LATENCY_MEASURE
 
 // 一档行情的选择
@@ -31,6 +31,7 @@
 // 合规检查开关
 #define COMPLIANCE_CHECK
 
+#define POSITION_FILE "total.pos"
 
 #define CLOG_CHANNEL  "x-trader"
 // 通过合约查找订阅该合约行情的方法:
@@ -46,10 +47,11 @@
 // 满足一天足够的下单量，以空间换时间
 #define RPT_BUFFER_SIZE 15000
 
+
 #ifdef PERSISTENCE_ENABLED 
-	#define MAX_DOMINANT_CONTRACT_COUNT 1000
+	#define MAX_DOMINANT_CONTRACT_COUNT 5120
 #else
-	#define MAX_DOMINANT_CONTRACT_COUNT 25
+	#define MAX_DOMINANT_CONTRACT_COUNT 1024
 #endif
 
 #define	RCV_BUF_SIZE		65535
@@ -141,13 +143,6 @@ class Log
 		return &_vrt_hybrid_value_type;
 	}
 
-
-/*
- * 合约只需要比较品种部分和日期部分的后3位，如：rb1910,只需要比较rb和910
- */
-bool IsEqualContract(char *contract1, char* contract2);
-
-bool IsEmptyString(char *str);
 
 
 void get_curtime(char buffer[],int size);

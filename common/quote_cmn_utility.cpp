@@ -73,13 +73,15 @@ int32_t LoadDominantContracts(string file, char buffer[MAX_DOMINANT_CONTRACT_COU
 	return count;
 }
 
-bool IsDominantImp(const char*commciodity_no, const char* contract_no, char buffer[MAX_DOMINANT_CONTRACT_COUNT][10], 
-	int32_t buffer_size)
+
+bool IsDominantImp(char *contract, char buffer[][10], int32_t buffer_size)
 {
 	bool is_dominant = false;
 
 	for(int i=0; i<buffer_size; i++){
-		if(IsEqualSize3(buffer[i], commciodity_no, contract_no)){
+		if(buffer[i][0]==0) break; // hit bottom
+
+		if(IsEqualContract(buffer[i], contract)){
 			is_dominant = true;
 			break;
 		}
@@ -88,49 +90,32 @@ bool IsDominantImp(const char*commciodity_no, const char* contract_no, char buff
 	return is_dominant;
 }
 
-bool IsDominantImp(const char* contract, char buffer[MAX_DOMINANT_CONTRACT_COUNT][10], 
-	int32_t buffer_size)
+bool IsEqualContract(char *contract1, char* contract2)
 {
-	bool is_dominant = false;
-
-	for(int i = 0; i < buffer_size; i++){
-		if(IsEqual(buffer[i], contract)){
-			is_dominant = true;
-			break;
-		}
-	}
-
-	return is_dominant;
-}
-
-bool IsEqualSize3(const char *contract, const char*commodity_no, const char* contract_no)
-{
-	// contract:e.g. SR801
-	if(strncmp(contract, commodity_no, 2) == 0 && strncmp(contract+2, contract_no, 3) == 0){
+	if (strcmp(contract1, contract2) == 0)
+	{
 		return true;
 	}else{
 		return false;
 	}
 }
 
-bool IsEqualSize4(const char *contract, const char*commodity_no, const char* contract_no)
+bool IsEmptyString(char *str)
 {
-	// contract:e.g. SR801
-	if(strncmp(contract, commodity_no, 2) == 0 && 
-		strncmp(contract + 3, contract_no, 3) == 0){
+	if(0 == str[0]){
 		return true;
 	}else{
 		return false;
 	}
 }
 
-bool IsEqual(const char *contract_size3, const char* contract_size4)
+void get_curtime(char buffer[],int size)
 {
-	// contract:e.g. SR1801
-	if(strncmp(contract_size3, contract_size4, 2) == 0 && 
-		strncmp(contract_size3 + 2, contract_size4 + 3, 3) == 0){
-		return true;
-	}else{
-		return false;
-	}
+	time_t rawtime;
+	struct tm * timeinfo;
+
+	time (&rawtime);
+	timeinfo = localtime (&rawtime);
+
+	strftime (buffer,size,"%H:%M:%S",timeinfo);
 }
