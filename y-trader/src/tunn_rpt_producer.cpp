@@ -717,13 +717,13 @@ void TunnRptProducer::FillInitPosition(CThostFtdcInvestorPositionField *posField
 
 		if(posField->PosiDirection==THOST_FTDC_PD_Long)
 		{
-			td_contract_pos->long_volume = posField->TodayPosition;
-			yd_contract_pos->long_volume = posField->Position - posField->TodayPosition;
+			td_contract_pos->long_volume += posField->TodayPosition;
+			yd_contract_pos->long_volume += posField->Position - posField->TodayPosition;
 		}
 		else if(posField->PosiDirection==THOST_FTDC_PD_Short)
 		{
-			td_contract_pos->short_volume = posField->TodayPosition;
-			yd_contract_pos->short_volume = posField->Position - posField->TodayPosition;
+			td_contract_pos->short_volume += posField->TodayPosition;
+			yd_contract_pos->short_volume += posField->Position - posField->TodayPosition;
 		}
 		else
 		{

@@ -246,6 +246,10 @@ void MYIneQuoteData::Send(const char* contract)
 			yaoquote_handler_(&yaoquote_); 
 		}
 	} 
+	else
+	{
+		clog_warning("[%s] can not find lev1 for:%s",module_name_, contract);
+	}
 }
 
 void MYIneQuoteData::SetQuoteDataHandler(std::function<void(YaoQuote*)> quote_handler)

@@ -194,11 +194,11 @@ private:
 
 
 	// log
-	FILE * pfDayLogFile_;
-	vector<strat_out_log> log_;
-	int32_t log_cursor_;
-	int cur_ntick_;
-	int max_log_lines_;
+	//FILE * pfDayLogFile_;
+	//vector<strat_out_log> log_;
+	//int32_t log_cursor_;
+	//int cur_ntick_;
+	//int max_log_lines_;
 
 	// be used to check whether the stategy is valid
 	bool valid_;

@@ -17,7 +17,7 @@
 /*
  * 10 power of 2
  */
-#define L1MD_BUFFER_SIZE 1000 
+#define L1MD_BUFFER_SIZE 5120 
 
 /*
  * 识Level行情处于未接收数居前的未知位置
@@ -51,8 +51,7 @@ class ShfeL1MDProducerHelper
 		static CDepthMarketDataField* GetLastDataImp(const char *contract, 
 					int32_t last_index, 
 					CDepthMarketDataField *buffer, 
-					int32_t buffer_size,
-					int32_t traverse_count);
+					int32_t buffer_size);
 };
 
 #ifdef FEMAS_TOPSPEED_QUOTE

@@ -19,7 +19,7 @@ CDepthMarketDataField* ShfeL1MDProducerHelper::GetLastDataImp(const char *contra
 	// 全息行情需要一档行情时，从缓存最新位置向前查找13个
 	// 位置（假设有13个主力合约），找到即停
 	int i = 0;
-	for(; i<traverse_count; i++)
+	for(; i<buffer_size; i++)
 	{
 		int data_index = last_index - i;
 		if(data_index < 0)

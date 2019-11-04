@@ -30,11 +30,11 @@ Strategy::Strategy()
 
 	pproxy_ = NULL;
 
-	log_ = vector<strat_out_log>(MAX_LINES_FOR_LOG);
-	log_cursor_ = 0;
-	pfDayLogFile_ = NULL;
-	cur_ntick_ = -1;
-	max_log_lines_ = 0;
+	//log_ = vector<strat_out_log>(MAX_LINES_FOR_LOG);
+	//log_cursor_ = 0;
+	//pfDayLogFile_ = NULL;
+	//cur_ntick_ = -1;
+	//max_log_lines_ = 0;
 	id_ = 0;
 
 	memset(localorderid_sigandrptidx_map_table_, 0, sizeof(localorderid_sigandrptidx_map_table_));
@@ -97,7 +97,7 @@ string Strategy::generate_log_name(char* log_path)
 	char buffer [80];
 	time (&rawtime);
 	timeinfo = localtime (&rawtime);
-	strftime (buffer,80,"%Y%m%d",timeinfo);
+	strftime (buffer,80,"%Y%m%d_%H-%M-%S",timeinfo);
 
 	log_full_path = log_path;
 	log_full_path += "/";
@@ -124,11 +124,11 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	this->pproxy_ = pproxy;
 	id_ = this->setting_.config.st_id;
 
-	max_log_lines_ = MAX_LINES_FOR_LOG - MAX_STRATEGY_COUNT * 100 + GetId() * 100;
-	clog_warning("[%s] strategy:%d; max_log_lines_ :%d", 
-				module_name_, 
-				this->GetId(), 
-				max_log_lines_ ); 
+	//max_log_lines_ = MAX_LINES_FOR_LOG - MAX_STRATEGY_COUNT * 100 + GetId() * 100;
+	//clog_warning("[%s] strategy:%d; max_log_lines_ :%d", 
+	//			module_name_, 
+	//			this->GetId(), 
+	//			max_log_lines_ ); 
 
 	// lic
 	char cmd[1024];
@@ -206,11 +206,11 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 
 	//pfDayLogFile_ = fopen (setting_.config.log_name, "w");
 	int err = 0;
-	this->pfn_init_(&this->setting_.config, &err, log_.data()+log_cursor_);
-	if((log_.data()+log_cursor_)->exch_time > 0) 
-	{
-		log_cursor_++;
-	}
+	this->pfn_init_(&this->setting_.config, &err, NULL /*log_.data()+log_cursor_*/);
+//	if((log_.data()+log_cursor_)->exch_time > 0) 
+//	{
+//		log_cursor_++;
+//	}
 
 	this->FeedInitPosition();
 }
@@ -220,11 +220,11 @@ void Strategy::FeedInitPosition()
 	signal_t sigs[10];
 	int sig_cnt = 0;
 
-	this->pfn_feedinitposition_(&init_pos_, log_.data()+log_cursor_);
-	if((log_.data()+log_cursor_)->exch_time > 0)
-	{
-		log_cursor_++;
-	}
+	this->pfn_feedinitposition_(&init_pos_, NULL /*log_.data()+log_cursor_*/);
+//	if((log_.data()+log_cursor_)->exch_time > 0)
+//	{
+//		log_cursor_++;
+//	}
 }
 
 void Strategy::FeedMd(YaoQuote* md, int *sig_cnt, signal_t* sigs)
@@ -234,12 +234,12 @@ void Strategy::FeedMd(YaoQuote* md, int *sig_cnt, signal_t* sigs)
 #endif
 	
 	*sig_cnt = 0;
-	(log_.data()+log_cursor_)->exch_time = 0;
-	this->pfn_feedyaomarketdata_(md, sig_cnt, sigs, log_.data()+log_cursor_);
-	if((log_.data()+log_cursor_)->exch_time > 0)
-	{
-		log_cursor_++;
-	}
+	//(log_.data()+log_cursor_)->exch_time = 0;
+	this->pfn_feedyaomarketdata_(md, sig_cnt, sigs, NULL /*log_.data()+log_cursor_*/);
+//	if((log_.data()+log_cursor_)->exch_time > 0)
+//	{
+//		log_cursor_++;
+//	}
 
 	for (int i = 0; i < *sig_cnt; i++ )
 	{
@@ -275,9 +275,9 @@ void Strategy::feed_sig_response(signal_resp_t* rpt,
 			signal_t* sigs)
 {
 	*sig_cnt = 0;
-	(log_.data()+log_cursor_)->exch_time = 0;
-	this->pfn_feedsignalresponse_(rpt, pos, sig_cnt, sigs, log_.data()+log_cursor_);
-	if((log_.data()+log_cursor_)->exch_time > 0) log_cursor_++;
+	//(log_.data()+log_cursor_)->exch_time = 0;
+	this->pfn_feedsignalresponse_(rpt, pos, sig_cnt, sigs, NULL /*log_.data()+log_cursor_*/);
+	//if((log_.data()+log_cursor_)->exch_time > 0) log_cursor_++;
 
 	for (int i = 0; i < *sig_cnt; i++ ){
 		sigs[i].st_id = GetId();
@@ -755,10 +755,10 @@ void Strategy::LoadPosition()
 }
 
 // strategy log
-FILE * Strategy::get_log_file()
-{
-	return pfDayLogFile_;
-}
+//FILE * Strategy::get_log_file()
+//{
+//	return pfDayLogFile_;
+//}
 
 /*
  * 因为lock_log_并不能对不同策略间的日志读写缓存进行同步，
@@ -766,26 +766,26 @@ FILE * Strategy::get_log_file()
  * 再落地另外策略的日志
  *
  */
-int32_t Strategy::FullLineCount()
-{	
-	return max_log_lines_ ;
-}
+//int32_t Strategy::FullLineCount()
+//{	
+//	return max_log_lines_ ;
+//}
 
-bool Strategy::IsLogFull()
-{
-	if(log_cursor_ == FullLineCount()) {
-		return true;
-	}else{
-		return false;
-	}
-}
+//bool Strategy::IsLogFull()
+//{
+//	if(log_cursor_ == FullLineCount()) {
+//		return true;
+//	}else{
+//		return false;
+//	}
+//}
 
-void Strategy::get_log(vector<strat_out_log> &log_buffer, int32_t &count)
-{
-	log_buffer.swap(log_);
-	count = log_cursor_;
-	log_cursor_ = 0;
-}
+//void Strategy::get_log(vector<strat_out_log> &log_buffer, int32_t &count)
+//{
+//	log_buffer.swap(log_);
+//	count = log_cursor_;
+//	log_cursor_ = 0;
+//}
 
 
 const char* Strategy::GetContractBySigId(int32_t sig_id)
