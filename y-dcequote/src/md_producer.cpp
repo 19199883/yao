@@ -10,6 +10,7 @@
 #include "md_producer.h"
 #include "quote_cmn_utility.h"
 #include "perfctx.h"
+#include "quote_datatype_dce_level2.h"
 
 using namespace std;
 using namespace std::placeholders;
@@ -87,23 +88,30 @@ MDProducer::MDProducer(struct vrt_queue  *queue)
 	udp_fd_ = 0;
 
 	ended_ = false;
-	clog_warning("[%s] MAX_CONTRACT_COUNT: %d;", module_name_, MAX_CONTRACT_COUNT);
+	clog_warning("[%s] MAX_DOMINANT_CONTRACT_COUNT: %d;", 
+				module_name_, 
+				MAX_DOMINANT_CONTRACT_COUNT);
 
 	ParseConfig();
 
 	// init dominant contracts
 	memset(dominant_contracts_, 0, sizeof(dominant_contracts_));
-	dominant_contract_count_ = LoadDominantContracts(config_.contracts_file, dominant_contracts_);
+	dominant_contract_count_ = 
+		LoadDominantContracts(config_.contracts_file, 
+					dominant_contracts_);
 
 	this->producer_ = vrt_producer_new("md_producer", 1, queue);
 	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
-	if(strcmp(config_.yield, "threaded") == 0){
+	if(strcmp(config_.yield, "threaded") == 0)
+	{
 		this->producer_ ->yield = vrt_yield_strategy_threaded();
 	}
-	else if(strcmp(config_.yield, "spin") == 0){
+	else if(strcmp(config_.yield, "spin") == 0)
+	{
 		this->producer_ ->yield = vrt_yield_strategy_spin_wait();
 	}
-	else if(strcmp(config_.yield, "hybrid") == 0){
+	else if(strcmp(config_.yield, "hybrid") == 0)
+	{
 		this->producer_ ->yield = vrt_yield_strategy_hybrid();
 	}
 
@@ -118,19 +126,23 @@ void MDProducer::ParseConfig()
 
 	// yield strategy
     TiXmlElement *comp_node = RootElement->FirstChildElement("Disruptor");
-	if (comp_node != NULL){
+	if (comp_node != NULL)
+	{
 		strcpy(config_.yield, comp_node->Attribute("yield"));
 	} 
-	else { 
+	else 
+	{ 
 		clog_error("[%s] y-dcequote.config error: Disruptor node missing.", module_name_); 
 	}
 
 	// addr
     TiXmlElement *fdmd_node = RootElement->FirstChildElement("Md");
-	if (fdmd_node != NULL){
+	if (fdmd_node != NULL)
+	{
 		config_.addr = fdmd_node->Attribute("addr");
 	} 
-	else { 
+	else 
+	{ 
 		clog_error("[%s] x-shmd.config error: FulldepthMd node missing.", module_name_); 
 	}
 
@@ -139,7 +151,8 @@ void MDProducer::ParseConfig()
 	if (contracts_file_node != NULL){
 		strcpy(config_.contracts_file, contracts_file_node->Attribute("contracts"));
 	}
-	else {
+	else 
+	{
 		clog_error("[%s] x-shmd.config error: Subscription node missing.", module_name_); 
 	}
 
@@ -170,17 +183,22 @@ int MDProducer::InitMDApi()
     servaddr.sin_family = AF_INET; //IPv4协议
     servaddr.sin_addr.s_addr = inet_addr(config_.ip);
     servaddr.sin_port = htons(config_.port);
-    if (bind(udp_client_fd, (sockaddr *) &servaddr, sizeof(servaddr)) != 0){
-        clog_error("[%s] UDP - bind failed: %s:%d", module_name_, config_.ip,config_.port);
+    if (bind(udp_client_fd, (sockaddr *) &servaddr, sizeof(servaddr)) != 0)
+	{
+        clog_error("[%s] UDP - bind failed: %s:%d", 
+					module_name_, 
+					config_.ip,config_.port);
         return -1;
     }
 
     // set nonblock flag
     int socket_ctl_flag = fcntl(udp_client_fd, F_GETFL);
-    if (socket_ctl_flag < 0){
+    if (socket_ctl_flag < 0)
+	{
         clog_error("UDP - get socket control flag failed.");
     }
-    if (fcntl(udp_client_fd, F_SETFL, socket_ctl_flag | O_NONBLOCK) < 0){
+    if (fcntl(udp_client_fd, F_SETFL, socket_ctl_flag | O_NONBLOCK) < 0)
+	{
         clog_error("UDP - set socket control flag with nonblock failed.");
     }
 
@@ -188,14 +206,16 @@ int MDProducer::InitMDApi()
     int rcvbufsize = 1 * 1024 * 1024;
     int ret = setsockopt(udp_client_fd, SOL_SOCKET, SO_RCVBUF, 
 			(const void *) &rcvbufsize, sizeof(rcvbufsize));
-    if (ret != 0){
+    if (ret != 0)
+	{
         clog_error("UDP - set SO_RCVBUF failed.");
     }
 
     int broadcast_on = 1;
     ret = setsockopt(udp_client_fd, SOL_SOCKET, SO_BROADCAST, 
 			&broadcast_on, sizeof(broadcast_on));
-    if (ret != 0){
+    if (ret != 0)
+	{
         clog_error("UDP - set SO_BROADCAST failed.");
     }
 
@@ -204,21 +224,32 @@ int MDProducer::InitMDApi()
 
 YaoQuote* MDProducer::ProcessDepthData(MDBestAndDeep* depthdata )
 {
+	clog_info("[%s] rev MDBestAndDeep: %s", 
+				module_name_,
+				DceQuoteFormat::ToString(depthdata).c_str());
+
 	YaoQuote* valid_quote = NULL;
 
 	YaoQuote *quote = this->GetDepthData(depthdata->Contract);
-	if(NULL == quote){
+	if(NULL == quote)
+	{
 		quote = this->GetNewDepthData();
 		quote->feed_type = FeedTypes::DceCombine;    
 		memcpy(quote->symbol, depthdata->Contract, sizeof(quote->symbol)); 
 		quote->exchange = YaoExchanges::YDCE; 
 	}
 	Convert(*depthdata, *quote);
+
 	MDOrderStatistic* orderStat = this->GetOrderStatData(depthdata->Contract);
-	if(NULL == orderStat){
+	if(NULL == orderStat)
+	{
 		valid_quote = NULL;
+        clog_warning("[%s] can not find MDOrderStatistic: %s", 
+					module_name_,
+					depthdata->Contract);
 	}
-	else{
+	else
+	{
 		quote->total_buy_ordsize =  orderStat->TotalBuyOrderNum;	
 		quote->total_sell_ordsize = orderStat->TotalSellOrderNum;
 		quote->weighted_buy_px =  InvalidToZeroD(orderStat->WeightedAverageBuyOrderPrice);   
@@ -234,43 +265,60 @@ void MDProducer::RevData()
 {
 	int udp_fd = InitMDApi();
 	udp_fd_ = udp_fd; 
-    if (udp_fd < 0) {
+    if (udp_fd < 0) 
+	{
         clog_error("[%s] MY_SHFE_MD - CreateUdpFD failed.",module_name_);
         return;
-    }else{
+    }
+	else
+	{
         clog_warning("[%s] MY_SHFE_MD - CreateUdpFD succeeded.",module_name_);
 	}
 
-    clog_debug("[%s] DCE_UDP-sizeof(MDBestAndDeep):%u", module_name_, sizeof(MDBestAndDeep));
-    clog_debug("[%s] DCE_UDP-sizeof(MDOrderStatistic):%u", module_name_, sizeof(MDOrderStatistic));
+    clog_debug("[%s] DCE_UDP-sizeof(MDBestAndDeep):%u", 
+				module_name_, 
+				sizeof(MDBestAndDeep));
+    clog_debug("[%s] DCE_UDP-sizeof(MDOrderStatistic):%u", 
+				module_name_, 
+				sizeof(MDOrderStatistic));
 
     char buf[2048];
     int data_len = 0;
     sockaddr_in src_addr;
     unsigned int addr_len = sizeof(sockaddr_in);
-    while (!ended_){
-        data_len = recvfrom(udp_fd, buf, sizeof(buf), 0, (sockaddr *) &src_addr, &addr_len);
-        if (data_len > 0){
+    while (!ended_)
+	{
+        data_len = recvfrom(udp_fd, 
+					buf, 
+					sizeof(buf), 
+					0, 
+					(sockaddr *) &src_addr, 
+					&addr_len);
+        if (data_len > 0)
+		{
 			YaoQuote *quote = NULL;
             int type = (int) buf[0];
-            if (type == EDataType::eMDBestAndDeep){
+            if (type == EDataType::eMDBestAndDeep)
+			{
                 MDBestAndDeep * p = (MDBestAndDeep *) (buf + 1);
 				if(!(IsDominant(p->Contract))) continue; // 抛弃非主力合约
 				quote = ProcessDepthData(p);
             }
-			else if (type == EDataType::eMDOrderStatistic){
+			else if (type == EDataType::eMDOrderStatistic)
+			{
                 MDOrderStatistic * p = (MDOrderStatistic *) (buf + 1);
 				if(!(IsDominant(p->ContractID))) continue; // 抛弃非主力合约
 				quote = this->ProcessOrderStatData(p);
             }
 
-			if(NULL != quote){
+			if(NULL != quote)
+			{
 				struct vrt_value  *vvalue;
 				struct vrt_hybrid_value  *ivalue;
 				vrt_producer_claim(producer_, &vvalue);
 				ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
 				ivalue->index = Push(*quote);
-				ivalue->data = YAO_QUOTE;
+				ivalue->data = ZCE_YAO_DATA;
 				vrt_producer_publish(producer_);
 #ifdef PERSISTENCE_ENABLED 
 				timeval t;
@@ -287,7 +335,8 @@ void MDProducer::RevData()
 
 void MDProducer::End()
 {
-	if(!ended_){
+	if(!ended_)
+	{
 		ended_ = true;
 
 		shutdown(udp_fd_, SHUT_RDWR);
@@ -300,10 +349,12 @@ void MDProducer::End()
 	}
 }
 
-int32_t MDProducer::Push(const YaoQuote& md){
+int32_t MDProducer::Push(const YaoQuote& md)
+{
 	static int32_t yaoQuote_cursor = MD_BUFFER_SIZE - 1;
 	yaoQuote_cursor++;
-	if (yaoQuote_cursor % MD_BUFFER_SIZE == 0){
+	if (yaoQuote_cursor % MD_BUFFER_SIZE == 0)
+	{
 		yaoQuote_cursor = 0;
 	}
 	yaoQuote_buffer_[yaoQuote_cursor] = md;
@@ -318,13 +369,14 @@ YaoQuote* MDProducer::GetData(int32_t index)
 
 bool MDProducer::IsDominant(const char *contract)
 {
-	return IsDominantImp(contract, dominant_contracts_, dominant_contract_count_);
+	return IsDominantImp((char*)contract, dominant_contracts_, dominant_contract_count_);
 }
 
 
 YaoQuote* MDProducer::GetNewDepthData()
 {
-	for(int i=0; i<MAX_CONTRACT_COUNT; i++){
+	for(int i=0; i<MAX_DOMINANT_CONTRACT_COUNT; i++)
+	{
 		if(0 == depth_buffer_[i].symbol[0])
 		{
 			return &(depth_buffer_[i]);
@@ -336,7 +388,8 @@ YaoQuote* MDProducer::GetNewDepthData()
 
 MDOrderStatistic* MDProducer::GetNewOrderStatData()
 {
-	for(int i=0; i<MAX_CONTRACT_COUNT; i++){
+	for(int i=0; i<MAX_DOMINANT_CONTRACT_COUNT; i++)
+	{
 		if(0 == orderstat_buffer_[i].ContractID[0])
 		{
 			return &(orderstat_buffer_[i]);
@@ -348,7 +401,8 @@ MDOrderStatistic* MDProducer::GetNewOrderStatData()
 
 YaoQuote* MDProducer::GetDepthData(const char* contract)
 {
-	for(int i=0; i<MAX_CONTRACT_COUNT; i++){
+	for(int i=0; i<MAX_DOMINANT_CONTRACT_COUNT; i++)
+	{
 		if(0 == strcmp(depth_buffer_[i].symbol,contract))
 		{
 			return &(depth_buffer_[i]);
@@ -360,7 +414,8 @@ YaoQuote* MDProducer::GetDepthData(const char* contract)
 
 MDOrderStatistic* MDProducer::GetOrderStatData(const char* contract)
 {
-	for(int i=0; i<MAX_CONTRACT_COUNT; i++){
+	for(int i=0; i<MAX_DOMINANT_CONTRACT_COUNT; i++)
+	{
 		if(0 == strcmp(orderstat_buffer_[i].ContractID, contract))
 		{
 			return &(orderstat_buffer_[i]);
@@ -372,19 +427,29 @@ MDOrderStatistic* MDProducer::GetOrderStatData(const char* contract)
 
 YaoQuote* MDProducer::ProcessOrderStatData(MDOrderStatistic* newOrderStat)
 {
+	clog_info("[%s] rev MDOrderStatistic: %s", 
+				module_name_,
+				DceQuoteFormat::ToString(newOrderStat).c_str());
+
 	YaoQuote* valid_quote = NULL;
 
 	MDOrderStatistic* orderStat = this->GetOrderStatData(newOrderStat->ContractID);
-	if(NULL == orderStat){
+	if(NULL == orderStat)
+	{
 		orderStat = this->GetNewOrderStatData();
 	}
 	*orderStat = *newOrderStat;
 
 	YaoQuote* quote = this->GetDepthData(newOrderStat->ContractID);
-	if(NULL == quote){
+	if(NULL == quote)
+	{
 		valid_quote = NULL;
+        clog_warning("[%s] can not find MDBestAndDeep %s", 
+					module_name_,
+					newOrderStat->ContractID);
 	}
-	else{
+	else
+	{
 		quote->total_buy_ordsize =  orderStat->TotalBuyOrderNum;	
 		quote->total_sell_ordsize = orderStat->TotalSellOrderNum;
 		quote->weighted_buy_px =  InvalidToZeroD(orderStat->WeightedAverageBuyOrderPrice);   
@@ -396,149 +461,3 @@ YaoQuote* MDProducer::ProcessOrderStatData(MDOrderStatistic* newOrderStat)
 	return valid_quote;
 }
 
-void MDProducer::ToString(MDBestAndDeep* quote)
-{
-	char buffer[10240];		
-	if(NULL == quote){
-		sprintf(buffer,"StructName=MDBestAndDeep=NULL\n");
-	}
-	else{
-		sprintf(buffer, 
-			"StructName=MDBestAndDeep\n"
-			"\tGenTime=%s\n"
-			"\tContract=%s\n"
-			"\tLastPrice=%.4f\n"
-			"\tMatchTotQty=%u\n"
-			"\tBuyPriceOne=%.4f\n"
-			"\tBuyQtyOne=%u\n"
-			"\tSellPriceOne=%.4f\n"
-			"\tSellQtyOne=%u\n"
-			"\tOpenInterest=%u\n"
-			"\tLastClearPrice=%.4f\n"
-			"\tLastMatchQty=%u\n"
-			"\tBuyPriceTwo=%.4f\n"
-			"\tBuyPriceThree=%.4f\n"
-			"\tBuyPriceFour=%.4f\n"
-			"\tBuyPriceFive=%.4f\n"
-			"\tBuyQtyTwo=%u\n"
-			"\tBuyQtyThree=%u\n"
-			"\tBuyQtyFour=%u\n"
-			"\tBuyQtyFive=%u\n"
-			"\tSellPriceTwo=%.4f\n"
-			"\tSellPriceThree=%.4f\n"
-			"\tSellPriceFour=%.4f\n"
-			"\tSellPriceFive=%.4f\n"
-			"\tSellQtyTwo=%u\n"
-			"\tSellQtyThree=%u\n"
-			"\tSellQtyFour=%u\n"
-			"\tSellQtyFive=%u\n"
-			"\tRiseLimit=%.4f\n"
-			"\tFallLimit=%.4f\n"
-			"\tOpenPrice=%.4f\n"
-			"\tHighPrice=%.4f\n"
-			"\tLowPrice=%.4f\n"
-			"\tLastClose=%.4f\n"
-			"\tLastOpenInterest=%u\n"
-			"\tAvgPrice=%.4f\n"
-			"\tTurnover=%.4f\n"
-			"\tLastMatchQty=%u\n"
-			"\tClearPrice=%.4f\n"
-			"\tClose=%.4f\n"
-			"\tPreDelta=%.6f\n"
-			"\tCurrDelta=%.6f\n|"
-			"\tInterestChg=%d\n"
-			"\tLifeLow=%.6f\n"
-			"\tLifeHigh=%.6f\n"
-			"\tBuyImplyQtyOne=%d\n"
-			"\tSellImplyQtyOne=%d\n"			
-			"\tBuyImplyQtyOne=%d\n"
-			"\tBuyImplyQtyTwo=%d\n"
-			"\tBuyImplyQtyThree=%d\n"
-			"\tBuyImplyQtyFour=%d\n"
-			"\tBuyImplyQtyFive=%d\n"
-			"\tSellImplyQtyOne=%d\n"
-			"\tSellImplyQtyTwo=%d\n"
-			"\tSellImplyQtyThree=%d\n"
-			"\tSellImplyQtyFour=%d\n"
-			"\tSellImplyQtyFive=%d\n",
-			quote->GenTime,               // 时间			
-			quote.Contract,                      // 合约代码
-			InvalidToZeroF(quote.LastPrice),        // 成交价
-			quote.MatchTotQty,                   // 成交量（总量）
-			InvalidToZeroF(quote.BuyPriceOne),      // 买一价
-			quote.BuyQtyOne,                     // 买一量
-			InvalidToZeroF(quote.SellPriceOne),     // 卖一价
-			quote.SellQtyOne,                    // 卖一量
-			quote.OpenInterest,                  // 持仓量
-			InvalidToZeroF(quote.LastClearPrice),   // 昨结算价
-			quote.LastMatchQty,                       // 当前量
-			InvalidToZeroF(quote.BuyPriceTwo),      // 买二价
-			InvalidToZeroF(quote.BuyPriceThree),    // 买三价
-			InvalidToZeroF(quote.BuyPriceFour),     // 买四价
-			InvalidToZeroF(quote.BuyPriceFive),     // 买五价
-			quote.BuyQtyTwo,                     // 买二量
-			quote.BuyQtyThree,                   // 买三量
-			quote.BuyQtyFour,                    // 买四量
-			quote.BuyQtyFive,                    // 买五量
-			InvalidToZeroF(quote.SellPriceTwo),     // 卖二价
-			InvalidToZeroF(quote.SellPriceThree),   // 卖三价
-			InvalidToZeroF(quote.SellPriceFour),    // 卖四价
-			InvalidToZeroF(quote.SellPriceFive),    // 卖五价
-			quote.SellQtyTwo,                    // 卖二量
-			quote.SellQtyThree,                  // 卖三量
-			quote.SellQtyFour,                   // 卖四量
-			quote.SellQtyFive,                   // 卖五量
-			quote.RiseLimit,                     // 涨停价
-			quote.FallLimit,                     // 跌停价
-			InvalidToZeroF(quote.OpenPrice),        // 开盘
-			InvalidToZeroF(quote.HighPrice),        // 当日最高
-			InvalidToZeroF(quote.LowPrice),         // 当日最低
-			InvalidToZeroF(quote.LastClose),        // 昨收
-			quote.LastOpenInterest,              // 昨持仓
-			InvalidToZeroF(quote.AvgPrice),         // 均价			
-			InvalidToZeroD(quote.Turnover),                     // 累计成交金额
-			quote.LastMatchQty,                       // 
-			InvalidToZeroD(quote.ClearPrice),		  //本次结算价
-			InvalidToZeroD(quote.Close),					//今收盘			
-			InvalidToZeroD(quote.PreDelta),				//昨虚实度
-			InvalidToZeroD(quote.CurrDelta),				//今虚实度
-			quote.InterestChg,							//持仓量变化
-			InvalidToZeroD(quote.LifeLow),				//历史最低价
-			InvalidToZeroD(quote.LifeHigh),				//历史最高价
-			quote.BuyImplyQtyOne,			//申买推导量
-			quote.SellImplyQtyOne,			//申卖推导量					
-			quote.BuyImplyQtyOne,
-			quote.BuyImplyQtyTwo,
-			quote.BuyImplyQtyThree,
-			quote.BuyImplyQtyFour,
-			quote.BuyImplyQtyFive,
-			quote.SellImplyQtyOne,
-			quote.SellImplyQtyTwo,
-			quote.SellImplyQtyThree,
-			quote.SellImplyQtyFour,
-			quote.SellImplyQtyFive
-			);
-	}
-}
-	
-void MDProducer::ToString(MDOrderStatistic_MY* quote)
-{
-	char buffer[10240];		
-	if(NULL == quote){
-		sprintf(buffer,"StructName=MDOrderStatistic=NULL\n");
-	}
-	else{
-		sprintf(buffer,
-		"\tContractID=%s\n"
-		"\tTotalBuyOrderNum=%u\n"
-		"\tTotalSellOrderNum=%u\n"
-		"\tWeightedAverageBuyOrderPrice=%.6f\n"
-		"\tWeightedAverageSellOrderPrice=%.6f\n",						
-		quote.ContractID,					// 合约代码
-		quote.TotalBuyOrderNum,			// 买委托总量
-		quote.TotalSellOrderNum,			// 卖委托总量
-		InvalidToZeroD(quote.WeightedAverageBuyOrderPrice),	// 加权平均委买价格
-		InvalidToZeroD(quote.WeightedAverageSellOrderPrice),	// 加权平均委卖价格
-		);
-	}
-}

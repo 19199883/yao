@@ -19,7 +19,7 @@ using namespace DFITC_L2;
 /*
  *  * 10 power of 2
  *   */
-#define MD_BUFFER_SIZE 1000 
+#define MD_BUFFER_SIZE 2048 
 
 using namespace std;
 
@@ -75,7 +75,7 @@ class MDProducer
 		void RevData();
 		std::thread *thread_rev_;
 		int32_t dominant_contract_count_;
-		char dominant_contracts_[MAX_CONTRACT_COUNT][10];
+		char dominant_contracts_[MAX_DOMINANT_CONTRACT_COUNT][10];
 
 		/*
 		 * 缓冲区里获取一个新的对象
@@ -95,7 +95,7 @@ class MDProducer
 		 * 缓存level2数据，每个合约一个位置
 		 *
 		 */
-		YaoQuote  depth_buffer_[MAX_CONTRACT_COUNT];
+		YaoQuote  depth_buffer_[MAX_DOMINANT_CONTRACT_COUNT];
 
 		/*
 		 * 缓冲区里获取一个新的对象
@@ -110,9 +110,8 @@ class MDProducer
 		/*
 		 * 缓存OrderStatis数据，每个合约一个位置
 		 */
-		MDOrderStatistic orderstat_buffer_[MAX_CONTRACT_COUNT];
+		MDOrderStatistic orderstat_buffer_[MAX_DOMINANT_CONTRACT_COUNT];
 
-		void ToString(MDBestAndDeep* quote);
 
 #ifdef PERSISTENCE_ENABLED 
 	QuoteDataSave<YaoQuote> *p_save_quote_;

@@ -12,7 +12,8 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer)
 	md_producer_(md_producer)
 {
 	memset(valid_conn_, 0, sizeof(valid_conn_));
-	for(int i=0; i<MAX_CONN_COUNT; i++){
+	for(int i=0; i<MAX_CONN_COUNT; i++)
+	{
 		socks_.push_back(tcp::socket(io_service_));
 	}
 
@@ -20,13 +21,16 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer)
 	(this->consumer_ = vrt_consumer_new(module_name_, queue));
 
 	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
-	if(strcmp(config_.yield, "threaded") == 0){
+	if(strcmp(config_.yield, "threaded") == 0)
+	{
 		this->consumer_->yield = vrt_yield_strategy_threaded();
 	}
-	else if(strcmp(config_.yield, "spin") == 0){
+	else if(strcmp(config_.yield, "spin") == 0)
+	{
 		this->consumer_->yield = vrt_yield_strategy_spin_wait();
 	}
-	else if(strcmp(config_.yield, "hybrid") == 0){
+	else if(strcmp(config_.yield, "hybrid") == 0)
+	{
 		this->consumer_->yield = vrt_yield_strategy_hybrid();
 	}
 }
@@ -69,7 +73,7 @@ void UniConsumer::Start()
 		if (rc == 0) {
 			struct vrt_hybrid_value *ivalue = cork_container_of(vvalue, struct vrt_hybrid_value, parent);
 			switch (ivalue->data){
-				case YAO_QUOTE:
+				case ZCE_YAO_DATA:
 					ProcYaoQuote(ivalue->index);
 					break;
 				default:
@@ -108,26 +112,29 @@ void UniConsumer::ProcYaoQuote(int32_t index)
 
 	YaoQuote* md = md_producer_->GetData(index);
 
-	clog_info("[%s] [ProcYaoQuote] index: %d; contract: %s",
-				module_name_, 
-				index, 
-				md->symbol);
+	clog_info("[%s] send YaoQuote: %s", 
+				module_name_,
+				YaoQuote::ToString(md).c_str());
 
-	for(int i=0; i< MAX_CONN_COUNT; i++){		
+	for(int i=0; i< MAX_CONN_COUNT; i++)
+	{		
 		{
 			std::lock_guard<std::mutex> lck (mtx_);
 			if(0 == valid_conn_[i]) continue;
 		}
 		
-		try{			
+		try
+		{			
 			 boost::system::error_code error;		  		
 			 boost::asio::write(socks_[i], boost::asio::buffer(md, sizeof(YaoQuote)), error);			  
-			 if (error){
+			 if (error)
+			 {
 				 valid_conn_[i] = 0;
 				clog_warning("[%s] write error: %d", module_name_, error); 			
 			 }
 		}
-		catch (std::exception& e){
+		catch (std::exception& e)
+		{
 			valid_conn_[i] = 0;
 			clog_warning("[%s] send error:%s", module_name_, e.what()); 			
 		}

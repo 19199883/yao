@@ -37,4 +37,5 @@ md_producer.o: ../y-dcequote/src/md_producer.cpp \
  ../3rd/dce_md/include/BasicDataType.h ../y-dcequote/src/quote_cmn_save.h \
  ../y-dcequote/src/my_cmn_util_funcs.h \
  ../y-dcequote/src/quote_cmn_utility.h ../y-dcequote/src/YaoQuote.h \
- ../y-dcequote/src/perfctx.h
+ ../y-dcequote/src/perfctx.h \
+ ../y-dcequote/src/quote_datatype_dce_level2.h

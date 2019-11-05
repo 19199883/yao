@@ -289,3 +289,160 @@ struct DLL_PUBLIC MDMarchPriceQty_MY
 };
 
 #pragma pack(pop)
+
+class DceQuoteFormat
+{
+	public:
+	static string ToString(MDBestAndDeep* quote)
+	{
+		char buffer[10240];		
+		if(NULL == quote)
+		{
+			sprintf(buffer,"StructName=MDBestAndDeep=NULL\n");
+		}
+		else
+		{
+			sprintf(buffer, 
+				"StructName=MDBestAndDeep\n"
+				"\tGenTime=%s\n"
+				"\tContract=%s\n"
+				"\tLastPrice=%.4f\n"
+				"\tMatchTotQty=%u\n"
+				"\tBuyPriceOne=%.4f\n"
+				"\tBuyQtyOne=%u\n"
+				"\tSellPriceOne=%.4f\n"
+				"\tSellQtyOne=%u\n"
+				"\tOpenInterest=%u\n"
+				"\tLastClearPrice=%.4f\n"
+				"\tLastMatchQty=%u\n"
+				"\tBuyPriceTwo=%.4f\n"
+				"\tBuyPriceThree=%.4f\n"
+				"\tBuyPriceFour=%.4f\n"
+				"\tBuyPriceFive=%.4f\n"
+				"\tBuyQtyTwo=%u\n"
+				"\tBuyQtyThree=%u\n"
+				"\tBuyQtyFour=%u\n"
+				"\tBuyQtyFive=%u\n"
+				"\tSellPriceTwo=%.4f\n"
+				"\tSellPriceThree=%.4f\n"
+				"\tSellPriceFour=%.4f\n"
+				"\tSellPriceFive=%.4f\n"
+				"\tSellQtyTwo=%u\n"
+				"\tSellQtyThree=%u\n"
+				"\tSellQtyFour=%u\n"
+				"\tSellQtyFive=%u\n"
+				"\tRiseLimit=%.4f\n"
+				"\tFallLimit=%.4f\n"
+				"\tOpenPrice=%.4f\n"
+				"\tHighPrice=%.4f\n"
+				"\tLowPrice=%.4f\n"
+				"\tLastClose=%.4f\n"
+				"\tLastOpenInterest=%u\n"
+				"\tAvgPrice=%.4f\n"
+				"\tTurnover=%.4f\n"
+				"\tLastMatchQty=%u\n"
+				"\tClearPrice=%.4f\n"
+				"\tClose=%.4f\n"
+				"\tPreDelta=%.6f\n"
+				"\tCurrDelta=%.6f\n|"
+				"\tInterestChg=%d\n"
+				"\tLifeLow=%.6f\n"
+				"\tLifeHigh=%.6f\n"
+				"\tBuyImplyQtyOne=%d\n"
+				"\tSellImplyQtyOne=%d\n"			
+				"\tBuyImplyQtyOne=%d\n"
+				"\tBuyImplyQtyTwo=%d\n"
+				"\tBuyImplyQtyThree=%d\n"
+				"\tBuyImplyQtyFour=%d\n"
+				"\tBuyImplyQtyFive=%d\n"
+				"\tSellImplyQtyOne=%d\n"
+				"\tSellImplyQtyTwo=%d\n"
+				"\tSellImplyQtyThree=%d\n"
+				"\tSellImplyQtyFour=%d\n"
+				"\tSellImplyQtyFive=%d\n",
+				quote->GenTime,               // 时间			
+				quote->Contract,                      // 合约代码
+				InvalidToZeroF(quote->LastPrice),        // 成交价
+				quote->MatchTotQty,                   // 成交量（总量）
+				InvalidToZeroF(quote->BuyPriceOne),      // 买一价
+				quote->BuyQtyOne,                     // 买一量
+				InvalidToZeroF(quote->SellPriceOne),     // 卖一价
+				quote->SellQtyOne,                    // 卖一量
+				quote->OpenInterest,                  // 持仓量
+				InvalidToZeroF(quote->LastClearPrice),   // 昨结算价
+				quote->LastMatchQty,                       // 当前量
+				InvalidToZeroF(quote->BuyPriceTwo),      // 买二价
+				InvalidToZeroF(quote->BuyPriceThree),    // 买三价
+				InvalidToZeroF(quote->BuyPriceFour),     // 买四价
+				InvalidToZeroF(quote->BuyPriceFive),     // 买五价
+				quote->BuyQtyTwo,                     // 买二量
+				quote->BuyQtyThree,                   // 买三量
+				quote->BuyQtyFour,                    // 买四量
+				quote->BuyQtyFive,                    // 买五量
+				InvalidToZeroF(quote->SellPriceTwo),     // 卖二价
+				InvalidToZeroF(quote->SellPriceThree),   // 卖三价
+				InvalidToZeroF(quote->SellPriceFour),    // 卖四价
+				InvalidToZeroF(quote->SellPriceFive),    // 卖五价
+				quote->SellQtyTwo,                    // 卖二量
+				quote->SellQtyThree,                  // 卖三量
+				quote->SellQtyFour,                   // 卖四量
+				quote->SellQtyFive,                   // 卖五量
+				quote->RiseLimit,                     // 涨停价
+				quote->FallLimit,                     // 跌停价
+				InvalidToZeroF(quote->OpenPrice),        // 开盘
+				InvalidToZeroF(quote->HighPrice),        // 当日最高
+				InvalidToZeroF(quote->LowPrice),         // 当日最低
+				InvalidToZeroF(quote->LastClose),        // 昨收
+				quote->LastOpenInterest,              // 昨持仓
+				InvalidToZeroF(quote->AvgPrice),         // 均价			
+				InvalidToZeroD(quote->Turnover),                     // 累计成交金额
+				quote->LastMatchQty,                       // 
+				InvalidToZeroD(quote->ClearPrice),		  //本次结算价
+				InvalidToZeroD(quote->Close),					//今收盘			
+				InvalidToZeroD(quote->PreDelta),				//昨虚实度
+				InvalidToZeroD(quote->CurrDelta),				//今虚实度
+				quote->InterestChg,							//持仓量变化
+				InvalidToZeroD(quote->LifeLow),				//历史最低价
+				InvalidToZeroD(quote->LifeHigh),				//历史最高价
+				quote->BuyImplyQtyOne,			//申买推导量
+				quote->SellImplyQtyOne,			//申卖推导量					
+				quote->BuyImplyQtyOne,
+				quote->BuyImplyQtyTwo,
+				quote->BuyImplyQtyThree,
+				quote->BuyImplyQtyFour,
+				quote->BuyImplyQtyFive,
+				quote->SellImplyQtyOne,
+				quote->SellImplyQtyTwo,
+				quote->SellImplyQtyThree,
+				quote->SellImplyQtyFour,
+				quote->SellImplyQtyFive);
+		}
+
+		return buffer;
+	}
+		
+	static string ToString(MDOrderStatistic* quote)
+	{
+		char buffer[10240];		
+		if(NULL == quote)
+		{
+			sprintf(buffer,"StructName=MDOrderStatistic=NULL\n");
+		}
+		else
+		{
+			sprintf(buffer,
+			"\tContractID=%s\n"
+			"\tTotalBuyOrderNum=%u\n"
+			"\tTotalSellOrderNum=%u\n"
+			"\tWeightedAverageBuyOrderPrice=%.6f\n"
+			"\tWeightedAverageSellOrderPrice=%.6f\n",						
+			quote->ContractID,					// 合约代码
+			quote->TotalBuyOrderNum,			// 买委托总量
+			quote->TotalSellOrderNum,			// 卖委托总量
+			InvalidToZeroD(quote->WeightedAverageBuyOrderPrice),	// 加权平均委买价格
+			InvalidToZeroD(quote->WeightedAverageSellOrderPrice)	// 加权平均委卖价格
+			);
+		}
+		return buffer;
+	}
+};
