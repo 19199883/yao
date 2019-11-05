@@ -211,7 +211,7 @@ private:
 	/*
 	 * 储每个策略的最新仓位，在策略内部处理仓位逻辑时使用
 	 */
-	StrategyPosition position_[100];
+	StrategyPosition position_[MAX_CONTRACT_COUNT_FOR_STRATEGY];
 	 
 	/*
 	 *从仓位文件中加载仓位，init_pos_，pos_cache_,position_.

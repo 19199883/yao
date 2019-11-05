@@ -554,7 +554,7 @@ void TunnRptProducer::OnRtnOrder(CThostFtdcOrderField *pOrder)
 	struct TunnRpt &rpt = rpt_buffer_[cursor];	
 	rpt.LocalOrderID = stoi(pOrder->OrderRef);
 	rpt.OrderStatus = pOrder->OrderStatus;
-	rpt.MatchedAmount = pOrder->VolumeTraded;
+	rpt.MatchedAmount = pOrder->VolumeTotalOriginal - pOrder->VolumeTotal;
 	strcpy(rpt.OrderSysID, pOrder->OrderSysID);
 
 	struct vrt_value  *vvalue;

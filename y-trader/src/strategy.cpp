@@ -534,7 +534,7 @@ void Strategy::FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, sig
 	// update strategy's position
 	StrategyPosition *cur_pos = GetPosition(sig.symbol);
 	UpdatePosition(cur_pos, lastqty, status, sig.sig_openclose, sig.sig_act, rpt.ErrorID);
-	if (rpt.MatchedAmount > 0)
+	if (lastqty > 0)
 	{
 		// fill signal position report by tunnel report
 		FillPositionRpt();
@@ -544,6 +544,16 @@ void Strategy::FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, sig
 	{
 		if(IsEqualContract(pos_cache_.s_pos[i].symbol, sig.symbol))
 		{
+			clog_info("[%s] before FeedTunnRpt: strategy id:%d; contract:%s; long:%d; short:%d; "
+						"sig_id:%d; symbol:%s; ",
+						module_name_, 
+						setting_.config.st_id, 
+						pos_cache_.s_pos[i].symbol, 
+						pos_cache_.s_pos[i].long_volume, 
+						pos_cache_.s_pos[i].short_volume, 
+						sigrpt.sig_id, 
+						sigrpt.symbol);
+
 			feed_sig_response(&sigrpt, &pos_cache_.s_pos[i], sig_cnt, sigs);
 
 			clog_info("[%s] FeedTunnRpt: strategy id:%d; contract:%s; long:%d; short:%d; "
@@ -566,6 +576,8 @@ void Strategy::FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, sig
 						sigrpt.status,
 						sigrpt.killed,
 						sigrpt.rejected);
+
+			break;
 		}
 	}
 
@@ -670,12 +682,11 @@ void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty,
 			if_sig_state_t &status, 
 			int err)
 {
-	if (lastqty > 0)
-	{
-		sigrpt.exec_price = last_price;
-		sigrpt.exec_volume = lastqty;
-		sigrpt.acc_volume += lastqty;
-	}
+	sigrpt.error_no = err;
+	sigrpt.status = status;
+	sigrpt.exec_price = last_price;
+	sigrpt.exec_volume = lastqty;
+	sigrpt.acc_volume += lastqty;
 
 	if (status == SIG_STATUS_CANCEL)
 	{
@@ -686,9 +697,6 @@ void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty,
 		sigrpt.killed = 0; 
 	}
 
-	sigrpt.rejected = 0; 
-	sigrpt.error_no = err;
-	sigrpt.status = status;
 }
 
 // done
@@ -725,7 +733,7 @@ void Strategy::LoadPosition()
 
 		strcpy(pos_cache_.s_pos[i].symbol, contract);
 		pos_cache_.s_pos[i].long_volume  = yLong + tLong;
-		pos_cache_.s_pos[i].short_volume = tLong + tShort;
+		pos_cache_.s_pos[i].short_volume = yLong + tShort;
 
 		symbol_pos_t &yesterday_sym_pos = yesterday_pos.s_pos[i];
 		strncpy(yesterday_sym_pos.symbol, contract, sizeof(yesterday_sym_pos.symbol));
@@ -740,7 +748,8 @@ void Strategy::LoadPosition()
 		today_sym_pos.exchg_code = this->GetExchange(contract); 
 
 		clog_warning("[%s] FeedInitPosition strategy id:%d; contract:%s; exchange:%d; "
-					"ylong:%d; yshort:%d; tlong:%d; tshort:%d; total_long:%d; total_short:%d",
+					"ylong:%d; yshort:%d; tlong:%d; tshort:%d; total_long:%d; total_short:%d"
+					"pos_cache_.s_pos[i].contract:%s; pos_cache_.s_pos[i].long:%d; pos_cache_.s_pos[i].short:%d",
 					module_name_, 
 					GetId(), 
 					yesterday_sym_pos.symbol, 
@@ -750,7 +759,10 @@ void Strategy::LoadPosition()
 					today_sym_pos.long_volume, 
 					today_sym_pos.short_volume,
 					position_[i].cur_long,
-					position_[i].cur_short);
+					position_[i].cur_short,
+					pos_cache_.s_pos[i].symbol,
+					pos_cache_.s_pos[i].long_volume,
+					pos_cache_.s_pos[i].short_volume);
 	}
 }
 
