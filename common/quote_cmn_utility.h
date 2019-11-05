@@ -75,7 +75,7 @@ IPAndPortStr ParseIPAndPortStr(const std::string &addr_cfg);
 
 /*
  * 从文件file中读取主力合约，并存储到buffer中。
- * 假设主力合约最多MAX_CONTRACT_COUNT 个。
+ * 假设主力合约最多MAX_DOMINANT_CONTRACT_COUNT 个。
  * 查找主力合约时，从位置0开始查找，遇到第一个空字符串止
  * 调用者需要对buffer清零
  * contract: e.g. SR801

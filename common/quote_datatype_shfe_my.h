@@ -6,6 +6,7 @@
 
 #include <string.h>
 #include <string>
+#include "quote_datatype_shfe_deep.h"
 
 #pragma pack(push)
 #pragma pack(8)

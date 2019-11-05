@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
-#include "quote_datatype_shfe_deep.h"
+//#include "quote_datatype_shfe_deep.h"
 
 #define gettid() syscall(__NR_gettid)
 
@@ -16,7 +16,7 @@
  * 如下宏根据情况进行定义
 */
 // 行情持久化开关
-// #define PERSISTENCE_ENABLED
+ //#define PERSISTENCE_ENABLED
 //#define LATENCY_MEASURE
 
 // 一档行情的选择
@@ -79,19 +79,6 @@ extern "C" {
 	 * x-trader varon-t value and type
 	 */
 
-	class MDPackEx
-	{
-		public:
-			MDPackEx(): damaged(false) { }
-
-			MDPackEx(MDPack &cur_content): damaged(false)
-			{
-				this->content = cur_content;
-			}
-
-			MDPack content;
-			bool damaged;
-	};
 
 class Log
 {

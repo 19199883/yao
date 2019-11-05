@@ -25,6 +25,21 @@ struct MDPack
     short count;
     PVPair data[MAX_PAIR];
 };
+
+class MDPackEx
+{
+	public:
+		MDPackEx(): damaged(false) { }
+
+		MDPackEx(MDPack &cur_content): damaged(false)
+		{
+			this->content = cur_content;
+		}
+
+		MDPack content;
+		bool damaged;
+};
+
 #pragma pack()
 
 // 上期全息委托
