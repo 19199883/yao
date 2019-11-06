@@ -38,4 +38,6 @@ md_producer.o: ../y-dcequote/src/md_producer.cpp \
  ../y-dcequote/src/my_cmn_util_funcs.h \
  ../y-dcequote/src/quote_cmn_utility.h ../y-dcequote/src/YaoQuote.h \
  ../y-dcequote/src/perfctx.h \
- ../y-dcequote/src/quote_datatype_dce_level2.h
+ ../y-dcequote/src/quote_datatype_dce_level2.h \
+ ../y-dcequote/src/yao_utils.h ../y-dcequote/src/quote_datatype_shfe_my.h \
+ ../y-dcequote/src/quote_datatype_shfe_deep.h

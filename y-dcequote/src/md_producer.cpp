@@ -11,6 +11,7 @@
 #include "quote_cmn_utility.h"
 #include "perfctx.h"
 #include "quote_datatype_dce_level2.h"
+#include "yao_utils.h"
 
 using namespace std;
 using namespace std::placeholders;
@@ -18,8 +19,8 @@ using namespace std::placeholders;
 static void Convert(const MDBestAndDeep &other, YaoQuote &data)
 {
 	//	交易所行情时间(HHMMssmmm), 如：90000306表示09:00:00 306. 0点-3点的数据 +24hrs
-	// TODO: 先看看时间的具体格式再做转换
-	// data.int_time;	data.Time = other.Time;	GenTime		
+	int updateMillisec = atoi(other.GenTime + 9);
+	data.int_time = YaoQuoteHelper::GetIntTime(other.GenTime, updateMillisec);	// GenTime=09:43:41.895
 	data.pre_close_px = InvalidToZeroF(other.LastClose);           //昨收盘
     data.pre_settle_px = InvalidToZeroF(other.LastClearPrice); //昨结算价
 	data.pre_open_interest = other.LastOpenInterest;             //昨持仓量
@@ -72,7 +73,6 @@ static void Convert(const MDBestAndDeep &other, YaoQuote &data)
     data.implied_ask_size[2]	= other.SellImplyQtyThree;
     data.implied_ask_size[3]	= other.SellImplyQtyFour;
     data.implied_ask_size[4]	= other.SellImplyQtyFive;
-    // data.LastMatchQty = other.LastMatchQty;                     //最新成交量          
 }
 
 MDProducer::MDProducer(struct vrt_queue  *queue)
@@ -244,7 +244,7 @@ YaoQuote* MDProducer::ProcessDepthData(MDBestAndDeep* depthdata )
 	if(NULL == orderStat)
 	{
 		valid_quote = NULL;
-        clog_warning("[%s] can not find MDOrderStatistic: %s", 
+        clog_info("[%s] can not find MDOrderStatistic: %s", 
 					module_name_,
 					depthdata->Contract);
 	}
@@ -444,7 +444,7 @@ YaoQuote* MDProducer::ProcessOrderStatData(MDOrderStatistic* newOrderStat)
 	if(NULL == quote)
 	{
 		valid_quote = NULL;
-        clog_warning("[%s] can not find MDBestAndDeep %s", 
+        clog_info("[%s] can not find MDBestAndDeep %s", 
 					module_name_,
 					newOrderStat->ContractID);
 	}
