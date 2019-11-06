@@ -75,15 +75,15 @@ int DceQuote::InitMDApi()
     }
 
     // set nonblock flag
-    int socket_ctl_flag = fcntl(udp_client_fd, F_GETFL);
-    if (socket_ctl_flag < 0)
-	{
-        clog_error("UDP - get socket control flag failed.");
-    }
-    if (fcntl(udp_client_fd, F_SETFL, socket_ctl_flag | O_NONBLOCK) < 0)
-	{
-        clog_error("UDP - set socket control flag with nonblock failed.");
-    }
+    //int socket_ctl_flag = fcntl(udp_client_fd, F_GETFL);
+    //if (socket_ctl_flag < 0)
+	//{
+    //    clog_error("UDP - get socket control flag failed.");
+    //}
+    //if (fcntl(udp_client_fd, F_SETFL, socket_ctl_flag | O_NONBLOCK) < 0)
+	//{
+    //    clog_error("UDP - set socket control flag with nonblock failed.");
+    //}
 
     int rcvbufsize = 5120;
     int ret = setsockopt(udp_client_fd, 
