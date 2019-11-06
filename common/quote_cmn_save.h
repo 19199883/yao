@@ -65,6 +65,7 @@
 //飞鼠
 #define SGIT_QUOTE_TYPE             24
 
+#define SHFE_LEV2_DATA_QUOTE_TYPE 70
 // added on 20190521 for Yao
 #define YAO_QUOTE_TYPE             125
 

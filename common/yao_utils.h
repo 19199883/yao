@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdio.h>
+#include "quote_datatype_shfe_my.h"
 
 class YaoQuoteHelper
 {
@@ -71,7 +72,7 @@ class YaoQuoteHelper
 		dest->av_array[4] = source->sell_volume[25];          /*卖出数量 下标从0开始*/
 
 		dest->total_vol =				source->Volume; //	总成交量
-		dest->total_notional =			source->Turnover; // 存储成交金额(StdQuote5.turnover)
+		dest->total_notional =	InvalidToZeroD(source->Turnover); // 存储成交金额(StdQuote5.turnover)
 		dest->upper_limit_px =	InvalidToZeroD(source->UpperLimitPrice);	/*涨停板*/
 		dest->lower_limit_px =	InvalidToZeroD(source->LowerLimitPrice);	/*跌停板*/
 		dest->close_px =			InvalidToZeroD(source->ClosePrice);	    /*收盘价*/
