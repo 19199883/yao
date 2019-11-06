@@ -120,7 +120,7 @@ MDProducer::MDProducer(struct vrt_queue  *queue)
 
 void MDProducer::ParseConfig()
 {
-	TiXmlDocument config = TiXmlDocument("y-dcequote.config");
+	TiXmlDocument config = TiXmlDocument("x-trader.config");
     config.LoadFile();
     TiXmlElement *RootElement = config.RootElement();    
 
@@ -318,7 +318,7 @@ void MDProducer::RevData()
 				vrt_producer_claim(producer_, &vvalue);
 				ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
 				ivalue->index = Push(*quote);
-				ivalue->data = ZCE_YAO_DATA;
+				ivalue->data = DCE_YAO_DATA;
 				vrt_producer_publish(producer_);
 #ifdef PERSISTENCE_ENABLED 
 				timeval t;

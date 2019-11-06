@@ -11,12 +11,6 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer)
 	running_(true), 
 	md_producer_(md_producer)
 {
-	memset(valid_conn_, 0, sizeof(valid_conn_));
-	for(int i=0; i<MAX_CONN_COUNT; i++)
-	{
-		socks_.push_back(tcp::socket(io_service_));
-	}
-
 	ParseConfig();
 	(this->consumer_ = vrt_consumer_new(module_name_, queue));
 
@@ -46,34 +40,84 @@ UniConsumer::~UniConsumer()
 
 void UniConsumer::ParseConfig()
 {
-	std::string config_file = "y-quote.config";
+	std::string config_file = "x-trader.config";
 	TiXmlDocument doc = TiXmlDocument(config_file.c_str());
     doc.LoadFile();
     TiXmlElement *root = doc.RootElement();    
 	
 	// yield strategy
     TiXmlElement *dist_node = root->FirstChildElement("Disruptor");
-	if (dist_node != NULL){
+	if (dist_node != NULL)
+	{
 		strcpy(config_.yield, dist_node->Attribute("yield"));
-		this->port_ = atoi(dist_node->Attribute("port"));
 	} 
-	else { 
+	else
+	{ 
 		clog_error("[%s] y-quote.config error: Disruptor node missing.", module_name_); 
 	}
+
+    TiXmlElement *marketDataServerNode = root->FirstChildElement("MarketDataReceiver");
+	strcpy(config_.MarketDataReceiverIp, marketDataServerNode->Attribute("ip"));
+	this->config_.MarketDataReceiverPort = atoi(marketDataServerNode->Attribute("port"));
 }
+
+void UniConsumer::InitMarketDataServer()
+{
+	local_sev_socket_= socket(AF_INET, SOCK_DGRAM, 0);
+	if(-1 == local_sev_socket_)
+	{
+		clog_error("[%s] MarketDataServer: create socket error, ip:%s; port:%d", 
+					module_name_,
+					config_.MarketDataReceiverIp,
+					config_.MarketDataReceiverPort); 
+	}
+	else
+	{
+		clog_error("[%s] MarketDataServer: create socket succeed, ip:%s; port:%d", 
+					module_name_,
+					config_.MarketDataReceiverIp,
+					config_.MarketDataReceiverPort); 
+	}
+
+    int sndbufsize = 5120;
+    int ret = setsockopt(local_sev_socket_, 
+				SOL_SOCKET, 
+				SO_SNDBUF , 
+				(const void *) &sndbufsize, 
+				sizeof(sndbufsize));
+    if (ret != 0)
+	{
+        clog_error("UDP - set SO_SNDBUF failed.");
+    }
+
+	bzero(&marketdata_rev_socket_addr_, sizeof(marketdata_rev_socket_addr_));
+	marketdata_rev_socket_addr_.sin_family = AF_INET;   
+	marketdata_rev_socket_addr_.sin_addr.s_addr = inet_addr(config_.MarketDataReceiverIp); 
+	marketdata_rev_socket_addr_.sin_port = htons(config_.MarketDataReceiverPort);  //网络字节序
+}
+
+void UniConsumer::CloseMarketDataServer()
+{
+	close(local_sev_socket_);
+}
+
 
 void UniConsumer::Start()
 {
+	InitMarketDataServer();
 	running_  = true;
 
 	int rc = 0;
 	struct vrt_value  *vvalue;
 	while (running_ &&
-		   (rc = vrt_consumer_next(consumer_, &vvalue)) != VRT_QUEUE_EOF) {
-		if (rc == 0) {
+		   (rc = vrt_consumer_next(consumer_, &vvalue)) != VRT_QUEUE_EOF) 
+	{
+		if (rc == 0) 
+		{
 			struct vrt_hybrid_value *ivalue = cork_container_of(vvalue, struct vrt_hybrid_value, parent);
-			switch (ivalue->data){
-				case ZCE_YAO_DATA:
+			switch (ivalue->data)
+			{
+				case DCE_YAO_DATA:
 					ProcYaoQuote(ivalue->index);
 					break;
 				default:
@@ -83,7 +127,8 @@ void UniConsumer::Start()
 		}
 	} // end while (running_ &&
 
-	if (rc == VRT_QUEUE_EOF) {
+	if (rc == VRT_QUEUE_EOF) 
+	{
 		clog_info("[%s] [start] rev EOF.", module_name_);
 	}
 	clog_info("[%s] [start] start exit.", module_name_);
@@ -91,9 +136,11 @@ void UniConsumer::Start()
 
 void UniConsumer::Stop()
 {
-	if(running_){
+	if(running_)
+	{
 		md_producer_->End();
 		running_ = false;
+		CloseMarketDataServer();
 		clog_warning("[%s] End exit", module_name_);
 	}
 	fflush (Log::fp);
@@ -101,71 +148,22 @@ void UniConsumer::Stop()
 
 void UniConsumer::ProcYaoQuote(int32_t index)
 {
-#ifdef LATENCY_MEASURE
-		 static int cnt = 0;
-		 perf_ctx::insert_t0(cnt);
-		 cnt++;
-#endif
-#ifdef LATENCY_MEASURE
-		high_resolution_clock::time_point t0 = high_resolution_clock::now();
-#endif
-
 	YaoQuote* md = md_producer_->GetData(index);
 
 	clog_info("[%s] send YaoQuote: %s", 
 				module_name_,
 				YaoQuote::ToString(md).c_str());
 
-	for(int i=0; i< MAX_CONN_COUNT; i++)
-	{		
-		{
-			std::lock_guard<std::mutex> lck (mtx_);
-			if(0 == valid_conn_[i]) continue;
-		}
-		
-		try
-		{			
-			 boost::system::error_code error;		  		
-			 boost::asio::write(socks_[i], boost::asio::buffer(md, sizeof(YaoQuote)), error);			  
-			 if (error)
-			 {
-				 valid_conn_[i] = 0;
-				clog_warning("[%s] write error: %d", module_name_, error); 			
-			 }
-		}
-		catch (std::exception& e)
-		{
-			valid_conn_[i] = 0;
-			clog_warning("[%s] send error:%s", module_name_, e.what()); 			
-		}
-
-#ifdef LATENCY_MEASURE
-		high_resolution_clock::time_point t1 = high_resolution_clock::now();
-		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
-		clog_warning("[%s] ProcBestAndDeep latency:%d us", module_name_, latency); 
-#endif
+	memcpy(send_buf_, md, sizeof(YaoQuote));
+	int result = sendto(local_sev_socket_, 
+				send_buf_, 
+				sizeof(YaoQuote), 
+				0, 
+				(struct sockaddr *)&marketdata_rev_socket_addr_,
+				sizeof(marketdata_rev_socket_addr_));
+	if(-1 == result)
+	{
+		clog_error("[%s] socket sendto error.", module_name_);
 	}
-}
-
-void UniConsumer::Server()
-{
-  tcp::acceptor a(io_service_, tcp::endpoint(tcp::v4(), port_));
-  for (;;)
-  {	
-	int i = 0;
-	for(; i<MAX_CONN_COUNT; i++){
-		if(0 == valid_conn_[i]) break;
-	}
-	if(i < MAX_CONN_COUNT){
-		a.accept(socks_[i]);
-		{
-			std::lock_guard<std::mutex> lck (mtx_);
-			valid_conn_[i] = 1;
-		}
-	}
-	else{
-		clog_warning("[%s] socks_ is full.", module_name_);
-	}
-  }
 }
 

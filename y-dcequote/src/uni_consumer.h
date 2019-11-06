@@ -2,6 +2,14 @@
 #ifndef __UNI_CONSUMER_H__
 #define __UNI_CONSUMER_H__
 
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <errno.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
 #include <functional>
 #include <array>
 #include <string>
@@ -11,20 +19,17 @@
 #include "md_producer.h"
 #include <tinyxml.h>
 #include <tinystr.h>
-#include <boost/asio.hpp>
 #include "moduleloadlibrarylinux.h"
 #include "loadlibraryproxy.h"
 #include <mutex>          // std::mutex, std::lock_guard
 
-using boost::asio::ip::tcp;
-
-// 允许的最大客户端连接数
-#define MAX_CONN_COUNT 10
 
 struct Uniconfig
 {
 	// disruptor yield strategy
 	char yield[20];
+	char MarketDataReceiverIp[24];
+	int MarketDataReceiverPort;
 };
 
 class UniConsumer
@@ -37,7 +42,8 @@ class UniConsumer
 		void Stop();
 
 	private:
-		void Server();
+		void InitMarketDataServer();
+		void CloseMarketDataServer();
 
 		bool running_;
 		const char* module_name_;  
@@ -50,17 +56,11 @@ class UniConsumer
 
 		// business logic
 		void ProcYaoQuote(int32_t index);
-		// yao quote
-		boost::asio::io_service io_service_;
-		int port_;
-		std::vector<tcp::socket> socks_;
-		// 记录连接是否有效。
-		// 位置与socks一一对应，1-有效；0-无效：
-		int valid_conn_[MAX_CONN_COUNT];
-		std::mutex mtx_;
-
 		Uniconfig config_;
 
+		int local_sev_socket_;
+		struct sockaddr_in marketdata_rev_socket_addr_;
+		char send_buf_[5120];
 };
 
 #endif
