@@ -295,6 +295,7 @@ class DceQuoteFormat
 	public:
 	static string ToString(MDBestAndDeep* quote)
 	{
+		char time_buffer[32];
 		char buffer[10240];		
 		if(NULL == quote)
 		{
@@ -359,7 +360,8 @@ class DceQuoteFormat
 				"\tSellImplyQtyTwo=%d\n"
 				"\tSellImplyQtyThree=%d\n"
 				"\tSellImplyQtyFour=%d\n"
-				"\tSellImplyQtyFive=%d\n",
+				"\tSellImplyQtyFive=%d\n"
+				"\ttimestamp=%s\n",
 				quote->GenTime,               // 时间			
 				quote->Contract,                      // 合约代码
 				InvalidToZeroF(quote->LastPrice),        // 成交价
@@ -415,7 +417,9 @@ class DceQuoteFormat
 				quote->SellImplyQtyTwo,
 				quote->SellImplyQtyThree,
 				quote->SellImplyQtyFour,
-				quote->SellImplyQtyFive);
+				quote->SellImplyQtyFive,
+				get_curtime(time_buffer, sizeof(time_buffer))
+				);
 		}
 
 		return buffer;
@@ -423,7 +427,8 @@ class DceQuoteFormat
 		
 	static string ToString(MDOrderStatistic* quote)
 	{
-		char buffer[10240];		
+		char buffer[5120];		
+		char time_buffer[32];
 		if(NULL == quote)
 		{
 			sprintf(buffer,"StructName=MDOrderStatistic=NULL\n");
@@ -435,12 +440,14 @@ class DceQuoteFormat
 			"\tTotalBuyOrderNum=%u\n"
 			"\tTotalSellOrderNum=%u\n"
 			"\tWeightedAverageBuyOrderPrice=%.6f\n"
-			"\tWeightedAverageSellOrderPrice=%.6f\n",						
+			"\tWeightedAverageSellOrderPrice=%.6f\n"
+			"\ttimestamp=%s\n",	
 			quote->ContractID,					// 合约代码
 			quote->TotalBuyOrderNum,			// 买委托总量
 			quote->TotalSellOrderNum,			// 卖委托总量
 			InvalidToZeroD(quote->WeightedAverageBuyOrderPrice),	// 加权平均委买价格
-			InvalidToZeroD(quote->WeightedAverageSellOrderPrice)	// 加权平均委卖价格
+			InvalidToZeroD(quote->WeightedAverageSellOrderPrice),	// 加权平均委卖价格
+			get_curtime(time_buffer, sizeof(time_buffer))
 			);
 		}
 		return buffer;

@@ -132,5 +132,5 @@ class Log
 
 
 
-void get_curtime(char buffer[],int size);
+char* get_curtime(char buffer[],int size);
 #endif

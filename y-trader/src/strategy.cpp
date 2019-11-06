@@ -238,20 +238,16 @@ void Strategy::FeedMd(YaoQuote* md, int *sig_cnt, signal_t* sigs)
 #endif
 	
 	*sig_cnt = 0;
-	//(log_.data()+log_cursor_)->exch_time = 0;
 	this->pfn_feedyaomarketdata_(md, sig_cnt, sigs, NULL /*log_.data()+log_cursor_*/);
-//	if((log_.data()+log_cursor_)->exch_time > 0)
-//	{
-//		log_cursor_++;
-//	}
 
-	for (int i = 0; i < *sig_cnt; i++ )
-	{
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
-		clog_warning("[%s] strategy latency:%d us", module_name_, latency); 
+		clog_warning("[%s] feedmd latency:%d us", module_name_, latency); 
 #endif
+
+	for (int i = 0; i < *sig_cnt; i++ )
+	{
 		sigs[i].st_id = this->GetId();
 
 		 clog_info("[%s] FeedMd  signal: "
@@ -558,8 +554,16 @@ void Strategy::FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, sig
 						sigrpt.sig_id, 
 						sigrpt.symbol);
 
+#ifdef LATENCY_MEASURE
+	high_resolution_clock::time_point t0 = high_resolution_clock::now();
+#endif
 			feed_sig_response(&sigrpt, &pos_cache_.s_pos[i], sig_cnt, sigs);
 
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
+		clog_warning("[%s] FeedTunnRpt latency:%d us", module_name_, latency); 
+#endif
 			clog_info("[%s] FeedTunnRpt: strategy id:%d; contract:%s; long:%d; short:%d; "
 						"sig_id:%d; symbol:%s; sig_act:%d; order_volume:%d; order_price:%f; "
 						"exec_price:%f; exec_volume:%d; acc_volume:%d; status:%d; killed:%d; "

@@ -91,11 +91,10 @@ bool Compliance::TryReqOrderInsert(int ord_counter,
 				(cancel_times >= cancel_upper_limit_))
 	{
 		char time[80];
-		get_curtime(time,sizeof(time));
 		clog_error("[%s][%s] contract:%s; side:%c rejected for cancel upper limit.ord counter:%d;"
 			"cur times:%d; ord counter:%d;",
 			module_name_,
-			time,
+			get_curtime(time, sizeof(time)),
 			contract,
 			side,
 			ord_counter,
@@ -120,10 +119,9 @@ bool Compliance::TryReqOrderInsert(int ord_counter,
 			{
 				ret = false;
 				char time[80];
-				get_curtime(time,sizeof(time));
 				clog_error("[%s][%s] contract:%s; matched with myself. ord counter:%d; queue counter:%d ",
 					module_name_, 
-					time,
+					get_curtime(time, sizeof(time)),
 					contract,
 					ord_counter, 
 					i);

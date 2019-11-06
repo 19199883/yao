@@ -33,6 +33,7 @@ struct YaoQuote
 public:
 	static std::string ToString(const YaoQuote * p)
 	{
+		char time_buffer[32];
 		char buf[10240];
 		if (p) {
 			snprintf(buf, sizeof(buf), "structName=YaoQuote\n"
@@ -80,7 +81,8 @@ public:
 				"\tAskLot2=%i\n"
 				"\tAskLot3=%i\n"
 				"\tAskLot4=%i\n"
-				"\tAskLot5=%i\n",
+				"\tAskLot5=%i\n"
+				"\ttimestamp=%s\n",
 				(int)p->feed_type,             
 				p->symbol,
 				p->exchange,        
@@ -125,9 +127,8 @@ public:
 				p->av_array[1],              
 				p->av_array[2],              
 				p->av_array[3],              
-				p->av_array[4]              
-
-			);
+				p->av_array[4],
+				get_curtime(time_buffer, sizeof(time_buffer)));
 		}
 		return buf;
 	}

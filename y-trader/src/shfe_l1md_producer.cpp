@@ -203,6 +203,8 @@ bool ShfeL1MDProducer::IsDominant(const char *contract)
 
 void ShfeL1MDProducer::ToString(CDepthMarketDataField &data)
 {
+	char time_buffer[32];
+
 	clog_warning("[%s] CDepthMarketDataField\n"
 		"TradingDay:%s\n"
 		"SettlementGroupID:%s\n"
@@ -246,7 +248,8 @@ void ShfeL1MDProducer::ToString(CDepthMarketDataField &data)
 		"BidVolume5:%d \n"
 		"AskPrice5:%f \n"
 		"AskVolume5:%d \n"
-		"ActionDay:%s \n",
+		"ActionDay:%s \n"
+		"\ttimestamp=%s\n",
 		module_name_,
 		data.TradingDay,
 		data.SettlementGroupID,
@@ -290,7 +293,9 @@ void ShfeL1MDProducer::ToString(CDepthMarketDataField &data)
 		data.BidVolume5,
 		data.AskPrice5,
 		data.AskVolume5,
-		data.ActionDay);
+		data.ActionDay,
+		get_curtime(time_buffer, sizeof(time_buffer))
+		);
 
 }
 
