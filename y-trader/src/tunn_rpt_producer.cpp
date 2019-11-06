@@ -289,17 +289,23 @@ void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
 				CtpDatatypeFormater::ToString(pRspUserLogin).c_str(),
 				CtpDatatypeFormater::ToString(pRspInfo).c_str());
 
-	this->TradingDay_ = stoi(pRspUserLogin->TradingDay);
+	if(strlen(pRspUserLogin->TradingDay) > 0)
+	{
+		this->TradingDay_ = stoi(pRspUserLogin->TradingDay);
+	}
 
 	char login_hour[3] = {0};
-	strncpy(login_hour, pRspUserLogin->LoginTime, 2);
-	int hours = stoi(login_hour);
-	if(hours>=8 && hours<16){
-		this->IsNightTrading_ = 0;
-	}
-	else
+	if(strlen(pRspUserLogin->LoginTime) > 0)
 	{
-		this->IsNightTrading_ = 1;
+		strncpy(login_hour, pRspUserLogin->LoginTime, 2);
+		int hours = stoi(login_hour);
+		if(hours>=8 && hours<16){
+			this->IsNightTrading_ = 0;
+		}
+		else
+		{
+			this->IsNightTrading_ = 1;
+		}
 	}
 
     clog_warning("[%s] TradingDay:%d; IsNightTrading:%d",

@@ -15,13 +15,16 @@
 #include "ctp_data_formater.h"
 #include "shfe_fulldepthmd_producer.h"
 #include "shfe_l1md_producer.h"
+#include "dce_md_receiver.h"
 
 /* Note that the parameter for queue size is a power of 2. */
 #define  QUEUE_SIZE  4096
+
 UniConsumer *uniConsumer = NULL;
 ShfeFullDepthMDProducer *shfe_full_producer = NULL;
 ShfeL1MDProducer *shfe_l1_md_producer = NULL; 
 TunnRptProducer *tunnRptProducer = NULL;
+DceQuote *dceQuote = NULL;
 
 static void
 SIG_handler(int s)
@@ -75,6 +78,8 @@ int main(/*int argc, const char **argv*/)
 	rip_check(queue = vrt_queue_new("x-trader queue", 
 					vrt_hybrid_value_type(), 
 					QUEUE_SIZE));
+
+	dceQuote = new DceQuote(queue);
 	shfe_full_producer = new ShfeFullDepthMDProducer(queue);
 	shfe_l1_md_producer = new ShfeL1MDProducer(queue); 
 	tunnRptProducer = new TunnRptProducer(queue);
@@ -85,6 +90,7 @@ int main(/*int argc, const char **argv*/)
 	uniConsumer = new UniConsumer (queue, 
 				shfe_l1_md_producer ,
 				shfe_full_producer, 
+				dceQuote,
 				tunnRptProducer);
 	uniConsumer->Start();
 
@@ -98,6 +104,7 @@ int main(/*int argc, const char **argv*/)
 	delete tunnRptProducer; 
 	delete shfe_full_producer, 
 	delete shfe_l1_md_producer ,
+	delete dceQuote;
 	delete uniConsumer;
 
 // clog: free resources

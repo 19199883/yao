@@ -18,6 +18,7 @@
 #include "quote_datatype_dce_level2.h"
 #include "shfe_fulldepthmd_producer.h"
 #include "shfe_l1md_producer.h"
+#include "dce_md_receiver.h"
 
 #define SIG_BUFFER_SIZE 32 
 
@@ -43,6 +44,7 @@ class UniConsumer
 		UniConsumer(struct vrt_queue *queue, 
 					ShfeL1MDProducer* shfeL1MDProducer, 
 					ShfeFullDepthMDProducer* shfeFullDepthMDProducer,
+					DceQuote *dceQuote,
 					TunnRptProducer *tunn_rpt_producer);
 		~UniConsumer();
 
@@ -107,6 +109,7 @@ class UniConsumer
 		QuoteDataSave<YaoQuote> *p_yao_md_save_;
 		ShfeL1MDProducer *shfeL1MDProducer_; 
 		ShfeFullDepthMDProducer *shfeFullDepthMDProducer_;
+		DceQuote *dceQuote_;
 
 #ifdef COMPLIANCE_CHECK
 		Compliance compliance_;

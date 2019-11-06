@@ -17,11 +17,13 @@ using namespace std::placeholders;
 UniConsumer::UniConsumer(struct vrt_queue* queue, 
 			ShfeL1MDProducer* shfeL1MDProducer, 
 			ShfeFullDepthMDProducer* shfeFullDepthMDProducer,
+			DceQuote *dceQuote,
 			TunnRptProducer *tunn_rpt_producer) 
 		: module_name_("uni_consumer"),
 		running_(true), 
 		shfeL1MDProducer_(shfeL1MDProducer), 
 		shfeFullDepthMDProducer_(shfeFullDepthMDProducer),
+		dceQuote_(dceQuote),
 		tunn_rpt_producer_(tunn_rpt_producer)
 		  //, lock_log_(ATOMIC_FLAG_INIT)
 {
@@ -275,6 +277,7 @@ void UniConsumer::Stop()
 	{
 		shfeL1MDProducer_->End();
 		shfeFullDepthMDProducer_->End();
+		dceQuote_->End();
 		tunn_rpt_producer_->End();
 
 #ifdef COMPLIANCE_CHECK
@@ -302,10 +305,13 @@ void UniConsumer::Stop()
 
 void UniConsumer::ProcDceYaoData(int32_t index)
 {
-	// TODO: code here
-//	YaoQuote* md = md_producer_->Data(index);
-//	ProcYaoQuote(md);
 
+	YaoQuote* md = dceQuote_->GetData(index);
+	ProcYaoQuote(md);
+
+	clog_info("[%s] ProcDceYaoData:%s", 
+				module_name_,
+				YaoQuote::ToString(md).c_str());
 }
 
 void UniConsumer::ProcZceYaoData(int32_t index)
