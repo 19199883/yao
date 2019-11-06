@@ -229,6 +229,10 @@ void Strategy::FeedInitPosition()
 
 void Strategy::FeedMd(YaoQuote* md, int *sig_cnt, signal_t* sigs)
 {
+	clog_info("[%s] FeedMd YaoQuote: %s", 
+				module_name_,
+				YaoQuote::ToString(md).c_str());
+
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
