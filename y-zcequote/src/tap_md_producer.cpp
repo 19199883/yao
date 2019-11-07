@@ -12,18 +12,22 @@ using namespace std::placeholders;
 using namespace std;
 
 TapMDProducer::TapMDProducer(struct vrt_queue  *queue)
-:module_name_("TapMDProducer")
+	:module_name_("TapMDProducer")
 {
 	l1data_cursor_ = L1MD_BUFFER_SIZE - 1;
 	ended_ = false;
     api_ = NULL;
-	clog_warning("[%s] L1MD_BUFFER_SIZE:%d;",module_name_,L1MD_BUFFER_SIZE);
+	clog_warning("[%s] L1MD_BUFFER_SIZE:%d;",
+				module_name_,
+				L1MD_BUFFER_SIZE);
 
 	ParseConfig();
 	
 	// init dominant contracts
 	memset(dominant_contracts_, 0, sizeof(dominant_contracts_));
-	dominant_contract_count_ = LoadDominantContracts(config_.contracts_file, dominant_contracts_);
+	dominant_contract_count_ = 
+		LoadDominantContracts(config_.contracts_file, 
+					dominant_contracts_);
 	memset(&md_buffer_, 0, sizeof(md_buffer_));
     sID = new unsigned int;
 	InitApi();
@@ -31,11 +35,16 @@ TapMDProducer::TapMDProducer(struct vrt_queue  *queue)
 
 	(this->producer_ = vrt_producer_new("md_producer", 1, queue));
 	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
-	if(strcmp(config_.yield, "threaded") == 0){
+	if(strcmp(config_.yield, "threaded") == 0)
+	{
 		this->producer_ ->yield = vrt_yield_strategy_threaded();
-	}else if(strcmp(config_.yield, "spin") == 0){
+	}
+	else if(strcmp(config_.yield, "spin") == 0)
+	{
 		this->producer_ ->yield = vrt_yield_strategy_spin_wait();
-	}else if(strcmp(config_.yield, "hybrid") == 0){
+	}
+	else if(strcmp(config_.yield, "hybrid") == 0)
+	{
 		this->producer_ ->yield = vrt_yield_strategy_hybrid();
 	}
 }
@@ -50,10 +59,13 @@ void TapMDProducer::InitApi()
 
     int iResult = 0;
     api_ = CreateTapQuoteAPI(&p_info_, iResult);
-    if ( NULL == api_) {
+    if ( NULL == api_) 
+	{
         clog_error("[%s] TAP - CreateTapQuoteAPI failed, the error code is %d", 
 			module_name_, iResult);
-    }else{
+    }
+	else
+	{
         api_->SetAPINotify(this);
         SetTapQuoteAPILogLevel(APILOGLEVEL_NONE);
         char *addr_tmp = new char[sizeof(config_.addr)];
@@ -61,10 +73,13 @@ void TapMDProducer::InitApi()
         strcpy(addr_tmp, config_.addr.c_str());
         addr_tmp2 = strtok(addr_tmp, ":");
         port_tmp = strtok(NULL, ":");
-        clog_warning("[%s] TAP - prepare to connect quote provider: ip:%s %d",
-			module_name_, config_.ip, config_.port);
+        clog_warning("[%s] TAP - prepare to connect quote provider: ip:%s %d", 
+					module_name_, 
+					config_.ip, 
+					config_.port);
 		int result = api_->SetHostAddress(config_.ip, config_.port);
-        if (0 != result){
+        if (0 != result)
+		{
 			clog_error("[%s] TAP - SetHostAddress failed:%d", module_name_, result);
 		}
 
@@ -81,9 +96,12 @@ void TapMDProducer::Login()
     stLoginAuth.ISModifyPassword = APIYNFLAG_NO;
     stLoginAuth.ISDDA = APIYNFLAG_NO;
     TAPIINT32 result = api_->Login(&stLoginAuth);
-    if (TAPIERROR_SUCCEED != result) {
+    if (TAPIERROR_SUCCEED != result) 
+	{
         clog_error("[%s] Login Error, result:%d",module_name_,result);
-    }else{
+    }
+	else
+	{
         clog_warning("[%s] Login success", module_name_);
 	}
 }
@@ -96,17 +114,27 @@ void TapMDProducer::ParseConfig()
 
 	// yield strategy
     TiXmlElement *disruptor_node = RootElement->FirstChildElement("Disruptor");
-	if (disruptor_node != NULL){
+	if (disruptor_node != NULL)
+	{
 		strcpy(config_.yield, disruptor_node->Attribute("yield"));
-	} else { clog_error("[%s] y-quote.config error: Disruptor node missing.", module_name_); }
+	} 
+	else 
+	{ 
+		clog_error("[%s] y-quote.config error: Disruptor node missing.", module_name_); 
+	}
 
 	// addr
     TiXmlElement *l1md_node = RootElement->FirstChildElement("L1Md");
-	if (l1md_node != NULL){
+	if (l1md_node != NULL)
+	{
 		config_.addr = l1md_node->Attribute("addr");
 		strcpy(config_.user, l1md_node->Attribute("user"));
 		strcpy(config_.password, l1md_node->Attribute("password"));
-	} else { clog_error("[%s] y-quote.config error: L1Md node missing.", module_name_); }
+	} 
+	else 
+	{ 
+		clog_error("[%s] y-quote.config error: L1Md node missing.", module_name_); 
+	}
 	
 	// contracts file
     TiXmlElement *contracts_file_node = RootElement->FirstChildElement("Subscription");
@@ -120,19 +148,25 @@ void TapMDProducer::ParseConfig()
 	config_.port = stoi(config_.addr.substr(ipstr_end+1));
 }
 
-TapMDProducer::~TapMDProducer(){
+TapMDProducer::~TapMDProducer()
+{
 
 }
 
 void TapMDProducer::End()
 {
-	if(!ended_){
-		if (api_){
+	if(!ended_)
+	{
+		if (api_)
+		{
 			api_->Disconnect();
 		}
-    if (sID) { delete sID; }
+		if (sID) 
+		{ 
+			delete sID; 
+		}
 
-	clog_warning("[%s] L1MD exited.", module_name_);
+		clog_warning("[%s] L1MD exited.", module_name_);
 		ended_ = true;
 		(vrt_producer_eof(producer_));
 		clog_warning("[%s] End exit", module_name_);
@@ -141,9 +175,11 @@ void TapMDProducer::End()
 	fflush (Log::fp);
 }
 
-int32_t TapMDProducer::Push(const TapAPIQuoteWhole& md){
+int32_t TapMDProducer::Push(const TapAPIQuoteWhole& md)
+{
 	l1data_cursor_++;
-	if (l1data_cursor_ % L1MD_BUFFER_SIZE == 0){
+	if (l1data_cursor_ % L1MD_BUFFER_SIZE == 0)
+	{
 		l1data_cursor_ = 0;
 	}
 	md_buffer_[l1data_cursor_] = md;
@@ -159,9 +195,14 @@ TapAPIQuoteWhole* TapMDProducer::GetData(int32_t index)
 void TapMDProducer::OnRspLogin(TAPIINT32 errorCode, const TapAPIQuotLoginRspInfo *info)
 {
     clog_warning("[%s] TAP - OnRspLogin", module_name_);
-    if (0 == errorCode){
-    } else {
-        clog_error("[%s] TAP - login failed, ErrorCode = %d", module_name_, errorCode);
+    if (0 == errorCode)
+	{
+    }
+	else 
+	{
+        clog_error("[%s] TAP - login failed, ErrorCode = %d", 
+					module_name_, 
+					errorCode);
     }
 }
 
@@ -192,30 +233,43 @@ void TapMDProducer::SubscribeAllContracts()
 void TapMDProducer::qry_contract(TapAPICommodity &qryReq)
 {
     int ret = 0;
-    while ((ret = api_->QryContract(sID, &qryReq)) != 0) {
-        clog_error("TAP - QryContract failed, ExchangeNo is %s, CommodityNo is %s, errorCode is %d.",
-				qryReq.ExchangeNo, qryReq.CommodityNo, ret);
+    while ((ret = api_->QryContract(sID, &qryReq)) != 0) 
+	{
+        clog_error("TAP - QryContract failed, ExchangeNo is %s, "
+					"CommodityNo is %s, errorCode is %d.",
+					qryReq.ExchangeNo, 
+					qryReq.CommodityNo, 
+					ret);
         sleep(5);
     }
 
-    clog_warning("TAP - QryContract successful, ExchangeNo is %s, CommodityNo is %s.", 
-		qryReq.ExchangeNo, qryReq.CommodityNo);
+    clog_warning("TAP - QryContract successful, "
+				"ExchangeNo is %s, CommodityNo is %s.", 
+				qryReq.ExchangeNo, 
+				qryReq.CommodityNo);
 }
 
 void TapMDProducer::subscribe_quote(TapAPIContract contract)
 {
     int ret = 0;
-    while ((ret = api_->SubscribeQuote(sID, &contract)) != 0) {
-        clog_error("TAP - SubscribeQuote failed, ExchangeNo is %s, CommodityNo is %s, "
-			"ContractNo is %s, errorCode is %d.",
-            contract.Commodity.ExchangeNo, contract.Commodity.CommodityNo, contract.ContractNo1,
-			ret);
+    while ((ret = api_->SubscribeQuote(sID, &contract)) != 0) 
+	{
+        clog_error("TAP - SubscribeQuote failed, "
+					"ExchangeNo is %s, CommodityNo is %s, " 
+					"ContractNo is %s, errorCode is %d.", 
+					contract.Commodity.ExchangeNo, 
+					contract.Commodity.CommodityNo, 
+					contract.ContractNo1,
+					ret);
         sleep(5);
     }
 
-    clog_warning("TAP - SubscribeQuote successful, ExchangeNo is %s, CommodityNo is %s,"
-		"ContractNo is %s.", contract.Commodity.ExchangeNo,
-        contract.Commodity.CommodityNo, contract.ContractNo1);
+    clog_warning("TAP - SubscribeQuote successful, "
+				"ExchangeNo is %s, CommodityNo is %s," 
+				"ContractNo is %s.", 
+				contract.Commodity.ExchangeNo, 
+				contract.Commodity.CommodityNo, 
+				contract.ContractNo1);
 }
 #endif
 
@@ -227,13 +281,15 @@ void TapMDProducer::SubscribeDominantContracts()
 	std::ifstream is;
 	is.open (config_.contracts_file);
 	string contrs = "";
-	if (is) {
+	if (is) 
+	{
 		getline(is, contrs);
 		contrs += " ";
 		size_t start_pos = 0;
 		size_t end_pos = 0;
 		string contr = "";
-		while ((end_pos=contrs.find(" ",start_pos)) != string::npos){
+		while ((end_pos=contrs.find(" ",start_pos)) != string::npos)
+		{
 			contr = contrs.substr (start_pos, end_pos-start_pos);
 
 			string commodity_no = contr.substr(0, 2);
@@ -247,71 +303,113 @@ void TapMDProducer::SubscribeDominantContracts()
 			tmp.CallOrPutFlag1 = TAPI_CALLPUT_FLAG_NONE;
 			tmp.CallOrPutFlag2 = TAPI_CALLPUT_FLAG_NONE;
 			int ret = api_->SubscribeQuote(sID, &tmp);
-			if(ret != 0){
-				clog_error("[%s] TAP - SubscribeQuote failed, ExchangeNo is %s, CommodityNo is %s,"
-					"ContractNo is %s, errorCode is %d.",
-					module_name_, tmp.Commodity.ExchangeNo, tmp.Commodity.CommodityNo, 
-					tmp.ContractNo1, ret);
+			if(ret != 0)
+			{
+				clog_error("[%s] TAP - SubscribeQuote failed, "
+							"ExchangeNo is %s, CommodityNo is %s," 
+							"ContractNo is %s, errorCode is %d.", 
+							module_name_, 
+							tmp.Commodity.ExchangeNo, 
+							tmp.Commodity.CommodityNo, 
+							tmp.ContractNo1, 
+							ret);
 			}
 
-			clog_warning("TAP - SubscribeQuote successful, ExchangeNo is %s, CommodityNo is %s,"
-				"ContractNo is %s.", 
-				tmp.Commodity.ExchangeNo, tmp.Commodity.CommodityNo, tmp.ContractNo1);
+			clog_warning("TAP - SubscribeQuote successful, "
+						"ExchangeNo is %s, CommodityNo is %s," 
+						"ContractNo is %s.", 
+						tmp.Commodity.ExchangeNo, 
+						tmp.Commodity.CommodityNo, 
+						tmp.ContractNo1);
 
 			start_pos = end_pos + 1;
 		}
-	}else { 
-		clog_error("[%s] can't open: %s", module_name_, config_.contracts_file); 
+	}
+	else 
+	{ 
+		clog_error("[%s] can't open: %s", 
+					module_name_, 
+					config_.contracts_file); 
 	}
 }
 
 void TapMDProducer::OnDisconnect(TAPIINT32 reasonCode)
 {
-    clog_error("[%s] TAP - OnDisconnect, reasonCode is %d", module_name_, reasonCode);
+    clog_error("[%s] TAP - OnDisconnect, reasonCode is %d", 
+				module_name_, 
+				reasonCode);
 }
 
-void TapMDProducer::OnRspQryExchange(TAPIUINT32 sessionID, TAPIINT32 errorCode, 
-	TAPIYNFLAG isLast, const TapAPIExchangeInfo *info) { }
+void TapMDProducer::OnRspQryExchange(TAPIUINT32 sessionID, 
+			TAPIINT32 errorCode, 
+			TAPIYNFLAG isLast, 
+			const TapAPIExchangeInfo *info) 
+{
+}
 
-void TapMDProducer::OnRspQryCommodity(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast,
-	const TapAPIQuoteCommodityInfo *info) { }
+void TapMDProducer::OnRspQryCommodity(TAPIUINT32 sessionID, 
+			TAPIINT32 errorCode, 
+			TAPIYNFLAG isLast, 
+			const TapAPIQuoteCommodityInfo *info) 
+{ 
+}
 
-void TapMDProducer::OnRspQryContract(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast,
-	const TapAPIQuoteContractInfo *info)
+void TapMDProducer::OnRspQryContract(TAPIUINT32 sessionID, 
+			TAPIINT32 errorCode, 
+			TAPIYNFLAG isLast, 
+			const TapAPIQuoteContractInfo *info)
 {
     clog_warning("TAP - OnRspQryContract");
-    if (0 == errorCode) {
-        if ( NULL != info) {
+    if (0 == errorCode) 
+	{
+        if ( NULL != info) 
+		{
 #ifdef PERSISTENCE_ENABLED 
 			subscribe_quote(info->Contract);
 #endif		
-			clog_warning("TAP - OnRspQryContract successful, ExchangeNo is %s, CommodityNo is %s,"
-				"ContractNo is %s.", info->Contract.Commodity.ExchangeNo,
-				info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1);
-        } else {
+			clog_warning("TAP - OnRspQryContract successful, "
+						"ExchangeNo is %s, CommodityNo is %s," 
+						"ContractNo is %s.", 
+						info->Contract.Commodity.ExchangeNo, 
+						info->Contract.Commodity.CommodityNo, 
+						info->Contract.ContractNo1);
+        } 
+		else 
+		{
             clog_warning("TAP - OnRspQryContract the info is NULL.");
         }
 
-    } else {
+    } 
+	else 
+	{
         clog_error("TAP - QryContract failed, the error code is %d.", errorCode);
     }
 }
 
 void TapMDProducer::OnRtnContract(const TapAPIQuoteContractInfo *info) { }
 
-void TapMDProducer::OnRspSubscribeQuote(TAPIUINT32 sessionID, TAPIINT32 errorCode, 
-	TAPIYNFLAG isLast, const TapAPIQuoteWhole *info)
+void TapMDProducer::OnRspSubscribeQuote(TAPIUINT32 sessionID,
+			TAPIINT32 errorCode, 
+			TAPIYNFLAG isLast, 
+			const TapAPIQuoteWhole *info)
 {
-		clog_info("[test] [%s] OnRspSubscribeQuote contract:%s%s, time:%s, ended:%d", module_name_, 
-			info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1, info->DateTimeStamp, ended_);
+		clog_info("[test] [%s] OnRspSubscribeQuote contract:%s%s, time:%s, ended:%d", 
+					module_name_, 
+					info->Contract.Commodity.CommodityNo, 
+					info->Contract.ContractNo1, 
+					info->DateTimeStamp, 
+					ended_);
 
 	if(ended_) return;
 
     if (errorCode == 0 && NULL != info){
 		// 抛弃非主力合约
 		if(!(IsDominant(info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1))) return;		
-		clog_info("[test] [%s] rev TapAPIQuoteWhole contract:%s%s, time:%s", module_name_, 
-			info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1, info->DateTimeStamp);
+		clog_info("[test] [%s] rev TapAPIQuoteWhole contract:%s%s, time:%s", 
+					module_name_, 
+					info->Contract.Commodity.CommodityNo, 
+					info->Contract.ContractNo1, 
+					info->DateTimeStamp);
 
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;
@@ -321,13 +419,18 @@ void TapMDProducer::OnRspSubscribeQuote(TAPIUINT32 sessionID, TAPIINT32 errorCod
 		ivalue->data = ZCE_L1_MD;
 		vrt_producer_publish(producer_);
 
-        clog_debug("[%s] TAP - OnRspSubscribeQuote Successful, ExchangNo is %s, "
-			"CommodityNo is %s, ContractNo is %s.", module_name_,
-            info->Contract.Commodity.ExchangeNo, info->Contract.Commodity.CommodityNo, 
-			info->Contract.ContractNo1);
-    }else{
-        clog_error("[%s] TAP - SubscribeQuote failed, the error code is %d.", module_name_,
-			errorCode);
+        clog_debug("[%s] TAP - OnRspSubscribeQuote Successful, ExchangNo is %s, " 
+					"CommodityNo is %s, ContractNo is %s.", 
+					module_name_, 
+					info->Contract.Commodity.ExchangeNo, 
+					info->Contract.Commodity.CommodityNo, 
+					info->Contract.ContractNo1);
+    }
+	else
+	{
+        clog_error("[%s] TAP - SubscribeQuote failed, the error code is %d.", 
+					module_name_, 
+					errorCode);
     }
 }
 
@@ -339,8 +442,11 @@ void TapMDProducer::OnRtnQuote(const TapAPIQuoteWhole *info)
 		// 抛弃非主力合约
 		if(!(IsDominant(info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1))) return;
 
-		clog_info("[test] [%s] rev TapAPIQuoteWhole contract:%s%s, time:%s", module_name_, 
-			info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1, info->DateTimeStamp);
+		clog_info("[test] [%s] rev TapAPIQuoteWhole contract:%s%s, time:%s", 
+					module_name_, 
+					info->Contract.Commodity.CommodityNo, 
+					info->Contract.ContractNo1, 
+					info->DateTimeStamp);
 
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;
@@ -350,17 +456,25 @@ void TapMDProducer::OnRtnQuote(const TapAPIQuoteWhole *info)
 		ivalue->data = ZCE_L1_MD;
 		vrt_producer_publish(producer_);
 		
-        clog_info("[%s] TAP - OnRtnQuote Successful, ExchangNo is %s, CommodityNo is %s,"
-			"ContractNo is %s.", module_name_,
-            info->Contract.Commodity.ExchangeNo, info->Contract.Commodity.CommodityNo, 
-			info->Contract.ContractNo1);
-    } else {
+        clog_info("[%s] TAP - OnRtnQuote Successful, ExchangNo is %s, "
+					"CommodityNo is %s, ContractNo is %s.", 
+					module_name_, 
+					info->Contract.Commodity.ExchangeNo, 
+					info->Contract.Commodity.CommodityNo, 
+					info->Contract.ContractNo1);
+    } 
+	else 
+	{
         clog_error("[%s] TAP - RtnQuote failed, the pointer is null.", module_name_);
     }
 }
 
-void TapMDProducer::OnRspUnSubscribeQuote(TAPIUINT32 sessionID, TAPIINT32 errorCode, 
-	TAPIYNFLAG isLast, const TapAPIContract *info) { }
+void TapMDProducer::OnRspUnSubscribeQuote(TAPIUINT32 sessionID, 
+			TAPIINT32 errorCode, 
+			TAPIYNFLAG isLast, 
+			const TapAPIContract *info) 
+{ 
+}
 
 void TapMDProducer::OnRspChangePassword(TAPIUINT32 sessionID, TAPIINT32 errorCode) { } 
 
@@ -371,8 +485,10 @@ bool TapMDProducer::IsDominant(const char*commciodity_no, const char* contract_n
 	//clog_warning("[%s], return TRUE in IsDominant.",module_name_);
 	return true;
 #else
-	return IsDominantImp(commciodity_no, contract_no, dominant_contracts_, 
-			dominant_contract_count_);
+	return IsDominantImpZce(commciodity_no, 
+				contract_no, 
+				dominant_contracts_, 
+				dominant_contract_count_);
 #endif
 }
 

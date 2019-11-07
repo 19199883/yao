@@ -5,17 +5,17 @@
 #include <thread>         // std::thread
 #include "md_helper.h"
 
-using std::chrono::system_clock;
-
 MdHelper::MdHelper(L2MDProducer *l2_md_producer, TapMDProducer *l1_md_producer) 
 	 :  l2_md_producer_(l2_md_producer), 
 		l1_md_producer_(l1_md_producer), 
 		module_name_("MdHelper")
 {
-	clog_warning("[%s] MAX_CONTACT_COUNT:%d;",
+	clog_warning("[%s] MAX_DOMINANT_CONTACT_COUNT:%d;",
 				module_name_,
-				MAX_CONTRACT_COUNT);
-	for(int i = 0; i < MAX_CONTRACT_COUNT; i++){
+				MAX_DOMINANT_CONTRACT_COUNT);
+
+	for(int i = 0; i < MAX_DOMINANT_CONTRACT_COUNT; i++)
+	{
 		TapAPIQuoteWhole &tmp = md_buffer_[i];
 		strcpy(tmp.Contract.Commodity.CommodityNo, "");
 		strcpy(tmp.Contract.ContractNo1, "");
@@ -23,7 +23,7 @@ MdHelper::MdHelper(L2MDProducer *l2_md_producer, TapMDProducer *l1_md_producer)
 
 
 #ifdef PERSISTENCE_ENABLED 
-    p_md_save_ = new QuoteDataSave<YaoQuote>( "yao_quote", YAO_QUOTE_TYPE);
+    p_md_save_ = new QuoteDataSave<YaoQuote>( "yao_zce_quote", YAO_QUOTE_TYPE);
 #endif
 }
 
@@ -48,18 +48,21 @@ void MdHelper::ProcL2Data(int32_t index)
 				md->turnover);
 
 	l1_md =  GetData(md->instrument); // md->instrument, e.g. SR1801
-	if(NULL != l1_md){
-		clog_info("[test] [%s] ProcL2Data L1 contract:%s%s, time:%s, turnover:%f", 
-					module_name_, 
-					l1_md->Contract.Commodity.CommodityNo, 
-					l1_md->Contract.ContractNo1, 
-					l1_md->DateTimeStamp, 
-					l1_md->QTotalTurnover);
+	if(NULL != l1_md)
+	{
+		//clog_info("[test] [%s] ProcL2Data L1 contract:%s%s, time:%s, turnover:%f", 
+		//			module_name_, 
+		//			l1_md->Contract.Commodity.CommodityNo, 
+		//			l1_md->Contract.ContractNo1, 
+		//			l1_md->DateTimeStamp, 
+		//			l1_md->QTotalTurnover);
 
 		Convert(*md, l1_md, target_data_);
 		if (mymd_handler_ != NULL) mymd_handler_(&target_data_);
 
-		clog_info("[%s] send [%s]", module_name_, ToString(&target_data_).c_str());
+		clog_info("[%s] rev YaoQuote: %s", 
+					module_name_,
+					YaoQuote::ToString(&target_data_).c_str());
 
 #ifdef PERSISTENCE_ENABLED 
 		timeval t;
@@ -67,7 +70,12 @@ void MdHelper::ProcL2Data(int32_t index)
 		p_md_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &target_data_);
 #endif
 	}
-	else{ clog_error("[%s] ProcL2Data: L1 is null.", module_name_); }
+	else
+	{
+		clog_info("[%s] ProcL2Data: L1 is null for %s.", 
+					module_name_, 
+					md->instrument); 
+	}
 }
 
 int MdHelper::GetIntTime(const char *timestr)
@@ -90,6 +98,10 @@ int MdHelper::GetIntTime(const char *timestr)
 
 }
 
+// TODO: 
+// 看TapAPIQuoteWhole合约组成
+// 看StdQuote5合约组成
+// 看YaoQuote合约组成
 void MdHelper::Convert(const StdQuote5 &other, 
 			TapAPIQuoteWhole *tap_data, 
 			YaoQuote &data)
@@ -98,7 +110,7 @@ void MdHelper::Convert(const StdQuote5 &other,
 	data.exchange = YaoExchanges::YCZCE;
 
 	// TODO: yao debug	
-	clog_warning("[%s] other.updateTime other.updateMS: %s %d; data.TimeStamp: %s", 
+	clog_info("[%s] other.updateTime other.updateMS: %s %d; data.TimeStamp: %s", 
 				module_name_, 
 				other.updateTime,
 				other.updateMS, 
@@ -137,7 +149,8 @@ void MdHelper::Convert(const StdQuote5 &other,
 	data.total_buy_ordsize = (int)other.buyv;	/*委买总量*/
 	data.total_sell_ordsize = (int)other.sellv;	/*委卖总量*/
 
-	if(tap_data != NULL){ // contents from level1 
+	if(tap_data != NULL)
+	{ // contents from level1 
 		strcpy(data.symbol, tap_data->Contract.Commodity.CommodityNo);		/*合约编码*/
 		strcpy(data.symbol + 2, tap_data->Contract.ContractNo1);		/*合约编码*/
 		data.pre_close_px = InvalidToZeroD(tap_data->QPreClosingPrice);	/*前收盘价格*/
@@ -170,15 +183,20 @@ void MdHelper::ProcL1MdData(int32_t index)
 	TapAPIQuoteWhole *new_l1_md =  l1_md_producer_->GetData(index);
 
 	TapAPIQuoteWhole *old_l1_md = NULL;
-	for(int i = 0; i < MAX_CONTRACT_COUNT; i++){
+	for(int i = 0; i < MAX_DOMINANT_CONTRACT_COUNT; i++)
+	{
 		TapAPIQuoteWhole &tmp = md_buffer_[i];
-		if(strcmp(tmp.Contract.ContractNo1, "") == 0){ // 空字符串表示已到了缓存中第一个未使用的缓存项
+		if(strcmp(tmp.Contract.ContractNo1, "") == 0)
+		{ // 空字符串表示已到了缓存中第一个未使用的缓存项
 			old_l1_md = &tmp; 
 			break;
 		}
 
-		if(strcmp(new_l1_md->Contract.Commodity.CommodityNo, tmp.Contract.Commodity.CommodityNo) == 0 &&
-			strcmp(new_l1_md->Contract.ContractNo1, tmp.Contract.ContractNo1) == 0){ // contract: e.g. SR1801
+		if(strcmp(new_l1_md->Contract.Commodity.CommodityNo, 
+						tmp.Contract.Commodity.CommodityNo) == 0 && 
+					strcmp(new_l1_md->Contract.ContractNo1, 
+						tmp.Contract.ContractNo1) == 0)
+		{ // contract: e.g. SR1801
 			old_l1_md = &tmp; 
 			break;
 		}
@@ -186,23 +204,31 @@ void MdHelper::ProcL1MdData(int32_t index)
 
 	*old_l1_md = *new_l1_md;
 
-		clog_info("[%s] ProcL1MdData invoked. contract:%s%s", 
-					module_name_, 
-					new_l1_md->Contract.ContractNo1,
-					new_l1_md->Contract.Commodity.CommodityNo);
+	//	clog_info("[%s] ProcL1MdData invoked. contract:%s%s", 
+	//				module_name_, 
+	//				new_l1_md->Contract.ContractNo1,
+	//				new_l1_md->Contract.Commodity.CommodityNo);
 }
 
+/*
+ *  contract: e.g. SR1801
+ */
 TapAPIQuoteWhole* MdHelper::GetData(const char *contract)
 {
 	TapAPIQuoteWhole* data = NULL;
 
-	for(int i = 0; i < MAX_CONTRACT_COUNT; i++){
+	for(int i = 0; i < MAX_DOMINANT_CONTRACT_COUNT; i++)
+	{
 		TapAPIQuoteWhole &tmp = md_buffer_[i];
-		if(strcmp(tmp.Contract.ContractNo1, "") == 0){ // 空字符串表示已到了缓存中第一个未使用的缓存项
+		if(strcmp(tmp.Contract.ContractNo1, "") == 0)
+		{ // 空字符串表示已到了缓存中第一个未使用的缓存项
 			break;
 		}
 
-		if(IsEqualSize4(contract, tmp.Contract.Commodity.CommodityNo, tmp.Contract.ContractNo1)){ // contract: e.g. SR1801
+		if(IsEqualSize4Zce(contract, 
+						tmp.Contract.Commodity.CommodityNo, 
+						tmp.Contract.ContractNo1))
+		{ 
 			data = &tmp; 
 			break;
 		}
@@ -211,7 +237,3 @@ TapAPIQuoteWhole* MdHelper::GetData(const char *contract)
 	return data;
 }
 
-std::string MdHelper::ToString(const YaoQuote *quote)
-{
-	return "";
-}

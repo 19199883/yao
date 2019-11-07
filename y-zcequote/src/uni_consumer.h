@@ -21,15 +21,12 @@
 #include <vector>
 #include "YaoQuote.h"
 
-using boost::asio::ip::tcp;
-
-// 允许的最大客户端连接数
-#define MAX_CONN_COUNT 10
-
 struct Uniconfig
 {
 	// disruptor yield strategy
 	char yield[20];
+	char MarketDataReceiverIp[24];
+	int MarketDataReceiverPort;
 };
 
 class UniConsumer
@@ -45,7 +42,8 @@ class UniConsumer
 		
 
 	private:
-		void Server();
+		void InitMarketDataServer();
+		void CloseMarketDataServer();
 
 		bool running_;
 		const char* module_name_;  
@@ -55,18 +53,13 @@ class UniConsumer
 		void ParseConfig();
 
 		// business logic
-		void ProcL2QuoteSnapshot(YaoQuote* md);
+		void ProcYaoQuote(YaoQuote* md);
 		void FeedL2QuoteSnapshot(int32_t straidx);
 		Uniconfig config_;
 		
-		// yao quote
-		boost::asio::io_service io_service_;
-		int port_;
-		std::vector<tcp::socket> socks_;
-		// 记录连接是否有效。
-		// 位置与socks一一对应，1-有效；0-无效：
-		int valid_conn_[MAX_CONN_COUNT];
-		std::mutex mtx_;
+		int local_sev_socket_;
+		struct sockaddr_in marketdata_rev_socket_addr_;
+		char send_buf_[5120];
 };
 
 #endif

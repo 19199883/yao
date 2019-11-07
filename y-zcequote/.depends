@@ -17,7 +17,7 @@ l2md_producer.o: ../y-zcequote/src/l2md_producer.cpp \
  ../y-zcequote/src/l2md_producer.h ../y-zcequote/src/vrt_value_obj.h \
  ../3rd/tinyxml/include/tinyxml.h ../3rd/tinyxml/include/tinystr.h \
  ../3rd/tinyxml/include/tinystr.h ../y-zcequote/src/quote_cmn_utility.h \
- ../3rd/zce_md/include/ZceLevel2ApiStruct.h
+ ../3rd/zce_md/include/ZceLevel2ApiStruct.h ../y-zcequote/src/perfctx.h
 vrt_value_obj.o: ../y-zcequote/src/vrt_value_obj.cpp \
  ../y-zcequote/src/vrt_value_obj.h
 uni_consumer.o: ../y-zcequote/src/uni_consumer.cpp \

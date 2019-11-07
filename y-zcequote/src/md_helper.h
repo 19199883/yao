@@ -37,7 +37,6 @@ class MdHelper
 					YaoQuote &data);
 		YaoQuote target_data_;
 	
-		std::string ToString(const YaoQuote* p);
 		int GetIntTime(const char *timestr);
 
 	    L2MDProducer* l2_md_producer_;
@@ -51,7 +50,7 @@ class MdHelper
 		/*
 		 * 存储一档最新行情，每个合约一个存储位置
 		 */
-		TapAPIQuoteWhole md_buffer_[MAX_CONTRACT_COUNT] ;
+		TapAPIQuoteWhole md_buffer_[MAX_DOMINANT_CONTRACT_COUNT] ;
 	
 	private:
 		const char *module_name_;  
