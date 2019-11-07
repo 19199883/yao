@@ -17,7 +17,7 @@
 */
 // 行情持久化开关
 #define PERSISTENCE_ENABLED
-//#define LATENCY_MEASURE
+#define LATENCY_MEASURE
 
 // 一档行情的选择
 // 飞马极速行情

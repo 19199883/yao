@@ -85,12 +85,42 @@ int32_t LoadDominantContracts(string file, char buffer[MAX_DOMINANT_CONTRACT_COU
 
 bool IsEqualContract(char *contract1, char* contract2);
 
+bool IsEmptyString(char *str);
+
+
+/////////////////////the following is for zc3///////////////////
 /*
 * check whether the given contract is dominant.
 * contract:SR1802, 要判断是否是主力合约的合约
 * buffer: dominant contract list
 */
-bool IsDominantImp(char* contract, char buffer[MAX_DOMINANT_CONTRACT_COUNT][10], 
-	int32_t buffer_size);
+bool IsDominantImpZce(char* contract, 
+			char buffer[MAX_DOMINANT_CONTRACT_COUNT][10], 
+			int32_t buffer_size);
 
-bool IsEmptyString(char *str);
+bool IsDominantImpZce(const char* contract, 
+			char buffer[][10], 
+			int32_t buffer_size);
+
+/*
+ * 判断commidity_no和contract_no代表的合约是否与contract指定的完整合约相等，如：
+ * contract:SR801
+ * commidity_no:SR
+ * contract_no:801
+ */
+bool IsEqualSize3Zce(const char *contract, const char*commidity_no, const char* contract_no);
+
+/* 判断commidity_no和contract_no代表的合约是否与contract指定的完整合约相等，如：
+* contract:SR1801
+* commidity_no:SR
+* contract_no:801
+*/
+bool IsEqualSize4Zce(const char *contract, const char*commciodity_no, const char* contract_no);
+
+/*
+ * 判断contract_size3是否与contract_size4相等，如：
+ * contract_size3:SR801
+ * contract_size4:SR1801
+ */
+bool IsEqualZce(const char *contract_size3, const char* contract_size4);
+

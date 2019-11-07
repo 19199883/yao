@@ -73,23 +73,6 @@ int32_t LoadDominantContracts(string file, char buffer[MAX_DOMINANT_CONTRACT_COU
 	return count;
 }
 
-
-bool IsDominantImp(char *contract, char buffer[][10], int32_t buffer_size)
-{
-	bool is_dominant = false;
-
-	for(int i=0; i<buffer_size; i++){
-		if(buffer[i][0]==0) break; // hit bottom
-
-		if(IsEqualContract(buffer[i], contract)){
-			is_dominant = true;
-			break;
-		}
-	}
-
-	return is_dominant;
-}
-
 bool IsEqualContract(char *contract1, char* contract2)
 {
 	if (strcmp(contract1, contract2) == 0)
@@ -105,6 +88,104 @@ bool IsEmptyString(char *str)
 	if(0 == str[0]){
 		return true;
 	}else{
+		return false;
+	}
+}
+
+
+bool IsDominantImp(char *contract, char buffer[][10], int32_t buffer_size)
+{
+	bool is_dominant = false;
+
+	for(int i=0; i<buffer_size; i++)
+	{
+		if(buffer[i][0]==0) break; // hit bottom
+
+		if(IsEqualContract(buffer[i], contract))
+		{
+			is_dominant = true;
+			break;
+		}
+	}
+
+	return is_dominant;
+}
+
+
+/////////////////////the following is for zce/////////////
+bool IsDominantImpZce(const char* contract, 
+			char buffer[][10], 
+			int32_t buffer_size)
+{
+	bool is_dominant = false;
+
+	for(int i = 0; i < buffer_size; i++)
+	{
+		if(IsEqualZce(buffer[i], contract))
+		{
+			is_dominant = true;
+			break;
+		}
+	}
+
+	return is_dominant;
+}
+
+bool IsDominantImpZce(const char*commciodity_no, const char* contract_no, char buffer[][10], 
+	int32_t buffer_size)
+{
+	bool is_dominant = false;
+
+	for(int i=0; i<buffer_size; i++)
+	{
+		if(IsEqualSize3Zce(buffer[i], commciodity_no, contract_no))
+		{
+			is_dominant = true;
+			break;
+		}
+	}
+
+	return is_dominant;
+}
+
+// contract:e.g. SR801
+bool IsEqualSize3Zce(const char *contract, const char*commodity_no, const char* contract_no)
+{
+	if(strncmp(contract, commodity_no, 2) == 0 && 
+				strncmp(contract+2, contract_no, 3) == 0)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+// contract:e.g. SR1801
+bool IsEqualSize4Zce(const char *contract, const char*commodity_no, const char* contract_no)
+{
+	if(strncmp(contract, commodity_no, 2) == 0 && 
+		strncmp(contract + 3, contract_no, 3) == 0)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool IsEqualZce(const char *contract_size3, const char* contract_size4)
+{
+	// contract:e.g. SR1801
+	if(strncmp(contract_size3, contract_size4, 2) == 0 && 
+		strncmp(contract_size3 + 2, contract_size4 + 3, 3) == 0)
+	{
+		return true;
+	}
+	else
+	{
 		return false;
 	}
 }
