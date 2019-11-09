@@ -1,0 +1,54 @@
+		
+Besdes "OrderStatus", the "Direction" and "OpenClose" should also be the same as wy's:
+    Direction <--> signal_act_t
+		enum Direction
+		{
+			// buy, sell, cancel
+			BUY = 0,
+			SELL = 1,
+			CANCEL = 2
+		};	
+		enum  signal_act_t
+		{
+			buy = 1,
+			sell = 2,
+			cancel = 4,
+		};
+	OpenClose <--> alloc_position_effect_t
+	    enum OpenClose
+		{
+			// open, close, close yesterday
+			OPEN = 0,
+			CLOSE = 1,
+			CLOSE_TOD = 2,
+			CLOSE_YES = 3
+		};
+	    enum alloc_position_effect_t{
+			open = 1,
+			close = 2,
+			close_yes = 3,
+		};
+	OrderStatus <--> if_sig_state_t
+		enum OrderStatus
+		{
+			// Response from exchange
+			INIT = -1,
+			SUCCEED = 0,
+			ENTRUSTED = 1,
+			PARTED = 2,
+			CANCELED = 3,
+			REJECTED = 4,
+			CANCEL_REJECTED = 5,
+			INTERREJECTED = 6,
+			UNDEFINED_STATUS = 7
+		};
+		enum if_sig_state_t {
+			SIG_STATUS_SUCCESS = 0,
+
+			/* 报单委托成功 */
+			SIG_STATUS_ENTRUSTED,
+
+			SIG_STATUS_PARTED,
+			SIG_STATUS_CANCEL,
+			SIG_STATUS_REJECTED,
+		};
