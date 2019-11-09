@@ -7,32 +7,31 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
-#include "dce_md_receiver.h"
+#include "zce_md_receiver.h"
 #include "quote_cmn_utility.h"
 
 using namespace std;
 using namespace std::placeholders;
 
-
-DceQuote::DceQuote(struct vrt_queue  *queue)
-	:module_name_("DceQuote")
+ZceQuote::ZceQuote(struct vrt_queue  *queue)
+	:module_name_("ZceQuote")
 {
 	udp_fd_ = 0;
-
 	ended_ = false;
+
 	ParseConfig();
 
 #ifdef PERSISTENCE_ENABLED 
-	 p_save_quote_ = new QuoteDataSave<YaoQuote>( "y-dcequote", YAO_QUOTE_TYPE);
+	 p_save_quote_ = new QuoteDataSave<YaoQuote>( "y-zcequote", YAO_QUOTE_TYPE);
 #endif
 
-	this->producer_ = vrt_producer_new("dce_quote", 1, queue);
+	this->producer_ = vrt_producer_new("zce_md_producer", 1, queue);
 	this->producer_ ->yield = vrt_yield_strategy_threaded();
 
-    thread_rev_ = new std::thread(&DceQuote::RevData, this);
+    thread_rev_ = new std::thread(&ZceQuote::RevData, this);
 }
 
-void DceQuote::ParseConfig()
+void ZceQuote::ParseConfig()
 {
 	TiXmlDocument config = TiXmlDocument("x-trader.config");
     config.LoadFile();
@@ -42,19 +41,19 @@ void DceQuote::ParseConfig()
     TiXmlElement *comp_node = RootElement->FirstChildElement("Disruptor");
 
 	// addr
-    TiXmlElement *md_node = RootElement->FirstChildElement("DceMarketData");
+    TiXmlElement *md_node = RootElement->FirstChildElement("ZceMarketData");
 	strcpy(config_.LocalIp, md_node->Attribute("localIp"));
 	this->config_.Port = atoi(md_node->Attribute("port"));
 }
 
-DceQuote::~DceQuote()
+ZceQuote::~ZceQuote()
 {
 #ifdef PERSISTENCE_ENABLED 
     if (p_save_quote_) delete p_save_quote_;
 #endif
 }
 
-int DceQuote::InitMDApi()
+int ZceQuote::InitMDApi()
 {
     // init udp socket
     int udp_client_fd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -99,7 +98,7 @@ int DceQuote::InitMDApi()
     return udp_client_fd;
 }
 
-void DceQuote::RevData()
+void ZceQuote::RevData()
 {
 	int udp_fd = InitMDApi();
 	udp_fd_ = udp_fd; 
@@ -129,16 +128,16 @@ void DceQuote::RevData()
 		{
 			YaoQuote *quote = (YaoQuote*)buf;
 
-			//clog_info("[%s] rev DceYaoData:%s", 
-			//		module_name_,
-			//		YaoQuote::ToString(quote).c_str());
+			clog_info("[%s] rev ZceYaoData:%s", 
+					module_name_,
+					YaoQuote::ToString(quote).c_str());
 
 			struct vrt_value  *vvalue;
 			struct vrt_hybrid_value  *ivalue;
 			vrt_producer_claim(producer_, &vvalue);
 			ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
 			ivalue->index = Push(*quote);
-			ivalue->data = DCE_YAO_DATA;
+			ivalue->data = ZCE_YAO_DATA;
 			vrt_producer_publish(producer_);
 
 #ifdef PERSISTENCE_ENABLED 
@@ -153,7 +152,7 @@ void DceQuote::RevData()
 }
 
 
-void DceQuote::End()
+void ZceQuote::End()
 {
 	if(!ended_)
 	{
@@ -169,11 +168,11 @@ void DceQuote::End()
 	}
 }
 
-int32_t DceQuote::Push(const YaoQuote& md)
+int32_t ZceQuote::Push(const YaoQuote& md)
 {
-	static int32_t yaoQuote_cursor = DCE_MD_BUFFER_SIZE - 1;
+	static int32_t yaoQuote_cursor = ZCE_MD_BUFFER_SIZE - 1;
 	yaoQuote_cursor++;
-	if (yaoQuote_cursor % DCE_MD_BUFFER_SIZE == 0)
+	if (yaoQuote_cursor % ZCE_MD_BUFFER_SIZE == 0)
 	{
 		yaoQuote_cursor = 0;
 	}
@@ -182,7 +181,7 @@ int32_t DceQuote::Push(const YaoQuote& md)
 	return yaoQuote_cursor;
 }
 
-YaoQuote* DceQuote::GetData(int32_t index)
+YaoQuote* ZceQuote::GetData(int32_t index)
 {
 	return &yaoQuote_buffer_[index];
 }

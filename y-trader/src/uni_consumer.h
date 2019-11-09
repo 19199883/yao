@@ -19,6 +19,7 @@
 #include "shfe_fulldepthmd_producer.h"
 #include "shfe_l1md_producer.h"
 #include "dce_md_receiver.h"
+#include "zce_md_receiver.h"
 
 #define SIG_BUFFER_SIZE 32 
 
@@ -36,8 +37,6 @@ struct Uniconfig
 	char yield[20];
 };
 
-
-
 class UniConsumer
 {
 	public:
@@ -45,6 +44,7 @@ class UniConsumer
 					ShfeL1MDProducer* shfeL1MDProducer, 
 					ShfeFullDepthMDProducer* shfeFullDepthMDProducer,
 					DceQuote *dceQuote,
+					ZceQuote *zceQuote,
 					TunnRptProducer *tunn_rpt_producer);
 		~UniConsumer();
 
@@ -59,24 +59,11 @@ class UniConsumer
 		bool running_;
 		const char* module_name_;  
 		struct vrt_consumer *consumer_;
-		// DceMDProducer *md_producer_;
 		TunnRptProducer *tunn_rpt_producer_;
 		CLoadLibraryProxy *pproxy_;
 		int32_t strategy_counter_;
 
 		Strategy stra_table_[MAX_STRATEGY_COUNT];
-
-		// strategy log
-//		void FlushStrategyLog();
-//		void WriteLogTitle(FILE * pfDayLogFile);
-//		void WriteLogImp();
-//		void WriteOne(FILE *pfDayLogFile, struct strat_out_log *pstratlog);
-//		void WriteStrategyLog(Strategy &strategy);
-//		std::atomic_flag lock_log_;
-//		vector<strat_out_log> log_w_;
-//		std::thread *thread_log_;
-//		int32_t log_write_count_;
-//		FILE * pfDayLogFile_;
 
 		// key: strategy id; value: index of strategy in stra_table_
 		int32_t straid_straidx_map_table_[MAX_STRATEGY_COUNT];
@@ -110,6 +97,7 @@ class UniConsumer
 		ShfeL1MDProducer *shfeL1MDProducer_; 
 		ShfeFullDepthMDProducer *shfeFullDepthMDProducer_;
 		DceQuote *dceQuote_;
+		ZceQuote *zceQuote_;
 
 #ifdef COMPLIANCE_CHECK
 		Compliance compliance_;

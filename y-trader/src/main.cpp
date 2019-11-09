@@ -16,6 +16,7 @@
 #include "shfe_fulldepthmd_producer.h"
 #include "shfe_l1md_producer.h"
 #include "dce_md_receiver.h"
+#include "zce_md_receiver.h"
 
 /* Note that the parameter for queue size is a power of 2. */
 #define  QUEUE_SIZE  4096
@@ -25,6 +26,7 @@ ShfeFullDepthMDProducer *shfe_full_producer = NULL;
 ShfeL1MDProducer *shfe_l1_md_producer = NULL; 
 TunnRptProducer *tunnRptProducer = NULL;
 DceQuote *dceQuote = NULL;
+ZceQuote *zceQuote = NULL;
 
 static void
 SIG_handler(int s)
@@ -80,6 +82,7 @@ int main(/*int argc, const char **argv*/)
 					QUEUE_SIZE));
 
 	dceQuote = new DceQuote(queue);
+	zceQuote = new ZceQuote(queue);
 	shfe_full_producer = new ShfeFullDepthMDProducer(queue);
 	shfe_l1_md_producer = new ShfeL1MDProducer(queue); 
 	tunnRptProducer = new TunnRptProducer(queue);
@@ -91,6 +94,7 @@ int main(/*int argc, const char **argv*/)
 				shfe_l1_md_producer ,
 				shfe_full_producer, 
 				dceQuote,
+				zceQuote,
 				tunnRptProducer);
 	uniConsumer->Start();
 
@@ -105,6 +109,7 @@ int main(/*int argc, const char **argv*/)
 	delete shfe_full_producer, 
 	delete shfe_l1_md_producer ,
 	delete dceQuote;
+	delete zceQuote;
 	delete uniConsumer;
 
 // clog: free resources

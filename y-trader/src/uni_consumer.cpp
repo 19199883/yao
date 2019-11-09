@@ -18,14 +18,15 @@ UniConsumer::UniConsumer(struct vrt_queue* queue,
 			ShfeL1MDProducer* shfeL1MDProducer, 
 			ShfeFullDepthMDProducer* shfeFullDepthMDProducer,
 			DceQuote *dceQuote,
+			ZceQuote *zceQuote,
 			TunnRptProducer *tunn_rpt_producer) 
 		: module_name_("uni_consumer"),
 		running_(true), 
 		shfeL1MDProducer_(shfeL1MDProducer), 
 		shfeFullDepthMDProducer_(shfeFullDepthMDProducer),
 		dceQuote_(dceQuote),
+		zceQuote_(zceQuote),
 		tunn_rpt_producer_(tunn_rpt_producer)
-		  //, lock_log_(ATOMIC_FLAG_INIT)
 {
 	// lic
 	legal_ = check_lic();
@@ -34,9 +35,6 @@ UniConsumer::UniConsumer(struct vrt_queue* queue,
 	memset(pending_signals_, -1, sizeof(pending_signals_));
 	ParseConfig();
 	
-	//log_write_count_ = 0;
-	//log_w_ = vector<strat_out_log>(MAX_LINES_FOR_LOG);
-
 #ifdef PERSISTENCE_ENABLED 
     p_yao_md_save_ = new QuoteDataSave<YaoQuote>("yao_md", YAO_QUOTE_TYPE);
 #endif
@@ -170,10 +168,6 @@ void UniConsumer::CreateStrategies()
 		strategy.Init(setting, this->pproxy_);
 		// mapping table
 		straid_straidx_map_table_[setting.config.st_id] = strategy_counter_ ;
-		// strategy log
-		//FILE *log_file = strategy.get_log_file();
-		//WriteLogTitle(log_file);
-		//WriteStrategyLog(strategy);
 
 		// TODO: 需要支持一个策略交易多个合约
 		// TODO: yao
@@ -210,8 +204,6 @@ void UniConsumer::ProcYaoQuote(YaoQuote* md)
 void UniConsumer::Start()
 {
 	running_  = true;
-	// strategy log
-	//thread_log_ = new std::thread(&UniConsumer::WriteLogImp,this);
 
 	MYQuoteData myquotedata(shfeFullDepthMDProducer_, shfeL1MDProducer_);
 	auto f_shfemarketdata = std::bind(&UniConsumer::ProcYaoQuote, this, _1);
@@ -278,6 +270,7 @@ void UniConsumer::Stop()
 		shfeL1MDProducer_->End();
 		shfeFullDepthMDProducer_->End();
 		dceQuote_->End();
+		zceQuote_->End();
 		tunn_rpt_producer_->End();
 
 #ifdef COMPLIANCE_CHECK
@@ -285,8 +278,6 @@ void UniConsumer::Stop()
 #endif
 
 		running_ = false;
-		//thread_log_ ->join();
-		//FlushStrategyLog();
 		for(int i=0; i<strategy_counter_; i++)
 		{
 			stra_table_[i].End();
@@ -316,10 +307,12 @@ void UniConsumer::ProcDceYaoData(int32_t index)
 
 void UniConsumer::ProcZceYaoData(int32_t index)
 {
-	// TODO: code here
-//	YaoQuote* md = md_producer_->Data(index);
-//	ProcYaoQuote(md);
+	YaoQuote* md = zceQuote_->GetData(index);
+	ProcYaoQuote(md);
 
+	clog_info("[%s] ProcZceYaoData:%s", 
+				module_name_,
+				YaoQuote::ToString(md).c_str());
 }
 
 void UniConsumer::ProcTunnRpt(int32_t index)
@@ -345,7 +338,6 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt->LocalOrderID);
 	const char* contract = strategy.GetContractBySigIdx(sigidx);
 	strategy.FeedTunnRpt(sigidx, *rpt, &sig_cnt, sig_buffer_);
-	//WriteStrategyLog(strategy);
 
 	// TODO: to here
 #ifdef COMPLIANCE_CHECK
@@ -450,7 +442,6 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 			int sig_cnt = 0;
 			int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(localorderid);
 			strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);
-			//WriteStrategyLog(strategy);
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
 		}
 #ifdef COMPLIANCE_CHECK
@@ -499,132 +490,6 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	if(latency > 0) clog_warning("[%s] place latency:%d us", module_name_, latency); 
 #endif
 }
-
-// 遍历策略，将缓存日志写到文件中
-//void UniConsumer::FlushStrategyLog()
-//{
-//	for(int i = 0; i < strategy_counter_; i++)
-//	{ 
-//		Strategy &strategy = stra_table_[i];
-//		pfDayLogFile_ = strategy.get_log_file();
-//		strategy.get_log(log_w_, log_write_count_);
-//		for(int i = 0; i < log_write_count_; i++)
-//		{
-//			WriteOne(pfDayLogFile_, log_w_.data()+i);
-//		}
-//	} // end for(int i = 0; i < strategy_counter_; i++) 
-//}
-	
-//void UniConsumer::WriteLogTitle(FILE * pfDayLogFile)
-//{
-//	// title
-//	fprintf (pfDayLogFile, "exch_time  contract  n_tick  price  vol  bv1  bp1  sp1  sv1  amt  ");
-//	fprintf (pfDayLogFile, "oi buy_price  sell_price  open_vol  close_vol  ");
-//	fprintf (pfDayLogFile, "long_pos  short_pos  total_ordervol  total_cancelvol order_count cancel_count ");
-//	fprintf (pfDayLogFile, "cash live total_vol max_dd max_net_pos max_side_pos ");
-//	for(int i=0; i< 11; i++)
-//	{
-//		fprintf(pfDayLogFile,"sig%d ", i);
-//	}
-//	fprintf(pfDayLogFile,"sig11\n");
-//}
-
-//void UniConsumer::WriteLogImp()
-//{	
-//	while(true)
-//	{
-//		while (lock_log_.test_and_set()) { }
-//
-//
-//		for(int i = 0; i < log_write_count_; i++)
-//		{
-//			WriteOne(pfDayLogFile_, log_w_.data()+i);
-//		}
-//		log_write_count_ = 0;
-//
-//		if(!running_)
-//		{
-//			lock_log_.clear();
-//			break;
-//		}
-//		lock_log_.clear();
-//
-//		std::this_thread::sleep_for (std::chrono::milliseconds(10));
-//	} // end while(true)
-//	clog_warning("[%s] WriteLogImp exit", module_name_); 
-//}
-//
-//void UniConsumer::WriteOne(FILE *pfDayLogFile, struct strat_out_log *pstratlog)
-//{
-//    fprintf(pfDayLogFile,"%d %6s %d %14.2f %d ",
-//            pstratlog->exch_time,
-//            pstratlog->contract,
-//            pstratlog->n_tick,
-//            pstratlog->price,
-//            pstratlog->vol);
-//
-//    fprintf(pfDayLogFile,"%d %12.4f %12.4f %d %ld %ld ",
-//            pstratlog->bv1,
-//            pstratlog->bp1,
-//            pstratlog->sp1,
-//            pstratlog->sv1,
-//            pstratlog->amt,
-//            pstratlog->oi);
-//
-//    fprintf(pfDayLogFile,"%12.4f %12.4f %d %d ",
-//            pstratlog->buy_price,
-//            pstratlog->sell_price,
-//            pstratlog->open_vol,
-//            pstratlog->close_vol);
-//
-//    fprintf(pfDayLogFile,"%d %d %d %d %d %d ",
-//            pstratlog->long_pos,
-//            pstratlog->short_pos,
-//            pstratlog->tot_ordervol,
-//            pstratlog->tot_cancelvol,
-//            pstratlog->order_cnt,
-//            pstratlog->cancel_cnt);
-//
-//    fprintf(pfDayLogFile,"%16.2f %16.2f %d %16.2f %d %d ",
-//            pstratlog->cash,
-//            pstratlog->live,
-//            pstratlog->tot_vol,
-//            pstratlog->max_dd,
-//            pstratlog->max_net_pos,
-//            pstratlog->max_side_pos);
-//
-//    for(int i=0; i< 11; i++)
-//    {
-//        fprintf(pfDayLogFile,"%0.2f ", pstratlog->sig[i]);
-//    }
-//    fprintf(pfDayLogFile,"%0.2f\n", pstratlog->sig[11]);
-//}
-
-//void UniConsumer::WriteStrategyLog(Strategy &strategy)
-//{
-//	if(strategy.IsLogFull())
-//	{
-//#ifdef LATENCY_MEASURE
-//		high_resolution_clock::time_point t0 = high_resolution_clock::now();
-//#endif
-//		// 在日志写线程睡眠时，日志缓存可能会被覆盖
-//		while (lock_log_.test_and_set()) {}
-//		pfDayLogFile_ = strategy.get_log_file();
-//		strategy.get_log(log_w_, log_write_count_);
-//
-//		clog_info("[%s] WriteStrategyLog strategy:%d; log_write_count_:%d;pfDayLogFile_:%d ", 
-//			module_name_,strategy.GetId(), log_write_count_, pfDayLogFile_ ); 
-//
-//		lock_log_.clear();
-//
-//#ifdef LATENCY_MEASURE
-//		high_resolution_clock::time_point t1 = high_resolution_clock::now();
-//		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
-//		clog_warning("[%s] WriteStrategyLog latency:%d us", module_name_, latency); 
-//#endif
-//	} // end if(strategy.IsLogFull())
-//}
-
 
 // lic
 bool UniConsumer::check_lic()

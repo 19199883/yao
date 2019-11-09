@@ -252,7 +252,7 @@ void MYQuoteData::Send(const char* contract)
 	} 
 	else
 	{
-		clog_info("[%s] can not find lev1 for:%s",module_name_, contract);
+		//clog_info("[%s] can not find lev1 for:%s",module_name_, contract);
 	}
 }
 
