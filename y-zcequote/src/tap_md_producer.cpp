@@ -108,7 +108,7 @@ void TapMDProducer::Login()
 
 void TapMDProducer::ParseConfig()
 {
-	TiXmlDocument config = TiXmlDocument("y-quote.config");
+	TiXmlDocument config = TiXmlDocument("x-trader.config");
     config.LoadFile();
     TiXmlElement *RootElement = config.RootElement();    
 
@@ -120,7 +120,7 @@ void TapMDProducer::ParseConfig()
 	} 
 	else 
 	{ 
-		clog_error("[%s] y-quote.config error: Disruptor node missing.", module_name_); 
+		clog_error("[%s] x-trader.config error: Disruptor node missing.", module_name_); 
 	}
 
 	// addr
@@ -133,14 +133,14 @@ void TapMDProducer::ParseConfig()
 	} 
 	else 
 	{ 
-		clog_error("[%s] y-quote.config error: L1Md node missing.", module_name_); 
+		clog_error("[%s] x-trader.config error: L1Md node missing.", module_name_); 
 	}
 	
 	// contracts file
     TiXmlElement *contracts_file_node = RootElement->FirstChildElement("Subscription");
 	if (contracts_file_node != NULL){
 		strcpy(config_.contracts_file, contracts_file_node->Attribute("contracts"));
-	} else { clog_error("[%s] y-quote.config error: Subscription node missing.", module_name_); }
+	} else { clog_error("[%s] x-trader.config error: Subscription node missing.", module_name_); }
 
 	size_t ipstr_start = config_.addr.find("//")+2;
 	size_t ipstr_end = config_.addr.find(":",ipstr_start);

@@ -44,7 +44,7 @@ UniConsumer::~UniConsumer()
 
 void UniConsumer::ParseConfig()
 {
-	std::string config_file = "y-quote.config";
+	std::string config_file = "x-trader.config";
 	TiXmlDocument doc = TiXmlDocument(config_file.c_str());
     doc.LoadFile();
     TiXmlElement *root = doc.RootElement();    
@@ -57,7 +57,7 @@ void UniConsumer::ParseConfig()
 	} 
 	else 
 	{ 
-		clog_error("[%s] y-quote.config error: Disruptor node missing.", module_name_); 
+		clog_error("[%s] x-trader.config error: Disruptor node missing.", module_name_); 
 	}
 
     TiXmlElement *marketDataServerNode = root->FirstChildElement("MarketDataReceiver");

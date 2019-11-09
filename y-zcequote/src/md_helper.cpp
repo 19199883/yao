@@ -80,12 +80,12 @@ void MdHelper::ProcL2Data(int32_t index)
 
 int MdHelper::GetIntTime(const char *timestr)
 {
-	char buffer[30];
-	//时间：如2014-02-03 13:23:45   
-	strncpy(buffer, timestr+11, 2);	// hour
-	strncpy(buffer+2, timestr+14, 2);		// min
-	strncpy(buffer+4, timestr+17, 2);		// sec
-	strncpy(buffer+6, timestr+20, 3);		// sec
+	char buffer[30] ={0};
+	//时间：如13:23:45   
+	strncpy(buffer, timestr, 2);	// hour
+	strncpy(buffer+2, timestr+3, 2);		// min
+	strncpy(buffer+4, timestr+6, 2);		// sec
+	strncpy(buffer+6, "000", 3);		// millisec
 	buffer[9] = 0;
 
 	int int_time = atoi(buffer);
@@ -98,10 +98,16 @@ int MdHelper::GetIntTime(const char *timestr)
 
 }
 
-// TODO: 
 // 看TapAPIQuoteWhole合约组成
 // 看StdQuote5合约组成
 // 看YaoQuote合约组成
+/*
+ *
+ * TapAPIQuoteWhole.DateTimeStamp: 2019-11-07 22:32:35.000
+ *	StdQuote5.updateTime:22:32:35; StdQuote5.updateMS:80804(不是毫秒，而是一个累加值)
+ *  StdQuote5.instrument:SR2001
+ *
+ */
 void MdHelper::Convert(const StdQuote5 &other, 
 			TapAPIQuoteWhole *tap_data, 
 			YaoQuote &data)
@@ -109,15 +115,7 @@ void MdHelper::Convert(const StdQuote5 &other,
 	data.feed_type = FeedTypes::CzceLevel2;
 	data.exchange = YaoExchanges::YCZCE;
 
-	// TODO: yao debug	
-	clog_info("[%s] other.updateTime other.updateMS: %s %d; data.TimeStamp: %s", 
-				module_name_, 
-				other.updateTime,
-				other.updateMS, 
-				tap_data->DateTimeStamp);
-
-	// TODO: yao. debug 需要调试看具体的值是什么样的
-	data.int_time = GetIntTime(tap_data->DateTimeStamp);
+	data.int_time = GetIntTime(other.updateTime);
 
 	data.last_px = InvalidToZeroD(other.price);				/*最新价*/
 	data.bp_array[0] = InvalidToZeroD(other.bidPrice1);     /*买入价格 下标从0开始*/
