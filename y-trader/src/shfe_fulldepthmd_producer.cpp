@@ -103,7 +103,7 @@ void ShfeFullDepthMDProducer::Process(MDPack *md)
 		md->instrument[0]=='n' && md->instrument[1]=='r')
 	{
 		//clog_info("[%s] sc, sn=%d.",module_name_,md->seqno);
-		// TODO: debug
+		// debug
 //		clog_info("[%s] INE::RevData InstrumentID:%s; sn:%d; timestamp:%lld",
 //			module_name_,md->instrument,md->seqno,
 //			(long long)high_resolution_clock::now().time_since_epoch().count());
@@ -121,7 +121,7 @@ void ShfeFullDepthMDProducer::Process(MDPack *md)
 	}
 	else
 	{
-		// TODO: debug
+		//  debug
 //		clog_info("[%s] SHFE::RevData InstrumentID:%s; sn:%d; timestamp:%lld",
 //			module_name_,md->instrument,md->seqno,
 //			(long long)high_resolution_clock::now().time_since_epoch().count());
@@ -145,7 +145,7 @@ void ShfeFullDepthMDProducer::End()
 		ended_ = true;
 
 		shutdown(udp_fd_, SHUT_RDWR);
-		// TODO: debug
+		// debug
 		//int err = close(udp_fd_);
 		//clog_warning("close udp:%d.", err); 
 		thread_rev_->join();

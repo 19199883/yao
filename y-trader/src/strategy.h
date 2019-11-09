@@ -29,44 +29,6 @@ using namespace std;
 
 #define MAX_LINES_FOR_LOG 20000
 
-struct strat_out_log
-{
-    int exch_time; //exchange time
-    char contract[16]; //contract
-    int n_tick;
-    double price;
-    int vol;
-    int bv1;
-    double bp1;
-    double sp1;
-    int sv1;
-    long amt;
-    long oi;
-    double buy_price, sell_price;
-    int open_vol, close_vol;
-    int long_pos, short_pos;
-    int tot_ordervol, tot_cancelvol;
-    int order_cnt, cancel_cnt;
-    double cash, live;
-    int tot_vol;
-    double max_dd;
-    int max_net_pos, max_side_pos;
-    double sig[12];
-};
-
-struct StrategyPosition
-{
-	char contract[20];
-	// long position
-	int32_t cur_long;
-	// short position
-	int32_t cur_short;
-	int32_t frozen_close_long;
-	int32_t frozen_close_short;
-	int32_t frozen_open_long;
-	int32_t frozen_open_short;
-};
-
 struct StrategySetting
 {
 public:
@@ -77,10 +39,6 @@ public:
 class Strategy	
 {
 public:
-	typedef void ( *LogFn1Ptr) (int strategy_id, struct Log1 &content);
-
-	typedef void ( *LogFn2Ptr) (int strategy_id, struct Log2 &content);
-
 	typedef void (* Init_ptr)(st_config_t *config, int *ret_code, struct strat_out_log *log);
 
 	typedef void ( *FeedYaoMarketData_ptr)(YaoQuote* md, 
@@ -153,17 +111,8 @@ public:
 	 */
 	bool Subscribed(const char* contract);
 
-	// log
-	/*
-	 * isEnded:true,表示写完日之后，退出写日志线程
-	 */ 
-	void get_log(vector<strat_out_log> &log_buffer, int32_t &count);
-	bool IsLogFull();
-	int32_t FullLineCount();
-	FILE * get_log_file();
 	StrategySetting setting_;
 private:
-	StrategyPosition *GetPosition(const char* contract);
 	if_sig_state_t ConvertStatusFromCtp(TThostFtdcOrderStatusType ctp_state);
 	string generate_log_name(char * log_path);
 
@@ -192,14 +141,6 @@ private:
 	// key: signal id; value: 号所存数组的位置
 	long sigid_sigidx_map_table_[SIGANDRPT_TABLE_SIZE];
 
-
-	// log
-	//FILE * pfDayLogFile_;
-	//vector<strat_out_log> log_;
-	//int32_t log_cursor_;
-	//int cur_ntick_;
-	//int max_log_lines_;
-
 	// be used to check whether the stategy is valid
 	bool valid_;
 	int id_;
@@ -209,12 +150,7 @@ private:
 	const char *module_name_;  
 
 	/*
-	 * 储每个策略的最新仓位，在策略内部处理仓位逻辑时使用
-	 */
-	StrategyPosition position_[MAX_CONTRACT_COUNT_FOR_STRATEGY];
-	 
-	/*
-	 *从仓位文件中加载仓位，init_pos_，pos_cache_,position_.
+	 *从仓位文件中加载仓位，init_pos_
 	 *
 	 */
 	void LoadPosition();
@@ -225,11 +161,6 @@ private:
 	strategy_init_pos_t init_pos_;
 
 	/*
-	 * 用于推送策略，使用成员变量，不用分配内存，从而提高速度
-	 */
-	position_t pos_cache_;
-
-	/*
 	 * 
 	 */
 	void UpdateSigrptByTunnrpt(int32_t lastqty,
@@ -237,15 +168,5 @@ private:
 				signal_resp_t& sigrpt, 
 				if_sig_state_t &status, 
 				int err);
-	void UpdatePosition(StrategyPosition *stra_pos,int32_t lastqty, 
-				if_sig_state_t status, 
-				unsigned short sig_openclose,
-				unsigned short int sig_act, int err);
-	void FillPositionRpt();
-	// const char * GetSymbol();
-	bool Freeze(StrategyPosition *stra_pos,
-				unsigned short sig_openclose, 
-				unsigned short int sig_act, 
-				int32_t updated_vol);
 };
 

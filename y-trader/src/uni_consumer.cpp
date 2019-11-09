@@ -300,9 +300,9 @@ void UniConsumer::ProcDceYaoData(int32_t index)
 	YaoQuote* md = dceQuote_->GetData(index);
 	ProcYaoQuote(md);
 
-	clog_info("[%s] ProcDceYaoData:%s", 
-				module_name_,
-				YaoQuote::ToString(md).c_str());
+//	clog_info("[%s] ProcDceYaoData:%s", 
+//				module_name_,
+//				YaoQuote::ToString(md).c_str());
 }
 
 void UniConsumer::ProcZceYaoData(int32_t index)
@@ -310,9 +310,9 @@ void UniConsumer::ProcZceYaoData(int32_t index)
 	YaoQuote* md = zceQuote_->GetData(index);
 	ProcYaoQuote(md);
 
-	clog_info("[%s] ProcZceYaoData:%s", 
-				module_name_,
-				YaoQuote::ToString(md).c_str());
+//	clog_info("[%s] ProcZceYaoData:%s", 
+//				module_name_,
+//				YaoQuote::ToString(md).c_str());
 }
 
 void UniConsumer::ProcTunnRpt(int32_t index)
@@ -339,7 +339,6 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	const char* contract = strategy.GetContractBySigIdx(sigidx);
 	strategy.FeedTunnRpt(sigidx, *rpt, &sig_cnt, sig_buffer_);
 
-	// TODO: to here
 #ifdef COMPLIANCE_CHECK
 	// 拒绝也是THOST_FTDC_OST_Canceled状态，因而可能会造成多计算撤单次数，但不会产生大问题
 	if (rpt->OrderStatus == THOST_FTDC_OST_PartTradedNotQueueing ||

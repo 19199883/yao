@@ -340,7 +340,6 @@ void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
 		CThostFtdcSettlementInfoConfirmField req;
         memset(&req, 0, sizeof(req));
         strncpy(req.BrokerID, this->config_.brokerid.c_str(), sizeof(TThostFtdcBrokerIDType));
-		// TODO:
         strncpy(req.InvestorID, this->config_.userid.c_str(), sizeof(TThostFtdcInvestorIDType));
         int ret = api_->ReqSettlementInfoConfirm(&req, 0);
         clog_warning("[%s] ReqSettlementInfoConfirm, return: %d", module_name_, ret);
@@ -420,7 +419,7 @@ void TunnRptProducer::OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout,
 
 bool TunnRptProducer::IsFinal(TThostFtdcOrderStatusType   OrderStatus)
 {
-	// TODO: 状态的各种值需要重新核对，因版本不同有变化
+	// 状态的各种值需要重新核对，因版本不同有变化
 	if(THOST_FTDC_OST_AllTraded==OrderStatus ||
 		THOST_FTDC_OST_PartTradedNotQueueing==OrderStatus ||
 		THOST_FTDC_OST_NoTradeNotQueueing==OrderStatus ||
@@ -707,7 +706,6 @@ symbol_pos_t* TunnRptProducer::GetContractPosition(char *contract,
 	return &(position->s_pos[i]);
 }
 
-// TODO: to here
 void TunnRptProducer::FillInitPosition(CThostFtdcInvestorPositionField *posField)
 {
 	// 同一合约，保证存储在_cur_pos，_yesterday_pos中存储在同一个索引位置，方便查找
