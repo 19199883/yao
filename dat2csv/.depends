@@ -1,0 +1,13 @@
+quote_cmn_utility.o: ../dat2csv/src/quote_cmn_utility.cpp \
+ ../dat2csv/src/quote_cmn_utility.h ../dat2csv/src/vrt_value_obj.h
+yao_quote.o: ../dat2csv/src/yao_quote.cpp ../dat2csv/src/yao_quote.h \
+ ../dat2csv/src/my_quote_save.h ../dat2csv/src/quote_datatype_common.h \
+ ../dat2csv/src/YaoQuote.h ../dat2csv/src/vrt_value_obj.h
+vrt_value_obj.o: ../dat2csv/src/vrt_value_obj.cpp \
+ ../dat2csv/src/vrt_value_obj.h
+quote_cmn_save.o: ../dat2csv/src/quote_cmn_save.cpp \
+ ../dat2csv/src/quote_cmn_save.h ../dat2csv/src/my_cmn_util_funcs.h \
+ ../dat2csv/src/quote_cmn_utility.h ../dat2csv/src/vrt_value_obj.h
+main.o: ../dat2csv/src/main.cpp ../dat2csv/src/yao_quote.h \
+ ../dat2csv/src/my_quote_save.h ../dat2csv/src/quote_datatype_common.h \
+ ../dat2csv/src/YaoQuote.h ../dat2csv/src/vrt_value_obj.h
