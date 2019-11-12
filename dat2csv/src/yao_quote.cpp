@@ -21,52 +21,9 @@ std::string YaoQuoteToString(const SaveData_YaoQuote* const p_data)
 	char buf[5120];
 	if (p) 
 	{
-		sprintf(buf, "structName=YaoQuote\n"
-			"\tfeed_type=%d\n"
-			"\tsymbol=%s\n"
-			"\texchange=%c\n"
-			"\tint_time=%d\n"
-			"\tpre_close_px=%f\n"
-			"\tpre_settle_px=%f\n"
-			"\tpre_open_interest=%f\n"
-			"\topen_interest=%f\n"
-			"\topen_px=%f\n"
-			"\thigh_px=%f\n"
-			"\tlow_px=%f\n"
-			"\tavg_px=%f\n"
-			"\tlast_px=%f\n"
-			"\ttotal_vol=%d\n"
-			"\ttotal_notional=%f\n"
-			"\tupper_limit_px=%f\n"
-			"\tlower_limit_px=%f\n"
-			"\tclose_px=%f\n"
-			"\tsettle_px=%f\n"
-			"\ttotal_buy_ordsize=%d\n"
-			"\ttotal_sell_ordsize=%d\n"
-			
-			"\tBidPrice1=%f\n"
-			"\tBidPrice2=%f\n"
-			"\tBidPrice3=%f\n"
-			"\tBidPrice4=%f\n"
-			"\tBidPrice5=%f\n"
-
-			"\tAskPrice1=%f\n"
-			"\tAskPrice2=%f\n"
-			"\tAskPrice3=%f\n"
-			"\tAskPrice4=%f\n"
-			"\tAskPrice5=%f\n"
-
-			"\tBidLot1=%i\n"
-			"\tBidLot2=%i\n"
-			"\tBidLot3=%i\n"
-			"\tBidLot4=%i\n"
-			"\tBidLot5=%i\n"
-
-			"\tAskLot1=%i\n"
-			"\tAskLot2=%i\n"
-			"\tAskLot3=%i\n"
-			"\tAskLot4=%i\n"
-			"\tAskLot5=%i\n",
+		sprintf(buf, 
+					",feed_type,symbol,exchange,int_time,pre_close_px,pre_settle_px,pre_open_interest,open_interest,open_px,high_px,low_px,avg_px,last_px,bp1,bp2,bp3,bp4,bp5,ap1,ap2,ap3,ap4,ap5,bv1,bv2,bv3,bv4,bv5,av1,av2,av3,av4,av5,total_vol,total_notional,upper_limit_px,lower_limit_px,close_px,settle_px,implied_bid_size1,implied_bid_size2,implied_bid_size3,implied_bid_size4,implied_bid_size5,implied_ask_size1,implied_ask_size2,implied_ask_size3,implied_ask_size4,implied_ask_size5,total_buy_ordsize,total_sell_ordsize,weighted_buy_px,weighted_sell_px",
+			serial_number,
 			(int)p->feed_type,             
 			p->symbol,
 			p->exchange,        
@@ -80,6 +37,26 @@ std::string YaoQuoteToString(const SaveData_YaoQuote* const p_data)
 			p->low_px,     
 			p->avg_px,       
 			p->last_px,  
+			p->bp_array[0],                
+			p->bp_array[1],                
+			p->bp_array[2],                
+			p->bp_array[3],                
+			p->bp_array[4],                
+			p->ap_array[0],                
+			p->ap_array[1],                
+			p->ap_array[2],                
+			p->ap_array[3],                
+			p->ap_array[4],                
+			p->bv_array[0],              
+			p->bv_array[1],              
+			p->bv_array[2],              
+			p->bv_array[3],              
+			p->bv_array[4],              
+			p->av_array[0],              
+			p->av_array[1],              
+			p->av_array[2],              
+			p->av_array[3],              
+			p->av_array[4]              
 			p->total_vol,	
 			p->total_notional,     
 			p->upper_limit_px,         
@@ -89,29 +66,9 @@ std::string YaoQuoteToString(const SaveData_YaoQuote* const p_data)
 			p->total_buy_ordsize,      
 			p->total_sell_ordsize,      
 
-			p->bp_array[0],                
-			p->bp_array[1],                
-			p->bp_array[2],                
-			p->bp_array[3],                
-			p->bp_array[4],                
 
-			p->ap_array[0],                
-			p->ap_array[1],                
-			p->ap_array[2],                
-			p->ap_array[3],                
-			p->ap_array[4],                
 
-			p->bv_array[0],              
-			p->bv_array[1],              
-			p->bv_array[2],              
-			p->bv_array[3],              
-			p->bv_array[4],              
 
-			p->av_array[0],              
-			p->av_array[1],              
-			p->av_array[2],              
-			p->av_array[3],              
-			p->av_array[4]              
 
 		);
 	}

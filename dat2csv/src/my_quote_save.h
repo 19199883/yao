@@ -1,7 +1,7 @@
 ﻿#if !defined(MY_QUOTE_SAVE_H_)
 #define MY_QUOTE_SAVE_H_
 
-#include "quote_datatype_common.h"
+#include "quote_cmn_utility.h"
 #include "YaoQuote.h"
 
 // 行情类型标识定义
