@@ -5,6 +5,6 @@
 #include "YaoQuote.h"
 
 
-std::string YaoQuoteToString(const SaveData_YaoQuote* const p);
+std::string YaoQuoteToString(int serail_number, const SaveData_YaoQuote* const p);
 
 
