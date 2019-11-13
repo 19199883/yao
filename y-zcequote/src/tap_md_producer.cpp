@@ -393,23 +393,23 @@ void TapMDProducer::OnRspSubscribeQuote(TAPIUINT32 sessionID,
 			TAPIYNFLAG isLast, 
 			const TapAPIQuoteWhole *info)
 {
-		clog_info("[test] [%s] OnRspSubscribeQuote contract:%s%s, time:%s, ended:%d", 
-					module_name_, 
-					info->Contract.Commodity.CommodityNo, 
-					info->Contract.ContractNo1, 
-					info->DateTimeStamp, 
-					ended_);
+	//	clog_info("[test] [%s] OnRspSubscribeQuote contract:%s%s, time:%s, ended:%d", 
+	//				module_name_, 
+	//				info->Contract.Commodity.CommodityNo, 
+	//				info->Contract.ContractNo1, 
+	//				info->DateTimeStamp, 
+	//				ended_);
 
 	if(ended_) return;
 
     if (errorCode == 0 && NULL != info){
 		// 抛弃非主力合约
 		if(!(IsDominant(info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1))) return;		
-		clog_info("[test] [%s] rev TapAPIQuoteWhole contract:%s%s, time:%s", 
-					module_name_, 
-					info->Contract.Commodity.CommodityNo, 
-					info->Contract.ContractNo1, 
-					info->DateTimeStamp);
+	//	clog_info("[test] [%s] rev TapAPIQuoteWhole contract:%s%s, time:%s", 
+	//				module_name_, 
+	//				info->Contract.Commodity.CommodityNo, 
+	//				info->Contract.ContractNo1, 
+	//				info->DateTimeStamp);
 
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;
@@ -442,11 +442,11 @@ void TapMDProducer::OnRtnQuote(const TapAPIQuoteWhole *info)
 		// 抛弃非主力合约
 		if(!(IsDominant(info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1))) return;
 
-		clog_info("[test] [%s] rev TapAPIQuoteWhole contract:%s%s, time:%s", 
-					module_name_, 
-					info->Contract.Commodity.CommodityNo, 
-					info->Contract.ContractNo1, 
-					info->DateTimeStamp);
+	//	clog_info("[test] [%s] rev TapAPIQuoteWhole contract:%s%s, time:%s", 
+	//				module_name_, 
+	//				info->Contract.Commodity.CommodityNo, 
+	//				info->Contract.ContractNo1, 
+	//				info->DateTimeStamp);
 
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;
@@ -456,12 +456,12 @@ void TapMDProducer::OnRtnQuote(const TapAPIQuoteWhole *info)
 		ivalue->data = ZCE_L1_MD;
 		vrt_producer_publish(producer_);
 		
-        clog_info("[%s] TAP - OnRtnQuote Successful, ExchangNo is %s, "
-					"CommodityNo is %s, ContractNo is %s.", 
-					module_name_, 
-					info->Contract.Commodity.ExchangeNo, 
-					info->Contract.Commodity.CommodityNo, 
-					info->Contract.ContractNo1);
+    //    clog_info("[%s] TAP - OnRtnQuote Successful, ExchangNo is %s, "
+	//				"CommodityNo is %s, ContractNo is %s.", 
+	//				module_name_, 
+	//				info->Contract.Commodity.ExchangeNo, 
+	//				info->Contract.Commodity.CommodityNo, 
+	//				info->Contract.ContractNo1);
     } 
 	else 
 	{

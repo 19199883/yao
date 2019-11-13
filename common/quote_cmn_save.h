@@ -19,7 +19,6 @@
 
 #include "my_cmn_util_funcs.h"
 #include "quote_cmn_utility.h"
-#include "vrt_value_obj.h"
 
 // 行情类型标识定义
 // #define GTAEX_CFFEX_QUOTE_TYPE          1 // obsolete; replace by type 11
@@ -146,17 +145,23 @@ public:
 			quote_file_ = fopen(str.c_str(), "wb+");
 			if (quote_file_) {
 				MYUTIL_SaveFileHeader<SaveDataStruct<DataType>, SaveFileHeaderStruct>(data_type, quote_file_);
-				clog_warning("file <%s> open success, write file header.", str.c_str());
-			} else {
-				clog_error("file <%s> open failed.", str.c_str());
+				printf("file <%s> open success, write file header.", str.c_str());
+			} 
+			else 
+			{
+				printf("file <%s> open failed.", str.c_str());
 			}
-        } else { clog_warning("data file path not exist."); }
+        } 
+		else 
+		{ 
+			printf("data file path not exist."); 
+		}
 
         save_thread_ = new std::thread(std::bind(&QuoteDataSave::SaveImp, this));
     }
     ~QuoteDataSave()
     {
-        clog_info("prepare to shutdown save thread.");
+        printf("prepare to shutdown save thread.");
         if (!save_thread_) { return; }
 
         if (save_thread_->joinable()) {
@@ -179,7 +184,7 @@ public:
     {
         if (!p){
             // write log
-            clog_error("receive one null data.");
+            printf("receive one null data.");
             return;
         }
         _TTSpinLockGuard lock(save_sync_);
@@ -189,7 +194,7 @@ public:
 private:
     void SaveImp()
     {
-        clog_info("save thread started.");
+        printf("save thread started.");
         std::vector<SaveDataStruct<DataType> > datas_t;
         datas_t.reserve(10000);
 

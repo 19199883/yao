@@ -132,5 +132,4 @@ class Log
 
 
 
-char* get_curtime(char buffer[],int size);
 #endif

@@ -42,10 +42,10 @@ void MdHelper::ProcL2Data(int32_t index)
 
 	StdQuote5* md = l2_md_producer_->GetData(index);
 
-	clog_info("[test] ProcL2Data StdQuote5 contract:%s, idx:%d, turnover:%f", 
-				md->instrument,
-				index,
-				md->turnover);
+	//clog_info("[test] ProcL2Data StdQuote5 contract:%s, idx:%d, turnover:%f", 
+	//			md->instrument,
+	//			index,
+	//			md->turnover);
 
 	l1_md =  GetData(md->instrument); // md->instrument, e.g. SR1801
 	if(NULL != l1_md)
@@ -60,9 +60,9 @@ void MdHelper::ProcL2Data(int32_t index)
 		Convert(*md, l1_md, target_data_);
 		if (mymd_handler_ != NULL) mymd_handler_(&target_data_);
 
-		clog_info("[%s] rev YaoQuote: %s", 
-					module_name_,
-					YaoQuote::ToString(&target_data_).c_str());
+	//	clog_info("[%s] rev YaoQuote: %s", 
+	//				module_name_,
+	//				YaoQuote::ToString(&target_data_).c_str());
 
 #ifdef PERSISTENCE_ENABLED 
 		timeval t;
@@ -72,9 +72,9 @@ void MdHelper::ProcL2Data(int32_t index)
 	}
 	else
 	{
-		clog_info("[%s] ProcL2Data: L1 is null for %s.", 
-					module_name_, 
-					md->instrument); 
+	//	clog_info("[%s] ProcL2Data: L1 is null for %s.", 
+	//				module_name_, 
+	//				md->instrument); 
 	}
 }
 

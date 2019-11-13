@@ -6,7 +6,6 @@
 #include <set>
 #include <string>
 #include <float.h>
-#include "vrt_value_obj.h"
 
 using namespace std;
 
@@ -81,7 +80,7 @@ IPAndPortStr ParseIPAndPortStr(const std::string &addr_cfg);
  * contract: e.g. SR801
  * @return:返回主力合约个数
  */
-int32_t LoadDominantContracts(string file, char buffer[MAX_DOMINANT_CONTRACT_COUNT][10]);
+int32_t LoadDominantContracts(string file, char buffer[][10]);
 
 bool IsEqualContract(char *contract1, char* contract2);
 
@@ -95,11 +94,12 @@ bool IsDominantImp(char *contract, char buffer[][10], int32_t buffer_size);
 * contract:SR1802, 要判断是否是主力合约的合约
 * buffer: dominant contract list
 */
-bool IsDominantImpZce(char* contract, 
-			char buffer[MAX_DOMINANT_CONTRACT_COUNT][10], 
+bool IsDominantImpZce(const char* contract, 
+			char buffer[][10], 
 			int32_t buffer_size);
 
-bool IsDominantImpZce(const char* contract, 
+bool IsDominantImpZce(const char*commciodity_no, 
+			const char* contract_no, 
 			char buffer[][10], 
 			int32_t buffer_size);
 
@@ -125,3 +125,4 @@ bool IsEqualSize4Zce(const char *contract, const char*commciodity_no, const char
  */
 bool IsEqualZce(const char *contract_size3, const char* contract_size4);
 
+char* get_curtime(char buffer[],int size);

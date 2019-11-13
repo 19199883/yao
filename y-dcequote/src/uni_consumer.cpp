@@ -121,7 +121,7 @@ void UniConsumer::Start()
 					ProcYaoQuote(ivalue->index);
 					break;
 				default:
-					clog_info("[%s] [start] unexpected index: %d", module_name_, ivalue->index);
+					clog_error("[%s] [start] unexpected index: %d", module_name_, ivalue->index);
 					break;
 			}
 		}
@@ -129,9 +129,9 @@ void UniConsumer::Start()
 
 	if (rc == VRT_QUEUE_EOF) 
 	{
-		clog_info("[%s] [start] rev EOF.", module_name_);
+		clog_warning("[%s] [start] rev EOF.", module_name_);
 	}
-	clog_info("[%s] [start] start exit.", module_name_);
+	clog_warning("[%s] [start] start exit.", module_name_);
 }
 
 void UniConsumer::Stop()

@@ -2,7 +2,6 @@
 #include <string.h>
 #include <stdio.h>
 #include "quote_cmn_utility.h"
-#include "vrt_value_obj.h"
 
 using namespace std;
 
@@ -43,7 +42,7 @@ IPAndPortStr ParseIPAndPortStr(const std::string &addr_cfg)
     return std::make_pair(addr_ip, addr_port);
 }
 
-int32_t LoadDominantContracts(string file, char buffer[MAX_DOMINANT_CONTRACT_COUNT][10])
+int32_t LoadDominantContracts(string file, char buffer[][10])
 {
 	int32_t count = 0;
 
@@ -60,14 +59,15 @@ int32_t LoadDominantContracts(string file, char buffer[MAX_DOMINANT_CONTRACT_COU
 			contr = contrs.substr (start_pos, end_pos-start_pos);
 			strcpy(buffer[count], contr.c_str());
 			
-			clog_warning("LoadDominantContracts:dominant contract:%s",contr.c_str());
+			printf("LoadDominantContracts:dominant contract:%s",contr.c_str());
 
 			start_pos = end_pos + 1;
 			count++;
 		}
 	}
-	else { 
-		clog_error("LoadDominantContracts: can't open: %s", file.c_str()); 
+	else 
+	{ 
+		printf("LoadDominantContracts: can't open: %s", file.c_str()); 
 	}
 
 	return count;
@@ -131,8 +131,10 @@ bool IsDominantImpZce(const char* contract,
 	return is_dominant;
 }
 
-bool IsDominantImpZce(const char*commciodity_no, const char* contract_no, char buffer[][10], 
-	int32_t buffer_size)
+bool IsDominantImpZce(const char*commciodity_no, 
+			const char* contract_no, 
+			char buffer[][10], 
+			int32_t buffer_size)
 {
 	bool is_dominant = false;
 
@@ -190,3 +192,16 @@ bool IsEqualZce(const char *contract_size3, const char* contract_size4)
 	}
 }
 
+
+char* get_curtime(char buffer[],int size)
+{
+	time_t rawtime;
+	struct tm * timeinfo;
+
+	time (&rawtime);
+	timeinfo = localtime (&rawtime);
+
+	strftime (buffer,size,"%H:%M:%S",timeinfo);
+
+	return buffer;
+}

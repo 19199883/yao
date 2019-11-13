@@ -1,6 +1,7 @@
-
 #ifndef   YAOQUOTE_H_
 #define   YAOQUOTE_H_
+
+#include "quote_cmn_utility.h"
 
 enum YaoExchanges
 {
@@ -154,7 +155,7 @@ public:
 	int bv_array[5];			//	多档买量
 	int av_array[5];			//	多档卖量
 	int total_vol;				//	总成交量
-	float total_notional;		//	总成交额
+	double total_notional;		//	总成交额
 	float upper_limit_px;		//	涨停价
 	float lower_limit_px;		//	跌停价
 	float close_px;				//	收盘价 只在日盘收盘后的几笔行情有效，其余时间为0

@@ -1,5 +1,5 @@
 quote_cmn_utility.o: ../y-dcequote/src/quote_cmn_utility.cpp \
- ../y-dcequote/src/quote_cmn_utility.h ../y-dcequote/src/vrt_value_obj.h
+ ../y-dcequote/src/quote_cmn_utility.h
 vrt_value_obj.o: ../y-dcequote/src/vrt_value_obj.cpp \
  ../y-dcequote/src/vrt_value_obj.h
 uni_consumer.o: ../y-dcequote/src/uni_consumer.cpp \
@@ -17,7 +17,7 @@ uni_consumer.o: ../y-dcequote/src/uni_consumer.cpp \
 perfctx.o: ../y-dcequote/src/perfctx.cpp ../y-dcequote/src/perfctx.h
 quote_cmn_save.o: ../y-dcequote/src/quote_cmn_save.cpp \
  ../y-dcequote/src/quote_cmn_save.h ../y-dcequote/src/my_cmn_util_funcs.h \
- ../y-dcequote/src/quote_cmn_utility.h ../y-dcequote/src/vrt_value_obj.h
+ ../y-dcequote/src/quote_cmn_utility.h
 main.o: ../y-dcequote/src/main.cpp ../y-dcequote/src/vrt_value_obj.h \
  ../y-dcequote/src/md_producer.h ../3rd/tinyxml/include/tinyxml.h \
  ../3rd/tinyxml/include/tinystr.h ../3rd/tinyxml/include/tinystr.h \

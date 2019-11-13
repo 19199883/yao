@@ -244,9 +244,9 @@ YaoQuote* MDProducer::ProcessDepthData(MDBestAndDeep* depthdata )
 	if(NULL == orderStat)
 	{
 		valid_quote = NULL;
-        clog_info("[%s] can not find MDOrderStatistic: %s", 
-					module_name_,
-					depthdata->Contract);
+    //    clog_info("[%s] can not find MDOrderStatistic: %s", 
+	//				module_name_,
+	//				depthdata->Contract);
 	}
 	else
 	{
@@ -444,9 +444,9 @@ YaoQuote* MDProducer::ProcessOrderStatData(MDOrderStatistic* newOrderStat)
 	if(NULL == quote)
 	{
 		valid_quote = NULL;
-        clog_info("[%s] can not find MDBestAndDeep %s", 
-					module_name_,
-					newOrderStat->ContractID);
+    //    clog_info("[%s] can not find MDBestAndDeep %s", 
+	//				module_name_,
+	//				newOrderStat->ContractID);
 	}
 	else
 	{

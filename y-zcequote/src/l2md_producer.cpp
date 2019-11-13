@@ -193,12 +193,12 @@ void L2MDProducer::RevData()
 		// 看StdQuote5合约组成
 		bool dominant = IsDominant(md->instrument);
 
-		clog_info("[test] StdQuote5 rev [%s]dominant:%d contract:%s, time:%s %d", 
-					module_name_, 
-					dominant, 
-					md->instrument, 
-					md->updateTime, 
-					md->updateMS);
+	//	clog_info("[test] StdQuote5 rev [%s]dominant:%d contract:%s, time:%s %d", 
+	//				module_name_, 
+	//				dominant, 
+	//				md->instrument, 
+	//				md->updateTime, 
+	//				md->updateMS);
 
 		// 抛弃非主力合约
 		if(!dominant) continue;
@@ -216,13 +216,13 @@ void L2MDProducer::RevData()
 		ivalue->data = ZCE_L2_MD;
 		vrt_producer_publish(producer_);
 
-		clog_info("[test] after push StdQuote5 [%s]dominant:%d contract:%s, time:%s %d,idx:%d", 
-					module_name_, 
-					dominant, 
-					md->instrument, 
-					md->updateTime, 
-					md->updateMS,
-					ivalue->index);
+	//	clog_info("[test] after push StdQuote5 [%s]dominant:%d contract:%s, time:%s %d,idx:%d", 
+	//				module_name_, 
+	//				dominant, 
+	//				md->instrument, 
+	//				md->updateTime, 
+	//				md->updateMS,
+	//				ivalue->index);
 
     } // end while (!ended_) 
 	clog_warning("[%s] RevData exit.",module_name_);
@@ -272,7 +272,7 @@ bool L2MDProducer::IsDominant(const char *contract)
 	//clog_warning("[%s] %s, return TRUE in IsDominant.",module_name_,contract);
 	return true;
 #else
-	return IsDominantImpZce(contract, dominant_contracts_, dominant_contract_count_);
+	return IsDominantImpZce((char*)contract, dominant_contracts_, dominant_contract_count_);
 #endif
 }
 
