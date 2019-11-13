@@ -88,5 +88,10 @@ class DLL_PUBLIC MYIneQuoteData
 
 	    // 数据处理函数对象
 	    std::function<void(YaoQuote *)> yaoquote_handler_;
+
+#ifdef PERSISTENCE_ENABLED 
+	QuoteDataSave<YaoQuote> *p_save_quote_;
+
+#endif
 };
 

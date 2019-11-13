@@ -48,6 +48,12 @@ MYQuoteData::MYQuoteData(ShfeFullDepthMDProducer *fulldepth_md_producer,
 {
 	l1_md_last_index_ = L1MD_NPOS;
 
+	clog_warning("[%s] ~MYShfeQuoteData invoked.", module_name_);
+
+#ifdef PERSISTENCE_ENABLED 
+	 p_save_quote_ = new QuoteDataSave<YaoQuote>( "y-shfequote", YAO_QUOTE_TYPE);
+#endif
+
 	for (int i=0; i<10; i++)
 	{
 		repairers_[i] = new repairer(fulldepth_md_producer_ );
@@ -57,6 +63,10 @@ MYQuoteData::MYQuoteData(ShfeFullDepthMDProducer *fulldepth_md_producer,
 
 MYQuoteData::~MYQuoteData()
 {
+#ifdef PERSISTENCE_ENABLED 
+    if (p_save_quote_) delete p_save_quote_;
+#endif
+
 	for (int i=0; i<10; i++)
 	{
 		delete repairers_[i];
@@ -249,6 +259,12 @@ void MYQuoteData::Send(const char* contract)
 		{ 
 			yaoquote_handler_(&yaoquote_); 
 		}
+
+#ifdef PERSISTENCE_ENABLED 
+				timeval t;
+				gettimeofday(&t, NULL);
+				p_save_quote_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &yaoquote_);
+#endif
 	} 
 	else
 	{
