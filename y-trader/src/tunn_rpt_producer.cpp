@@ -87,7 +87,11 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
     api_->SubscribePublicTopic(THOST_TERT_QUICK);
 	api_->RegisterFront(addr);
 	clog_warning("[%s] RegisterFront, addr: %s", module_name_, addr);
+#ifdef PERSISTENCE_ENABLED 
+	// 如果进行行情落地，则是行情程序，不进行交易
+#else
 	api_->Init(); 
+#endif
 }
 
 TunnRptProducer::~TunnRptProducer()

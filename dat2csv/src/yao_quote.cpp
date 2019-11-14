@@ -25,12 +25,12 @@ std::string YaoQuoteToString(int serial_number, const SaveData_YaoQuote* const p
 					"%d,%d,%s,%d,%d,"
 					"%.4f,%.4f,%.4f,%.4f,"
 					"%.4f,%.4f,%.4f,%.4f,%.4f,"
-					"%.4f,%.4f,%.4f,%.4f,%.4f"
-					"%.4f,%.4f,%.4f,%.4f,%.4f"
-					"%d,%d,%d,%d,%d"
-					"%d,%d,%d,%d,%d"
-					"%d,%.4f,%.4f,%.4f"
-					"%.4f,%.4f"
+					"%.4f,%.4f,%.4f,%.4f,%.4f,"
+					"%.4f,%.4f,%.4f,%.4f,%.4f,"
+					"%d,%d,%d,%d,%d,"
+					"%d,%d,%d,%d,%d,"
+					"%d,%.4f,%.4f,%.4f,"
+					"%.4f,%.4f,"
 					"0,0,0,0,0," // implied_bid_size
 					"0,0,0,0,0," // implied_ask_size
 					"%d,%d,%.4f,%.4f"

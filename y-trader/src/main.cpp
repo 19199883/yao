@@ -86,10 +86,16 @@ int main(/*int argc, const char **argv*/)
 	shfe_full_producer = new ShfeFullDepthMDProducer(queue);
 	shfe_l1_md_producer = new ShfeL1MDProducer(queue); 
 	tunnRptProducer = new TunnRptProducer(queue);
+
+#ifdef PERSISTENCE_ENABLED 
+	// 如果进行行情落地，则是行情程序，不进行交易
+#else
 	while(!tunnRptProducer->IsReady())
 	{
 		std::this_thread::sleep_for (std::chrono::seconds(1));
 	}
+#endif
+
 	uniConsumer = new UniConsumer (queue, 
 				shfe_l1_md_producer ,
 				shfe_full_producer, 
