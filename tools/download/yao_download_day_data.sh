@@ -32,7 +32,8 @@ scp  -P 44163  "u910019@101.231.3.117:/home/u910019/yao/trade/ytrader/trading-da
 #
 #
 ################################
-ZCE_TICK_DATA_DIR="$(date +%Y%m%d)/0/207/0/"
+cd $this_dir
+ZCE_TICK_DATA_DIR="$(cat ./trading-day.txt)/0/207/0/"
 cd tick-data
 rm -r ${ZCE_TICK_DATA_DIR}
 mkdir -p ${ZCE_TICK_DATA_DIR}
@@ -61,9 +62,9 @@ rm *.dat
 #
 ################################
 cd $this_dir
+DCE_TICK_DATA_DIR="$(cat ./trading-day.txt)/0/227/0/"
 cd tick-data
 
-DCE_TICK_DATA_DIR="$(date +%Y%m%d)/0/227/0/"
 rm -r ${DCE_TICK_DATA_DIR}
 mkdir -p ${DCE_TICK_DATA_DIR}
 
@@ -92,9 +93,9 @@ cd $this_dir
 #
 ################################
 cd $this_dir
+SHFE_TICK_DATA_DIR="$(cat ./trading-day.txt)/0/206/0/"
 cd tick-data
 
-SHFE_TICK_DATA_DIR="$(date +%Y%m%d)/0/206/0/"
 rm -r ${SHFE_TICK_DATA_DIR}
 mkdir -p ${SHFE_TICK_DATA_DIR}
 
