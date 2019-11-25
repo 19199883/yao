@@ -25,6 +25,8 @@ export LD_LIBRARY_PATH=./:/home/u910019/tools/::$LD_LIBRARY_PATH
 
 cd $this_dir
 
+scp  -P 44163  "u910019@101.231.3.117:/home/u910019/yao/trade/ytrader/trading-day.txt" ./
+
 ###########################
 # download zce market data from production server.
 #
@@ -107,6 +109,8 @@ rm -r ./backup
 
 echo "begin to process ine market data..."
 cd $this_dir
+
+
 echo `pwd`
 cd tick-data
 echo `pwd`
