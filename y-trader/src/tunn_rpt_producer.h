@@ -269,6 +269,7 @@ class TunnRptProducer: public CThostFtdcTraderSpi
 		void SavePosition();
 		int GetTradingDay();
 		int IsNightTrading();
+		void UpdateTradingDay(int trading_day);
 
 	private:
 		/*

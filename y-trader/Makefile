@@ -2,7 +2,7 @@
 
 
 CC:=g++
-DEBUG:=y
+DEBUG:=n
 TOP:=..
 DIST_DIR:=$(TOP)/y-trader/dist
 INCPATH:=-I$(TOP)/3rd/ctp/include -I$(TOP)/3rd/tinyxml/include \

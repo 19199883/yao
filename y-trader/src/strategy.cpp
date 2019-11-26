@@ -92,12 +92,15 @@ string Strategy::generate_log_name(char* log_path)
 		model_name = this->setting_.file.substr(found+1); 
 	}
 
+
+	// TODO:
 	time_t rawtime;
 	struct tm * timeinfo;
 	char buffer [80];
+	sprintf(buffer, "%d_", setting_.config.TradingDay);
 	time (&rawtime);
 	timeinfo = localtime (&rawtime);
-	strftime (buffer,80,"%Y%m%d_%H-%M-%S",timeinfo);
+	strftime (buffer + 9, 71, "%H-%M-%S", timeinfo);
 
 	log_full_path = log_path;
 	log_full_path += "/";

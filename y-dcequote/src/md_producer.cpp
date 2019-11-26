@@ -240,24 +240,6 @@ YaoQuote* MDProducer::ProcessDepthData(MDBestAndDeep* depthdata )
 	}
 	Convert(*depthdata, *quote);
 
-	MDOrderStatistic* orderStat = this->GetOrderStatData(depthdata->Contract);
-	if(NULL == orderStat)
-	{
-		valid_quote = NULL;
-    //    clog_info("[%s] can not find MDOrderStatistic: %s", 
-	//				module_name_,
-	//				depthdata->Contract);
-	}
-	else
-	{
-		quote->total_buy_ordsize =  orderStat->TotalBuyOrderNum;	
-		quote->total_sell_ordsize = orderStat->TotalSellOrderNum;
-		quote->weighted_buy_px =  InvalidToZeroD(orderStat->WeightedAverageBuyOrderPrice);   
-		quote->weighted_sell_px = InvalidToZeroD(orderStat->WeightedAverageSellOrderPrice);
-
-		valid_quote = quote;
-	}
-
 	return valid_quote;
 }
 
@@ -369,7 +351,13 @@ YaoQuote* MDProducer::GetData(int32_t index)
 
 bool MDProducer::IsDominant(const char *contract)
 {
+#ifdef PERSISTENCE_ENABLED 
+	// 持久化行情时，需要记录所有合约
+	//clog_warning("[%s] return TRUE in IsDominant.",module_name_);
+	return true;
+#else
 	return IsDominantImp((char*)contract, dominant_contracts_, dominant_contract_count_);
+#endif
 }
 
 
@@ -444,9 +432,9 @@ YaoQuote* MDProducer::ProcessOrderStatData(MDOrderStatistic* newOrderStat)
 	if(NULL == quote)
 	{
 		valid_quote = NULL;
-    //    clog_info("[%s] can not find MDBestAndDeep %s", 
-	//				module_name_,
-	//				newOrderStat->ContractID);
+        clog_info("[%s] can not find MDBestAndDeep %s", 
+					module_name_,
+					newOrderStat->ContractID);
 	}
 	else
 	{

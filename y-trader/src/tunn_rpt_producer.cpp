@@ -296,6 +296,7 @@ void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
 	if(strlen(pRspUserLogin->TradingDay) > 0)
 	{
 		this->TradingDay_ = stoi(pRspUserLogin->TradingDay);
+		UpdateTradingDay(this->TradingDay_);
 	}
 
 	char login_hour[3] = {0};
@@ -832,4 +833,24 @@ int32_t TunnRptProducer::GetStrategyID(TunnRpt& rpt)
 int32_t TunnRptProducer::GetCounterByLocalOrderID(int local_ord_id)
 {
 	return local_ord_id/1000;
+}
+
+void TunnRptProducer::UpdateTradingDay(int trading_day)
+{
+	std::ofstream of;
+	of.open("trading-day.txt", std::ofstream::out | std::ofstream::trunc);
+	if (of.good()) 
+	{
+		char buffer[20];
+			snprintf (buffer, sizeof(buffer), "%d", trading_day);
+			of.write(buffer, strlen(buffer));
+	}
+	else
+	{
+		clog_error("[%s] UpdateTradingDay failed due to failure "
+					"to open file.", 
+					module_name_);
+	}
+
+	of.close();
 }
