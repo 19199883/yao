@@ -83,6 +83,7 @@ do
 done
 
 rm *.dat
+rm *-*.csv
 
 cd $this_dir
 
@@ -139,7 +140,8 @@ cd $this_dir
 #
 ################################
 cd $this_dir
+TRADING_DAY="$(cat ./trading-day.txt)"
 cd "strategy-log"
 
-STRATEGY_LOG="/home/u910019/yao/trade/backup/`date +%Y%m%d`_*_day.log"
+STRATEGY_LOG="/home/u910019/yao/trade/backup/${TRADING_DAY}_*_day.log"
 scp  -P 44163  "u910019@101.231.3.117:${STRATEGY_LOG}" ./
