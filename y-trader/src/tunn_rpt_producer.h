@@ -139,15 +139,15 @@ class CtpFieldConverter
 							 sig.sig_id); 
 			}
 
-			if (sig.sig_openclose == alloc_position_effect_t::OPEN)
-			{
-				new_order_.CombOffsetFlag[0] = THOST_FTDC_OF_Open;
-			}
 
 			if(exchange_names::SHFE == sig.exchange||
 						exchange_names::INE == sig.exchange)
 			{
-				if (sig.sig_openclose == alloc_position_effect_t::CLOSE_TOD)
+				if (sig.sig_openclose == alloc_position_effect_t::OPEN)
+				{
+					new_order_.CombOffsetFlag[0] = THOST_FTDC_OF_Open;
+				}
+				else if (sig.sig_openclose == alloc_position_effect_t::CLOSE_TOD)
 				{
 					new_order_.CombOffsetFlag[0] = THOST_FTDC_OF_CloseToday;
 				}
@@ -166,7 +166,11 @@ class CtpFieldConverter
 			}
 			else
 			{
-				if (sig.sig_openclose == alloc_position_effect_t::CLOSE ||
+				if (sig.sig_openclose == alloc_position_effect_t::OPEN)
+				{
+					new_order_.CombOffsetFlag[0] = THOST_FTDC_OF_Open;
+				}
+				else if (sig.sig_openclose == alloc_position_effect_t::CLOSE ||
 							sig.sig_openclose == alloc_position_effect_t::CLOSE_YES ||
 							sig.sig_openclose == alloc_position_effect_t::CLOSE_TOD)
 				{
