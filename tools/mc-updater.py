@@ -31,6 +31,8 @@ import csv
 import logging
 import os
 import sys
+import csv
+
 
 src_config_file = '../x-trader.config'
 cur_config_file = 'x-trader.config'
@@ -50,12 +52,17 @@ def main():
 	argv_len = len(sys.argv)
 	print(argv_len)
 	isNight = sys.argv[1]
+	print("isNight:")
 	print(isNight)
-	tradingDay = GetTradingDay()
-	targetDir = GetTargetDir()
-	targetDir += "/"
-	targetDir += isNight
+	
+	targetDir = GetTargetDir(isNight)	
+	print("target directory:")
 	print(targetDir)
+	
+	WriteMcFile("./tools/shfe-varieties.txt", "", "")
+	
+	totalVol = GetLastQuote("/home/u910019/tick-data/20191209/1/206/0/ag1912.csv")
+	print(totalVol)
 	
 	
 	logging.basicConfig(filename='configurator.log',level=logging.DEBUG)
@@ -79,29 +86,100 @@ def GetTradingDay():
 		tradingDay = f.readline()		
 		return tradingDay
 
-def GetTargetDir():
+###########################
+# 获取用于存储candidate-contracts.csv和contracts.csv的目标目录
+#
+##############################		
+def GetTargetDir(isNight):
 	targetDir = "tick-data"
 	targetDir += "/"
 	targetDir += GetTradingDay()	
+	targetDir += "/"
+	targetDir += isNight
+	targetDir += "/mc/"
+	return targetDir
+	
+######################
+# 获取存储上期的行情数据文件
+#
+#########################
+def GetShfeMdDir(isNight):
+	targetDir = "tick-data"
+	targetDir += "/"
+	targetDir += GetTradingDay()	
+	targetDir += "/"
+	targetDir += isNight
+	targetDir += "/206/0"
+	return targetDir
+	
+######################
+# 获取存储大连的行情数据文件
+#
+#########################
+def GetDceMdDir(isNight):
+	targetDir = "tick-data"
+	targetDir += "/"
+	targetDir += GetTradingDay()	
+	targetDir += "/"
+	targetDir += isNight
+	targetDir += "/2227/0"
+	return targetDir
+
+######################
+# 获取存储郑州的行情数据文件
+#
+#########################
+def GetDceMdDir(isNight):
+	targetDir = "tick-data"
+	targetDir += "/"
+	targetDir += GetTradingDay()	
+	targetDir += "/"
+	targetDir += isNight
+	targetDir += "/207/0"
 	return targetDir
 	
 	
-	
-	########################
-	# 从指定的行情数据文件中获取最后一笔行情。
-	#
-	############################
+########################
+# 从指定的行情数据文件中获取最后一笔行情。
+#
+############################
 def GetLastQuote(md_file):
-	count = 1
-	today = date.today()
-	today_str = today.strftime("%Y%m%d")
-	bk = 'x-trader_{0}_{1}.config'.format(today_str,count)
-	while(os.path.exists(bk)):
-		count = count + 1
-		bk = 'x-trader_{0}_{1}.config'.format(today_str,count)
-	shutil.copyfile(cur_config_file, bk)
-
+	lastTotal_vol = ""	
+	with open(md_file) as f:
+		reader = csv.DictReader(f)
+		print("line number:")
+		print(reader.line_num)
+		for row in reader:					
+			lastTotal_vol = row["total_vol"]	
 	
+	return int(lastTotal_vol)
+		
+###################
+# get first four lively contracts
+# 获取指定品种的前四个最活跃的合约(按活跃程度降序排列)
+#
+#######################
+#def GetFFLC(varity):
+	###
+
+##################
+# 根据品种文件的品种，指定的行情数据目录中的行情文件，
+# 查找每个品种的前四个最活跃的合约，并将这些合约按指定的
+# 格式,写到指定的mc文件中。
+# varities_file：存储品种的文件
+# md_dir：存档行情数据的目录
+# mc_file：存储主力合约的目标文件。
+##################
+def WriteMcFile(varities_file, md_dir, mc_file):
+	varities = ""
+	with open(varities_file) as f:
+		reader = csv.reader(f)
+		for row in reader:
+			varities = row
+			break
+	print(varities)
+	for varity in varities[0].split(' '):
+		print(varity)
 	
 def update(root):
 	clear(root)
