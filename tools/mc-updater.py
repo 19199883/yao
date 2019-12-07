@@ -32,6 +32,7 @@ import logging
 import os
 import sys
 import csv
+import glob
 
 
 src_config_file = '../x-trader.config'
@@ -61,8 +62,12 @@ def main():
 	
 	WriteMcFile("./tools/shfe-varieties.txt", "", "")
 	
-	totalVol = GetLastQuote("/home/u910019/tick-data/20191209/1/206/0/ag1912.csv")
+	totalVol = GetLastQuote("/home/u910019/tick-data/20191209/1/206/0/ag1912.csv")	
 	print(totalVol)
+	
+	for file in glob.glob('/home/u910019/tick-data/20191209/1/206/0/ag*.csv'):
+		print(file)
+
 	
 	
 	logging.basicConfig(filename='configurator.log',level=logging.DEBUG)
