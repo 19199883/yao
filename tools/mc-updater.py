@@ -53,20 +53,18 @@ def main():
 	argv_len = len(sys.argv)
 	print(argv_len)
 	isNight = sys.argv[1]
-	print("isNight:")
-	print(isNight)
+	print("isNight:"+ isNight)
 	
 	targetDir = GetTargetDir(isNight)	
-	print("target directory:")
-	print(targetDir)
+	print("target directory:" + targetDir)
 	
-	WriteMcFile("./tools/shfe-varieties.txt", "", "")
+	WriteShfeMcFile(isNight)
 	
 	totalVol = GetLastQuote("/home/u910019/tick-data/20191209/1/206/0/ag1912.csv")	
 	print(totalVol)
 	
-	for file in glob.glob('/home/u910019/tick-data/20191209/1/206/0/ag*.csv'):
-		print(file)
+	
+	
 
 	
 	
@@ -127,7 +125,7 @@ def GetDceMdDir(isNight):
 	targetDir += GetTradingDay()	
 	targetDir += "/"
 	targetDir += isNight
-	targetDir += "/2227/0"
+	targetDir += "/227/0"
 	return targetDir
 
 ######################
@@ -182,10 +180,27 @@ def WriteMcFile(varities_file, md_dir, mc_file):
 		for row in reader:
 			varities = row
 			break
-	print(varities)
+	print("varities: " + varities[0])
 	for varity in varities[0].split(' '):
-		print(varity)
-	
+		print("process " + varity + "...")
+		md_file = os.path.join(md_dir, varity + '*.csv')
+		print("md_file: " + md_file)
+		for file in glob.glob(md_file):
+			print(file)
+
+#######################
+# 根据上期的品种文件，指定路径的上期的行情文件，
+# 找到每个品种的前四个合约，按指定格式存储到指
+# 定的主力合约文件中。
+#
+#######################
+def WriteShfeMcFile(isNight):
+	varities_file = "tools/shfe-varieties.txt"
+	md_dir = GetShfeMdDir(isNight)
+	mc_file = os.path.join(GetTargetDir(isNight), "shfe-contracts.csv")
+	WriteMcFile(varities_file, md_dir, mc_file)
+
+
 def update(root):
 	clear(root)
 
