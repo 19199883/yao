@@ -144,25 +144,28 @@ def GetDceMdDir(isNight):
 	
 ########################
 # 从指定的行情数据文件中获取最后一笔行情。
-#
+# 将最后一笔行情的累计成交量作为键，合约作为值
+# 存储到totalVolContractDict字典中。
 ############################
-def GetLastQuote(md_file):
-	lastTotal_vol = ""	
+def GetLastQuote(md_file, totalVolContractDict):
+	lastTotal_vol = 0	
+	contract = ""
 	with open(md_file) as f:
 		reader = csv.DictReader(f)
 		print("line number:")
 		print(reader.line_num)
 		for row in reader:					
-			lastTotal_vol = row["total_vol"]	
+			lastTotal_vol = int(row["total_vol"])
+			contract = row["symbol"]
 	
-	return int(lastTotal_vol)
+	totalVolContractDict[lastTotal_vol] = contract
 		
 ###################
 # get first four lively contracts
 # 获取指定品种的前四个最活跃的合约(按活跃程度降序排列)
 #
 #######################
-#def GetFFLC(varity):
+def WriteFFLC(mc_file, totalVolContractDict):
 	###
 
 ##################
@@ -174,7 +177,15 @@ def GetLastQuote(md_file):
 # mc_file：存储主力合约的目标文件。
 ##################
 def WriteMcFile(varities_file, md_dir, mc_file):
+	with open('mc_file', 'w', newline='') as mcfile:
+		fieldnames = ["date", "datenext", "product", "r1", "r2", "r3", "r4"]
+		writer = csv.DictWriter(mcfile, fieldnames=fieldnames)
+		writer.writeheader()
+		writer.writerow({'first_name': 'Baked', 'last_name': 'Beans'})
+
+	
 	varities = ""
+	totalVolContractDict = {}
 	with open(varities_file) as f:
 		reader = csv.reader(f)
 		for row in reader:
@@ -186,7 +197,8 @@ def WriteMcFile(varities_file, md_dir, mc_file):
 		md_file = os.path.join(md_dir, varity + '*.csv')
 		print("md_file: " + md_file)
 		for file in glob.glob(md_file):
-			print(file)
+			GetLastQuote(file, totalVolContractDict)
+		WriteFFLC(mc_file, totalVolContractDict)
 
 #######################
 # 根据上期的品种文件，指定路径的上期的行情文件，
