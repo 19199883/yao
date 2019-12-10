@@ -34,10 +34,10 @@ import sys
 import csv
 import glob
 
-
-src_config_file = '../x-trader.config'
-cur_config_file = 'x-trader.config'
-stra_setting = 'dce_day067.csv'
+shfeContractsFile = "shfe-contracts.csv"
+dceContractsFile = "dce-contracts.csv"
+zceContractsFile = "zce-contracts.csv"
+yaoContractsFile = "contracts.csv"
 
 #########################
 # 参数1：脚本名
@@ -62,12 +62,8 @@ def main():
 	WriteDceMcFile(isNight)
 	WriteZceMcFile(isNight)
 	WriteShfeMcFile(isNight)
-	
-	#totalVol = GetLastQuote("/home/u910019/tick-data/20191209/1/206/0/ag1912.csv")	
-	#print(totalVol)
-
-
-
+	WriteYaoMcFile(isNight)
+		
 #	shutil.copyfile(src_config_file, 'x-trader.config')
 #	backup()
 #
@@ -228,7 +224,7 @@ def WriteShfeMcFile(isNight):
 	varities_file = "tools/shfe-varieties.txt"
 	md_dir = GetShfeMdDir(isNight)
 	mc_dir = GetTargetDir(isNight)	
-	mc_file = os.path.join(mc_dir, "shfe-contracts.csv")
+	mc_file = os.path.join(mc_dir, shfeContractsFile)
 	WriteMcFile(varities_file, md_dir, mc_file)
 
 #######################
@@ -240,7 +236,7 @@ def WriteShfeMcFile(isNight):
 def WriteDceMcFile(isNight):
 	varities_file = "tools/dce-varieties.txt"
 	md_dir = GetDceMdDir(isNight)
-	mc_file = os.path.join(GetTargetDir(isNight), "dce-contracts.csv")
+	mc_file = os.path.join(GetTargetDir(isNight), dceContractsFile)
 	WriteMcFile(varities_file, md_dir, mc_file)
 
 #######################
@@ -252,8 +248,51 @@ def WriteDceMcFile(isNight):
 def WriteZceMcFile(isNight):
 	varities_file = "tools/zce-varieties.txt"
 	md_dir = GetZceMdDir(isNight)
-	mc_file = os.path.join(GetTargetDir(isNight), "zce-contracts.csv")
+	mc_file = os.path.join(GetTargetDir(isNight), zceContractsFile)
 	WriteMcFile(varities_file, md_dir, mc_file)
+
+def WriteYaoMcFileInner(dictReader, yao_mc_filename):
+	print("write yao_mc_filename: " + yao_mc_filename)	
+	with open(yao_mc_filename, 'a') as yao_mcfile:
+		fieldnames = ["date", "datenext", "product", "r1", "r2", "r3", "r4"]
+		writer = csv.DictWriter(yao_mcfile, fieldnames=fieldnames)		
+		for row in dictReader:
+			print("write yao_mc_filename: ", row)
+			writer.writerow({
+							"date": row["date"], 
+							"datenext": row["datenext"],
+							"product": row["product"],
+							"r1" : row["r1"], 
+							"r2" : row["r2"], 
+							"r3" : row["r3"], 
+							"r4" : row["r4"]
+						})								
+	
+#######################
+# 将三个交易所的每个品种前四个最活跃合约写到contracts.csv(给yao)
+#
+#######################
+def WriteYaoMcFile(isNight):
+	yao_mc_filename = os.path.join(GetTargetDir(isNight), yaoContractsFile)
+	with open(yao_mc_filename, 'w') as yao_mcfile:
+		fieldnames = ["date", "datenext", "product", "r1", "r2", "r3", "r4"]
+		writer = csv.DictWriter(yao_mcfile, fieldnames=fieldnames)
+		writer.writeheader()
+
+	shfe_mc_filename = os.path.join(GetTargetDir(isNight), shfeContractsFile)
+	with open(shfe_mc_filename) as f:
+		reader = csv.DictReader(f)		
+		WriteYaoMcFileInner(reader, yao_mc_filename)
+		
+	dce_mc_filename = os.path.join(GetTargetDir(isNight), dceContractsFile)
+	with open(dce_mc_filename) as f:
+		reader = csv.DictReader(f)		
+		WriteYaoMcFileInner(reader, yao_mc_filename)
+		
+	zce_mc_filename = os.path.join(GetTargetDir(isNight), zceContractsFile)
+	with open(zce_mc_filename) as f:
+		reader = csv.DictReader(f)		
+		WriteYaoMcFileInner(reader, yao_mc_filename)
 	
 def update(root):
 	clear(root)
