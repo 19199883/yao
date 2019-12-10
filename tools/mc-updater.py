@@ -210,7 +210,7 @@ def WriteMcFile(varities_file, md_dir, mc_file):
 	for varity in varities[0].split(' '):
 		totalVolContractDict.clear()
 		print("process " + varity + "...")
-		md_file = os.path.join(md_dir, varity + '*.csv')
+		md_file = os.path.join(md_dir, varity + '[0-9]*.csv')
 		print("md_file: " + md_file)
 		for file in glob.glob(md_file):
 			print("process " + file)
