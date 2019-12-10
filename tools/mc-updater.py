@@ -194,7 +194,7 @@ def WriteFFLC(varity, mc_file, totalVolContractDict):
 # mc_file：存储主力合约的目标文件。
 ##################
 def WriteMcFile(varities_file, md_dir, mc_file):
-	with open(mc_file, 'a') as mcfile:
+	with open(mc_file, 'w') as mcfile:
 		fieldnames = ["date", "datenext", "product", "r1", "r2", "r3", "r4"]
 		writer = csv.DictWriter(mcfile, fieldnames=fieldnames)
 		writer.writeheader()		
@@ -208,14 +208,15 @@ def WriteMcFile(varities_file, md_dir, mc_file):
 			break
 	print("varities: " + varities[0])
 	for varity in varities[0].split(' '):
+		totalVolContractDict.clear()
 		print("process " + varity + "...")
 		md_file = os.path.join(md_dir, varity + '*.csv')
 		print("md_file: " + md_file)
 		for file in glob.glob(md_file):
 			print("process " + file)
 			GetLastQuote(file, totalVolContractDict)
-		
-		WriteFFLC(varity, mc_file, totalVolContractDict)
+		if len(list(totalVolContractDict.keys())) >=4 :
+			WriteFFLC(varity, mc_file, totalVolContractDict)
 
 #######################
 # 根据上期的品种文件，指定路径的上期的行情文件，
