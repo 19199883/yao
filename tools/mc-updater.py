@@ -47,9 +47,10 @@ stra_setting = 'dce_day067.csv'
 def main():
 	os.chdir(sys.path[0])
 	os.chdir('../')
-	print("current working directory:")
-	print(os.getcwd())
+	print("current working directory:" + os.getcwd())
 	
+	logging.basicConfig(filename='configurator.log',level=logging.DEBUG)
+		
 	argv_len = len(sys.argv)
 	print(argv_len)
 	isNight = sys.argv[1]
@@ -57,18 +58,15 @@ def main():
 	
 	targetDir = GetTargetDir(isNight)	
 	print("target directory:" + targetDir)
-	
+		
+	WriteDceMcFile(isNight)
+	WriteZceMcFile(isNight)
 	WriteShfeMcFile(isNight)
 	
-	totalVol = GetLastQuote("/home/u910019/tick-data/20191209/1/206/0/ag1912.csv")	
-	print(totalVol)
-	
-	
-	
+	#totalVol = GetLastQuote("/home/u910019/tick-data/20191209/1/206/0/ag1912.csv")	
+	#print(totalVol)
 
-	
-	
-	logging.basicConfig(filename='configurator.log',level=logging.DEBUG)
+
 
 #	shutil.copyfile(src_config_file, 'x-trader.config')
 #	backup()
@@ -100,6 +98,10 @@ def GetTargetDir(isNight):
 	targetDir += "/"
 	targetDir += isNight
 	targetDir += "/mc/"
+		
+	if not os.path.exists(targetDir):
+		os.makedirs(targetDir)
+		
 	return targetDir
 	
 ######################
@@ -132,7 +134,7 @@ def GetDceMdDir(isNight):
 # 获取存储郑州的行情数据文件
 #
 #########################
-def GetDceMdDir(isNight):
+def GetZceMdDir(isNight):
 	targetDir = "tick-data"
 	targetDir += "/"
 	targetDir += GetTradingDay()	
@@ -151,22 +153,37 @@ def GetLastQuote(md_file, totalVolContractDict):
 	lastTotal_vol = 0	
 	contract = ""
 	with open(md_file) as f:
-		reader = csv.DictReader(f)
-		print("line number:")
-		print(reader.line_num)
+		reader = csv.DictReader(f)		
 		for row in reader:					
 			lastTotal_vol = int(row["total_vol"])
 			contract = row["symbol"]
 	
-	totalVolContractDict[lastTotal_vol] = contract
+	totalVolContractDict[lastTotal_vol] = contract	
 		
 ###################
-# get first four lively contracts
-# 获取指定品种的前四个最活跃的合约(按活跃程度降序排列)
+# write first four lively contracts
+# 写指定品种的前四个最活跃的合约(按活跃程度降序排列)到
+# 指定的文件中。
 #
 #######################
-def WriteFFLC(mc_file, totalVolContractDict):
-	###
+def WriteFFLC(varity, mc_file, totalVolContractDict):	
+	print("mc_file " + mc_file)
+	with open(mc_file, 'a') as mcfile:
+		fieldnames = ["date", "datenext", "product", "r1", "r2", "r3", "r4"]
+		writer = csv.DictWriter(mcfile, fieldnames=fieldnames)
+		keys = totalVolContractDict.keys()
+		keys.sort(reverse=True)
+		print("WriteFFLC keys ", keys)
+		writer.writerow({
+							"date": GetTradingDay(), 
+							"datenext": "",
+							"product": varity,
+							"r1" : totalVolContractDict[keys[0]], 
+							"r2" : totalVolContractDict[keys[1]], 
+							"r3" : totalVolContractDict[keys[2]], 
+							"r4" : totalVolContractDict[keys[3]]
+						})
+
 
 ##################
 # 根据品种文件的品种，指定的行情数据目录中的行情文件，
@@ -177,12 +194,10 @@ def WriteFFLC(mc_file, totalVolContractDict):
 # mc_file：存储主力合约的目标文件。
 ##################
 def WriteMcFile(varities_file, md_dir, mc_file):
-	with open('mc_file', 'w', newline='') as mcfile:
+	with open(mc_file, 'a') as mcfile:
 		fieldnames = ["date", "datenext", "product", "r1", "r2", "r3", "r4"]
 		writer = csv.DictWriter(mcfile, fieldnames=fieldnames)
-		writer.writeheader()
-		writer.writerow({'first_name': 'Baked', 'last_name': 'Beans'})
-
+		writer.writeheader()		
 	
 	varities = ""
 	totalVolContractDict = {}
@@ -197,8 +212,10 @@ def WriteMcFile(varities_file, md_dir, mc_file):
 		md_file = os.path.join(md_dir, varity + '*.csv')
 		print("md_file: " + md_file)
 		for file in glob.glob(md_file):
+			print("process " + file)
 			GetLastQuote(file, totalVolContractDict)
-		WriteFFLC(mc_file, totalVolContractDict)
+		
+		WriteFFLC(varity, mc_file, totalVolContractDict)
 
 #######################
 # 根据上期的品种文件，指定路径的上期的行情文件，
@@ -209,10 +226,34 @@ def WriteMcFile(varities_file, md_dir, mc_file):
 def WriteShfeMcFile(isNight):
 	varities_file = "tools/shfe-varieties.txt"
 	md_dir = GetShfeMdDir(isNight)
-	mc_file = os.path.join(GetTargetDir(isNight), "shfe-contracts.csv")
+	mc_dir = GetTargetDir(isNight)	
+	mc_file = os.path.join(mc_dir, "shfe-contracts.csv")
 	WriteMcFile(varities_file, md_dir, mc_file)
 
+#######################
+# 根据大商所的品种文件，指定路径的上期的行情文件，
+# 找到每个品种的前四个合约，按指定格式存储到指
+# 定的主力合约文件中。
+#
+#######################
+def WriteDceMcFile(isNight):
+	varities_file = "tools/dce-varieties.txt"
+	md_dir = GetDceMdDir(isNight)
+	mc_file = os.path.join(GetTargetDir(isNight), "dce-contracts.csv")
+	WriteMcFile(varities_file, md_dir, mc_file)
 
+#######################
+# 根据大商所的品种文件，指定路径的上期的行情文件，
+# 找到每个品种的前四个合约，按指定格式存储到指
+# 定的主力合约文件中。
+#
+#######################
+def WriteZceMcFile(isNight):
+	varities_file = "tools/zce-varieties.txt"
+	md_dir = GetZceMdDir(isNight)
+	mc_file = os.path.join(GetTargetDir(isNight), "zce-contracts.csv")
+	WriteMcFile(varities_file, md_dir, mc_file)
+	
 def update(root):
 	clear(root)
 
