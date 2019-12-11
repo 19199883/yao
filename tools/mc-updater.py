@@ -45,6 +45,7 @@ yaoContractsFile = "contracts.csv"
 # 存储实盘正在使用的主力合约的文件
 mcFile = "/home/u910019/tick-data/mc/contracts.csv"
 mcWarnFile = "/home/u910019/tick-data/mc/mc-warm.csv"
+deliveryDayWarnFile = "/home/u910019/tick-data/mc/deliveryday-warm.csv"
 
 #########################
 # 参数1：脚本名
@@ -70,6 +71,7 @@ def main():
 	WriteZceMcFile(isNight)
 	WriteShfeMcFile(isNight)
 	WriteYaoMcFile(isNight)
+	WarnChaningMonth(isNight)
 		
 #	shutil.copyfile(src_config_file, 'x-trader.config')
 #	backup()
@@ -307,17 +309,19 @@ def WriteYaoMcFile(isNight):
 # 
 #
 #######################	
-def WarnChaningMonthForTotalVol(warnContracts):
-	# 实盘主力合约
+def WarnChaningMonthForTotalVol(warnContracts, isNight):
 	usingContracts = []
-	with open(mcfile) as f:
-		reader = csv.DictReader(f)		
-		for row in reader:								
-			usingContracts.append(row["r1"])
+	# 实盘主力合约
+	if os.path.isfile(mcFile):
+		with open(mcFile) as f:
+			reader = csv.DictReader(f)		
+			for row in reader:								
+				usingContracts.append(row["r1"])	
 			
 	# 备选主力合约
 	canditateContracts = []
-	with open(mcfile) as f:
+	yao_mc_filename = os.path.join(GetTargetDir(isNight), yaoContractsFile)
+	with open(yao_mc_filename) as f:
 		reader = csv.DictReader(f)		
 		for row in reader:								
 			canditateContracts.append(row["r1"])
@@ -337,7 +341,7 @@ def WarnChaningMonthForTotalVol(warnContracts):
 def WarnChaningMonthForDeliveryDay(warnContracts):
 	# 实盘主力合约
 	usingContracts = []
-	with open(mcfile) as f:
+	with open(mcFile) as f:
 		reader = csv.DictReader(f)		
 		for row in reader:								
 			usingContracts.append(row["r1"])
@@ -359,13 +363,20 @@ def WarnChaningMonthForDeliveryDay(warnContracts):
 #    账户是不允许进入交割日的)
 #
 ###########################		
-def WarnChaningMonth():	
+def WarnChaningMonth(isNight):	
 	warnContracts = []
 	warnContractsForTotalVol = []
 	warnContractsForDeliveryDay = []
-	WarnChaningMonthForTotalVol(warnContractsForTotalVol)
+	WarnChaningMonthForTotalVol(warnContractsForTotalVol, isNight)
+	
 	WarnChaningMonthForDeliveryDay(warnContractsForDeliveryDay)
+	with open(deliveryDayWarnFile, 'w') as f:
+		f.write(" ".join(warnContractsForDeliveryDay))
+	
 	warnContracts = warnContractsForTotalVol + warnContractsForDeliveryDay
+	with open(mcWarnFile, 'w') as f:
+		f.write(" ".join(warnContracts))
+
 
 	
 def update(root):
