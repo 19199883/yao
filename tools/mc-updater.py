@@ -2,26 +2,29 @@
 # -*- coding: UTF-8 -*-
 
 ########################################
+#  候选主力合约: /home/u910019/tick-data/trading-day/day-night/mc/contracts.csv
+#  实盘主力合约：/home/u910019/tick-data/mc/contracts.csv
 # 该脚本放在yao_sky的/home/u910019/tools目录下。
-# (1) 生成候选主力合约candidate-contracts.csv
+# (1) 生成候选主力合约
 #       当云服务器的各个交易所当前行情数据(当前交易日的日盘或夜盘)生成完后，
-#	   则可以开始生成candidate-contracts.csv。
+#	   则可以开始生成候选主力合约。
 #	   工具访问每个交易所的每个品种的行情文件，读取每个品种的每个合约文件最
 #	   后一笔行情的累计成交量，并对其排序，取前四个合约，并按规定格式，写到
-#	   candidate-contracts.csv文件中。
+#	   候选主力合约文件中。
 #	   
 #   (2) 主力合约换月
-#	   每当生产完candidate-contracts.csv，都要比较candidate-contracts.csv
-#	   和contracts.csv的每个品种的主力合约，如果某个品种的主力合约不同，
-#	   则将该品种的新的备选主力合约写到文件mc-warn.csv中，并提醒用户换月。
+#	    每当生产完候选主力合约，都要比较候选主力合约 和实盘主力合约的每个品种
+#	    的主力合约，如果某个品种的主力合约不同，
+#	    则将该品种的新的备选主力合约写到文件mc-warn.csv中，并提醒用户换月。
 #       如果需要换月，则用户手动修改mc-warm.csv，只保留需要换月的主力合约。
 #	   
 #	   提醒方式：进入云服务器提醒和发邮件2种方式。
 #	   注意：换月过度阶段，要换月的品种需要配置新旧2个合约，等待旧的合约仓位
-#	   都平了后，contracts.csv则完全使用新的合约。
+#	   都平了后，实盘主力合约则完全使用新的合约。
 #
 ############################################
-
+import datetime
+import calendar
 import datetime
 import xml.etree.ElementTree as ET
 from datetime import date
@@ -38,6 +41,10 @@ shfeContractsFile = "shfe-contracts.csv"
 dceContractsFile = "dce-contracts.csv"
 zceContractsFile = "zce-contracts.csv"
 yaoContractsFile = "contracts.csv"
+
+# 存储实盘正在使用的主力合约的文件
+mcFile = "/home/u910019/tick-data/mc/contracts.csv"
+mcWarnFile = "/home/u910019/tick-data/mc/mc-warm.csv"
 
 #########################
 # 参数1：脚本名
@@ -84,7 +91,7 @@ def GetTradingDay():
 		return tradingDay
 
 ###########################
-# 获取用于存储candidate-contracts.csv和contracts.csv的目标目录
+# 获取用于存储获选主力合约的目标目录
 #
 ##############################		
 def GetTargetDir(isNight):
@@ -293,6 +300,73 @@ def WriteYaoMcFile(isNight):
 	with open(zce_mc_filename) as f:
 		reader = csv.DictReader(f)		
 		WriteYaoMcFileInner(reader, yao_mc_filename)
+	
+######################
+# 通过比较候选主力合约与实盘主力合约，找到需要换月的合约，
+# 并存储到warnContracts
+# 
+#
+#######################	
+def WarnChaningMonthForTotalVol(warnContracts):
+	# 实盘主力合约
+	usingContracts = []
+	with open(mcfile) as f:
+		reader = csv.DictReader(f)		
+		for row in reader:								
+			usingContracts.append(row["r1"])
+			
+	# 备选主力合约
+	canditateContracts = []
+	with open(mcfile) as f:
+		reader = csv.DictReader(f)		
+		for row in reader:								
+			canditateContracts.append(row["r1"])
+	
+	for contract in canditateContracts:
+		if contract in usingContracts:
+			warnContracts.append(contract)
+				
+
+######################
+# 通过遍历实盘主力合约，找到需要接近交割日提醒的合约，
+# 并存储到warnContracts
+# 
+# 假设: 假设所有月份的最后一天都是30
+#
+#######################
+def WarnChaningMonthForDeliveryDay(warnContracts):
+	# 实盘主力合约
+	usingContracts = []
+	with open(mcfile) as f:
+		reader = csv.DictReader(f)		
+		for row in reader:								
+			usingContracts.append(row["r1"])
+	
+	for contract in usingContracts:
+		contractMonth = int(contract[-3:])
+		curMonth = int(date.today().strftime("%y%d")[-3:])
+		if contractMonth == curMonth :
+			if (30 - date.today().day) <= 7 :
+				warnContracts.append(contract)
+		
+
+#################################
+# 换月提醒。
+# 1. 当某个合约的当日累计成交量超过实盘当前的主力合约的当日累计成交量时，
+#    则提醒改品种合约需要换月
+# 2. 如果并没有满足(1)中的换月条件，但是当前某主力合约的月份是当前月份，
+#    而且当前日期距离该月最后一天小于等于7天，则该合约也需要提醒换月(投机
+#    账户是不允许进入交割日的)
+#
+###########################		
+def WarnChaningMonth():	
+	warnContracts = []
+	warnContractsForTotalVol = []
+	warnContractsForDeliveryDay = []
+	WarnChaningMonthForTotalVol(warnContractsForTotalVol)
+	WarnChaningMonthForDeliveryDay(warnContractsForDeliveryDay)
+	warnContracts = warnContractsForTotalVol + warnContractsForDeliveryDay
+
 	
 def update(root):
 	clear(root)
