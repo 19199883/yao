@@ -349,9 +349,12 @@ def WarnChaningMonthForDeliveryDay(warnContracts):
 	
 	for contract in usingContracts:
 		contractMonth = int(contract[-3:])
-		curMonth = int(date.today().strftime("%y%d")[-3:])
+		print("WarnChaningMonthForDeliveryDay contractMonth:", contract, contractMonth)
+		curMonth = int(date.today().strftime("%y%m")[-3:])
+		print("WarnChaningMonthForDeliveryDay curMonth:", curMonth)
 		if contractMonth == curMonth :
-			if (30 - date.today().day) <= 7 :
+			if (30 - date.today().day) <= 7 :  # TODO: to here
+				print("WarnChaningMonthForDeliveryDay warn contract:" + contract)
 				warnContracts.append(contract)
 		
 
@@ -374,7 +377,7 @@ def WarnChaningMonth(isNight):
 	with open(deliveryDayWarnFile, 'w') as f:
 		f.write(" ".join(warnContractsForDeliveryDay))
 	
-	warnContracts = warnContractsForTotalVol + warnContractsForDeliveryDay
+	warnContracts = warnContractsForTotalVol
 	with open(mcWarnFile, 'w') as f:
 		f.write(" ".join(warnContracts))
 
