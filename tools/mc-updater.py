@@ -312,7 +312,7 @@ def WriteYaoMcFile(isNight):
 def WarnChaningMonthForTotalVol(warnContracts, isNight):
 	usingContracts = []
 	# 实盘主力合约
-	if os.path.isfile(mcFile):
+	if os.path.exists(mcFile):
 		with open(mcFile) as f:
 			reader = csv.DictReader(f)		
 			for row in reader:								
@@ -327,7 +327,7 @@ def WarnChaningMonthForTotalVol(warnContracts, isNight):
 			canditateContracts.append(row["r1"])
 	
 	for contract in canditateContracts:
-		if contract in usingContracts:
+		if contract not in usingContracts:
 			warnContracts.append(contract)
 				
 
@@ -341,10 +341,11 @@ def WarnChaningMonthForTotalVol(warnContracts, isNight):
 def WarnChaningMonthForDeliveryDay(warnContracts):
 	# 实盘主力合约
 	usingContracts = []
-	with open(mcFile) as f:
-		reader = csv.DictReader(f)		
-		for row in reader:								
-			usingContracts.append(row["r1"])
+	if os.path.exists(mcFile):
+		with open(mcFile) as f:
+			reader = csv.DictReader(f)		
+			for row in reader:								
+				usingContracts.append(row["r1"])
 	
 	for contract in usingContracts:
 		contractMonth = int(contract[-3:])
