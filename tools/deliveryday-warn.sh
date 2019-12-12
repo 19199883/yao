@@ -32,5 +32,17 @@ function deliverydaywarn()
 	fi	
 }	 
 
+function ChangeMonthwarn()
+{	
+	warn_file="/home/u910019/tick-data/mc/mc-warm.csv"
+	if [[ -a $warn_file ]];then	
+		message="$(cat ${warn_file})"
+		if [[ -n $message ]];then 
+			echo "主力合约换月提醒，如下合约需要换月：${message}" | mail -s "主力合约换月提醒" 17199883@qq.com
+			#echo "主力合约换月提醒，如下合约需要换月：${message}" | mail -s "主力合约换月提醒" 3580771905@qq.com
+		fi
+	fi	
+}	
 enter_cur_dir
 deliverydaywarn
+ChangeMonthwarn
