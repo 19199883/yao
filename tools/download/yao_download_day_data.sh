@@ -145,3 +145,5 @@ cd "strategy-log"
 
 STRATEGY_LOG="/home/u910019/yao/trade/backup/${TRADING_DAY}_*_day.log"
 scp  -P 44163  "u910019@101.231.3.117:${STRATEGY_LOG}" ./
+
+sh ../tools/mc-mgr.sh 0
