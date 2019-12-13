@@ -10,6 +10,15 @@ function upload_files
 	scp -Cp -P 44163 ./trader/x-trader.config	"u910019@101.231.3.117:/home/u910019/yao/trade/ytrader/"
 	scp -Cp -P 44163 ./trader/ev_from_cache	"u910019@101.231.3.117:/home/u910019/yao/trade/ytrader/ev/"
 
+	scp -Cp -P 44163 /home/u910019/tick-data/mc/yao-shfe-subcribed-mc.csv	"u910019@101.231.3.117:/home/u910019/yao/mc/"
+	ssh -p 44163 u910019@101.231.3.117 'mv -v /home/u910019/yao/mc/yao-shfe-subcribed-mc.csv /home/u910019/yao/mc/contracts.txt'
+
+	scp -Cp -P 44153 /home/u910019/tick-data/mc/yao-dce-subcribed-mc.csv	"u910019@101.231.3.117:/home/u910019/yao/mc/"
+	ssh -p 44153 u910019@101.231.3.117 'mv -v /home/u910019/yao/mc/yao-dce-subcribed-mc.csv /home/u910019/yao/mc/contracts.txt'
+
+	scp -Cp -P 8012 /home/u910019/tick-data/mc/yao-zce-subcribed-mc.csv	"u910019@1.193.38.91:/home/u910019/yao/mc/"
+	ssh -p 8012 u910019@1.193.38.91 'mv -v /home/u910019/yao/mc/yao-zce-subcribed-mc.csv /home/u910019/yao/mc/contracts.txt'
+
 	echo "---------------uploading finishs----------------------"
 
 }
