@@ -36,6 +36,7 @@ import os
 import sys
 import csv
 import glob
+from string import digits
 
 shfeContractsFile = "shfe-contracts.csv"
 dceContractsFile = "dce-contracts.csv"
@@ -44,8 +45,15 @@ yaoContractsFile = "contracts.csv"
 
 # 存储实盘正在使用的主力合约的文件
 mcFile = "/home/u910019/tick-data/mc/contracts.csv"
+
 mcWarnFile = "/home/u910019/tick-data/mc/mc-warm.csv"
 deliveryDayWarnFile = "/home/u910019/tick-data/mc/deliveryday-warm.csv"
+mediShfeMcFile = "/home/u910019/tick-data/mc/medi-shfe-mc.csv"
+mediDceMcFile = "/home/u910019/tick-data/mc/medi-dce-mc.csv"
+mediZceMcFile = "/home/u910019/tick-data/mc/medi-zce-mc.csv"
+yaoShfeSubcribeMcFile = "/home/u910019/tick-data/mc/yao-shfe-subcribed-mc.csv"
+yaoDceSubcribeMcFile = "/home/u910019/tick-data/mc/yao-dce-subcribed-mc.csv"
+yaoZceSubcribeMcFile = "/home/u910019/tick-data/mc/yao-zce-subcribed-mc.csv"
 
 #########################
 # 参数1：脚本名
@@ -57,12 +65,14 @@ def main():
 	os.chdir('../')
 	print("current working directory:" + os.getcwd())
 	
-	logging.basicConfig(filename='configurator.log',level=logging.DEBUG)
+	logging.basicConfig(filename='mc-updater.log',level=logging.DEBUG)
 		
 	argv_len = len(sys.argv)
 	print(argv_len)
+	# 注意：因为某些品种没有夜盘交易(这会给生成主力合约带来麻烦)
+	# 故只从日盘行情数据判断主力合约的换月
 	isNight = sys.argv[1]
-	print("isNight:"+ isNight)
+	print("isNight:", isNight)
 	
 	targetDir = GetTargetDir(isNight)	
 	print("target directory:" + targetDir)
@@ -72,16 +82,8 @@ def main():
 	WriteShfeMcFile(isNight)
 	WriteYaoMcFile(isNight)
 	WarnChaningMonth(isNight)
-		
-#	shutil.copyfile(src_config_file, 'x-trader.config')
-#	backup()
-#
-#	tree = ET.parse(cur_config_file)
-#	root = tree.getroot()
-#	update(root)
-#
-#	tree.write(cur_config_file, encoding="utf-8") #, xml_declaration=True) 
-#	shutil.copyfile(cur_config_file, src_config_file)
+	UpdateMcForMedi(isNight)	
+	UpdateMcForYao()
 
 #####################################
 # 从trading-day.txt中获取当前交易日。
@@ -89,7 +91,7 @@ def main():
 ###################################
 def GetTradingDay():
 	with open("trading-day.txt", mode='r') as f:
-		tradingDay = f.readline()		
+		tradingDay = f.readline().rstrip("\n")		
 		return tradingDay
 
 ###########################
@@ -381,105 +383,92 @@ def WarnChaningMonth(isNight):
 	with open(mcWarnFile, 'w') as f:
 		f.write(" ".join(warnContracts))
 
+########################
+# 为medi更新3个交易所的主力合约文件，并上传到生产服务器。
+# 因为夜盘有些品种不交易，因此夜盘不生成行情订阅文件
+#
+########################
+def UpdateMcForMedi(isNight):	
+	if isNight=="1":	# 因为夜盘有些品种不交易，因此夜盘不生成行情订阅文件
+		return
+		
+	shfeCanditateContracts = []
+	shfe_mc_filename = os.path.join(GetTargetDir(isNight), shfeContractsFile)
+	with open(shfe_mc_filename) as f:
+		reader = csv.DictReader(f)		
+		for row in reader:								
+			shfeCanditateContracts.append(row["r1"])
+	with open(mediShfeMcFile, 'w') as f:
+		f.write(" ".join(shfeCanditateContracts))
+		
+	dce_mc_filename = os.path.join(GetTargetDir(isNight), dceContractsFile)
+	dceCanditateContracts = []
+	with open(dce_mc_filename) as f:
+		reader = csv.DictReader(f)		
+		for row in reader:								
+			dceCanditateContracts.append(row["r1"])
+	with open(mediDceMcFile, 'w') as f:
+		f.write(" ".join(dceCanditateContracts))
+		
+	zce_mc_filename = os.path.join(GetTargetDir(isNight), zceContractsFile)
+	zceCanditateContracts = []
+	with open(zce_mc_filename) as f:
+		reader = csv.DictReader(f)		
+		for row in reader:								
+			zceCanditateContracts.append(row["r1"])
+	with open(mediZceMcFile, 'w') as f:
+		f.write(" ".join(zceCanditateContracts))
 
+##################
+#	判断指定的合约是否是订阅的品种。
+#	如果是订阅的品种，返回true; 否则，返回false
+##################
+def IsSubscribedVariety(contract, varietyFile):	
+	varietyOfContract = contract.translate(None, digits)	
+	subscribedVarieties = []
+	with open(varietyFile) as f:
+		line = f.readline().rstrip("\n")
+		subscribedVarieties = line.split(" ")
+		print("subscribedVarieties:", subscribedVarieties)
 	
-def update(root):
-	clear(root)
+	return varietyOfContract in subscribedVarieties
+	
+def UpdateMcForYaoImp(varietiesFile, subcribedContractFile):		
+	mcDict = {}
+		
+	with open(mcFile) as f:
+		reader = csv.DictReader(f)		
+		for row in reader:								
+			contract = row["r1"]
+			if IsSubscribedVariety(contract, varietiesFile):			
+				mcDict[contract] = contract			
 
-	strategies = root.find("./strategies")
-	# find a strategy element as template
-	strategy_temp = strategies.find("./strategy")
-
-	# skip the first row, title row
-	with open(stra_setting) as csvfile:
-		reader = csv.reader(csvfile)
-		id = 0
-		for row in reader:
-			if id == 0:
-				id = id + 1
-				continue
-			add_strategy(strategies, strategy_temp, row, id)
-			id = id + 1
-
-	# remove template element
-	strategies.remove(strategy_temp)
-
-def check_cont(contChk):
-	# check whether the specified contract is right dominant contract
-	#
-	#param:
-	#	contChk: a contract to be checked whether it 
-	#		is right dominant contract
-	#
-	domContLst = None
-
-	# read dominant contracts
-	domContLn = None
-	domContFile = "/home/u910019/domi_contr_check/cur_domi_contrs.txt"
-	with open(domContFile) as f:
-		for line in f:
-			domContLn  = line
-			break
-
-	valid = False
-	domContLst = domContLn.split(" ")
-	for cont in domContLst:
-		if cont.find(contChk)==0:
-			valid = True
-			break
-
-	if not valid:
-		logging.warning("incorrect contract:{0}".format(contChk))
-
-
-
-def add_strategy(strategies, strategy_temp, row, id):
-	strategy_tmp_str = ET.tostring(strategy_temp, encoding="utf-8")
-	new_strategy = ET.fromstring(strategy_tmp_str)
-	strategies.append(new_strategy);
-
-	new_strategy.set('id', str(id)) 
-	new_strategy.set('model_file', row[1]) 
-
-	# respectively copy ev file for every fl50,fl33 or fl51 strategry
-	ev_name_value = "ev/" + row[1] + ".txt"
-	new_strategy.set('ev_name', ev_name_value) 
-	strategy_name = row[1]
-	soFile = "../" + strategy_name + ".so" 
-	if not os.path.exists(soFile):
-		logging.warning("can not find " + soFile)
-
-
-	ev_file_src = ""
-	ev_file_dest = "../" + ev_name_value 
-
-	if 0==strategy_name.find('avgp'):
-		ev_file_src = "ev_avgp_day.txt"
-		shutil.copyfile(ev_file_src, ev_file_dest)
-		shutil.copystat(ev_file_src, ev_file_dest)
-
-	symbol = new_strategy.find("./symbol")
-	check_cont(row[2]) 
-	symbol.set('max_pos', row[3])
-	symbol.set('name', row[2])
-
-def clear(root):
-	'''
-	removes strategy elements from trasev.config until there is 
-	a strategy element left.
-	'''
-	stras = root.findall("./strategies/strategy")
-	stra_cnt = len(stras);
-	if stra_cnt > 1:
-		del stras[0]
-	elif stra_cnt == 0:
-		raise Exception('There is NOT one strategy element!')
-
-	strategies_e = root.find("./strategies")
-	for stra in stras:
-		strategies_e.remove(stra)
-
-
+	with open(mcWarnFile) as f:
+		line = f.readline().rstrip("\n")
+		for contract in line.split(" "):
+			if IsSubscribedVariety(contract, varietiesFile):
+				mcDict[contract] = contract
+				
+	with open(subcribedContractFile, 'w') as f:
+		f.write(" ".join(list(mcDict.keys())))
+			
+########################
+# 	为yao更新3个交易所的主力合约文件,
+#	然后又其它脚本上传到生产服务器。
+#	ao-zce-mc.csv、yao-shfe-mc.csv、yao-dce-mc.csv是根据
+#	yao实盘使用的主力合约(contracts.csv)分解出的每个交易
+#	所的主力合约，再加上mc-warm.csv的新主力合约，这些主力
+#	合约会上传到各自，这些主力合约会上传到各自交易所的服务
+#	器，替换原来的主力合约文件。
+#
+########################
+def UpdateMcForYao():	
+	UpdateMcForYaoImp("tools/shfe-varieties.txt", yaoShfeSubcribeMcFile)
+	UpdateMcForYaoImp("tools/dce-varieties.txt", yaoDceSubcribeMcFile)
+	UpdateMcForYaoImp("tools/zce-varieties.txt", yaoZceSubcribeMcFile)
+	
+		
+		
 if __name__=="__main__":   
 	main()
 

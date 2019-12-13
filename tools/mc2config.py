@@ -1,6 +1,15 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
+########################################
+#  	1. 更新生产环境的配置文件的主力合约以及合约订阅文件
+#	每天日夜盘上传ev文件时，根据主力合约contracts.csv更新配置文
+#	件x-trader.config。如果mc-warm.csv文件有内容，则将其中的合
+#	约条件到x-trader.config的合约列表中。  
+#
+############################################
+import datetime
+import calendar
 import datetime
 import xml.etree.ElementTree as ET
 from datetime import date
@@ -10,221 +19,122 @@ import csv
 import logging
 import os
 import sys
+import csv
+import glob
+import fileinput
+from string import digits
 
-src_config_file = '../x-trader.config'
-cur_config_file = 'x-trader.config'
-stra_setting = 'dce_day067.csv'
+varietiesFile = "/home/u910019/trader/varieties.txt"
 
+# 存储实盘正在使用的主力合约的文件
+mcFile = "/home/u910019/tick-data/mc/contracts.csv"
+mcWarnFile = "/home/u910019/tick-data/mc/mc-warm.csv"
+varietyFile = "/home/u910019/trader/varieties.txt"
+
+#########################
+# 参数1：脚本名
+#
+#########################
 def main():
+	configFile = 'x-trader.config'
+	
 	os.chdir(sys.path[0])
-	logging.basicConfig(filename='configurator.log',level=logging.DEBUG)
+	os.chdir('../trader')
+	print("current working directory:" + os.getcwd())
+	
+	logging.basicConfig(filename='mc2config.log',level=logging.DEBUG)		
+	backup(configFile)
 
-	shutil.copyfile(src_config_file, 'x-trader.config')
-	backup()
-
-	tree = ET.parse(cur_config_file)
+	tree = ET.parse(configFile)
 	root = tree.getroot()
-	update(root)
+	UpdateConfig(root)
+	tree.write(configFile, encoding="utf-8") #, xml_declaration=True) 
 
-	tree.write(cur_config_file, encoding="utf-8") #, xml_declaration=True) 
-	shutil.copyfile(cur_config_file, src_config_file)
+	# TODO：生成yao的三个交易所的合约订阅文件
 
-def backup():
+#############
+#	在更新配置之前，需要对原配置进行备份。
+#	以备当更新出问题时还原。
+#
+#################
+def backup(configFile):
 	count = 1
 	today = date.today()
 	today_str = today.strftime("%Y%m%d")
-	bk = 'x-trader_{0}_{1}.config'.format(today_str,count)
-	while(os.path.exists(bk)):
+	configBackup = 'x-trader_{0}_{1}.config'.format(today_str,count)
+	while(os.path.exists(configBackup)):
 		count = count + 1
-		bk = 'x-trader_{0}_{1}.config'.format(today_str,count)
-	shutil.copyfile(cur_config_file, bk)
+		configBackup = 'x-trader_{0}_{1}.config'.format(today_str,count)
+	shutil.copyfile(configFile, configBackup)
 
-def update(root):
-	clear(root)
+##################
+#	判断指定的合约是否是订阅的品种。
+#	如果是订阅的品种，返回true; 否则，返回false
+##################
+def IsSubscribedVariety(contract):
+	print("IsSubscribedVariety contract " + contract)
+	varietyOfContract = contract.translate(None, digits)
+	print("IsSubscribedVariety varietyOfContract " + varietyOfContract)
+	subscribedVarieties = []
+	f = fileinput.input(files=(varietyFile))
+	for line in f:
+		subscribedVarieties = line.split(" ")
+		break
+	f.close()
+	print("subscribedVarieties ", subscribedVarieties)
+	
+	return varietyOfContract in subscribedVarieties
+	
+def UpdateConfig(root):
+	ClearSymbols(root)
 
-	strategies = root.find("./strategies")
-	# find a strategy element as template
-	strategy_temp = strategies.find("./strategy")
+	mcDict = {}
+	with open(mcFile) as f:
+		reader = csv.DictReader(f)		
+		for row in reader:			
+			mcDict[row["r1"]] = row["r1"]			
+		
+	f = fileinput.input(files=mcWarnFile)
+	for line in f:
+		for contract in line.split(" "):
+			mcDict[contract] = contract
+	f.close()
 
-	# skip the first row, title row
-	with open(stra_setting) as csvfile:
-		reader = csv.reader(csvfile)
-		id = 0
-		for row in reader:
-			if id == 0:
-				id = id + 1
-				continue
-			add_strategy(strategies, strategy_temp, row, id)
-			id = id + 1
+	strategyElement = root.find("./models/strategy")
+	# find a symbol element as template
+	symbolElementTemplate = strategyElement.find("./symbol")
+	for contract in list(mcDict.keys()):
+		if IsSubscribedVariety(contract):
+			print("subscribed to " + contract)
+			AddSymbol(strategyElement, symbolElementTemplate, contract)
+		
+	strategyElement.remove(symbolElementTemplate)
 
-	# remove template element
-	strategies.remove(strategy_temp)
+def AddSymbol(strategyElement, symbolElementTemplate, contract):
+	symbolStr = ET.tostring(symbolElementTemplate, encoding="utf-8")
+	newSymbol = ET.fromstring(symbolStr)
+	strategyElement.append(newSymbol);
+	newSymbol.set('name', contract) 
+	
 
-def check_cont(contChk):
-	# check whether the specified contract is right dominant contract
-	#
-	#param:
-	#	contChk: a contract to be checked whether it 
-	#		is right dominant contract
-	#
-	domContLst = None
-
-	# read dominant contracts
-	domContLn = None
-	domContFile = "/home/u910019/domi_contr_check/cur_domi_contrs.txt"
-	with open(domContFile) as f:
-		for line in f:
-			domContLn  = line
-			break
-
-	valid = False
-	domContLst = domContLn.split(" ")
-	for cont in domContLst:
-		if cont.find(contChk)==0:
-			valid = True
-			break
-
-	if not valid:
-		logging.warning("incorrect contract:{0}".format(contChk))
-
-
-
-def add_strategy(strategies, strategy_temp, row, id):
-	strategy_tmp_str = ET.tostring(strategy_temp, encoding="utf-8")
-	new_strategy = ET.fromstring(strategy_tmp_str)
-	strategies.append(new_strategy);
-
-	new_strategy.set('id', str(id)) 
-	new_strategy.set('model_file', row[1]) 
-
-	# respectively copy ev file for every fl50,fl33 or fl51 strategry
-	ev_name_value = "ev/" + row[1] + ".txt"
-	new_strategy.set('ev_name', ev_name_value) 
-	strategy_name = row[1]
-	soFile = "../" + strategy_name + ".so" 
-	if not os.path.exists(soFile):
-		logging.warning("can not find " + soFile)
-
-
-	ev_file_src = ""
-	ev_file_dest = "../" + ev_name_value 
-
-	if 0==strategy_name.find('tst'):
-		ev_file_src = "SimuDay_tst.txt"
-		shutil.copyfile(ev_file_src, ev_file_dest)
-		shutil.copystat(ev_file_src, ev_file_dest)
-	if 0==strategy_name.find('locktst'):
-		ev_file_src = "SimuDay_locktst.txt"
-		shutil.copyfile(ev_file_src, ev_file_dest)
-		shutil.copystat(ev_file_src, ev_file_dest)
-
-	if 0==strategy_name.find('xpv'):
-		ev_file_src = "ev_xpv_day.txt"
-		shutil.copyfile(ev_file_src, ev_file_dest)
-		shutil.copystat(ev_file_src, ev_file_dest)
-	if 0==strategy_name.find('lockxpv'):
-		ev_file_src = "ev_lockxpv_day.txt"
-		shutil.copyfile(ev_file_src, ev_file_dest)
-		shutil.copystat(ev_file_src, ev_file_dest)
-
-	if 0==strategy_name.find('ipv'):
-		ev_file_src = "ev_ipv_day.txt"
-		shutil.copyfile(ev_file_src, ev_file_dest)
-		shutil.copystat(ev_file_src, ev_file_dest)
-	if 0==strategy_name.find('lockipv'):
-		ev_file_src = "ev_lockipv_day.txt"
-		shutil.copyfile(ev_file_src, ev_file_dest)
-		shutil.copystat(ev_file_src, ev_file_dest)
-
-	if 0==strategy_name.find('mpv'):
-		ev_file_src = "ev_mpv_day.txt"
-		shutil.copyfile(ev_file_src, ev_file_dest)
-		shutil.copystat(ev_file_src, ev_file_dest)
-	if 0==strategy_name.find('lockmpv'):
-		ev_file_src = "ev_lockmpv_day.txt"
-		shutil.copyfile(ev_file_src, ev_file_dest)
-		shutil.copystat(ev_file_src, ev_file_dest)
-
-	if 0==strategy_name.find('hv'):
-		ev_file_src = "SimuDay_hv.txt"
-		shutil.copyfile(ev_file_src, ev_file_dest)
-		shutil.copystat(ev_file_src, ev_file_dest)
-	if 0==strategy_name.find('lockhv'):
-		ev_file_src = "SimuDay_lockhv.txt"
-		shutil.copyfile(ev_file_src, ev_file_dest)
-		shutil.copystat(ev_file_src, ev_file_dest)
-
-
-	if 0==strategy_name.find('chg'):
-		ev_file_src = "SimuDay_chg.txt"
-		shutil.copyfile(ev_file_src, ev_file_dest)
-		shutil.copystat(ev_file_src, ev_file_dest)
-	if 0==strategy_name.find('lockchg'):
-		ev_file_src = "SimuDay_lockchg.txt"
-		shutil.copyfile(ev_file_src, ev_file_dest)
-		shutil.copystat(ev_file_src, ev_file_dest)
-
-	if 0==strategy_name.find('cpv'):
-		ev_file_src = "ev_cpv_day.txt"
-		shutil.copyfile(ev_file_src, ev_file_dest)
-		shutil.copystat(ev_file_src, ev_file_dest)
-	if 0==strategy_name.find('lockcpv'):
-		ev_file_src = "ev_lockcpv_day.txt"
-		shutil.copyfile(ev_file_src, ev_file_dest)
-		shutil.copystat(ev_file_src, ev_file_dest)
-
-	if 0==strategy_name.find('tpv'):
-		ev_file_src = "ev_tpv_day.txt"
-		shutil.copyfile(ev_file_src, ev_file_dest)
-		shutil.copystat(ev_file_src, ev_file_dest)
-	if 0==strategy_name.find('locktpv'):
-		ev_file_src = "ev_locktpv_day.txt"
-		shutil.copyfile(ev_file_src, ev_file_dest)
-		shutil.copystat(ev_file_src, ev_file_dest)
-
-	if 0==strategy_name.find('test'):
-		ev_file_src = "SimuDay_test.txt"
-		shutil.copyfile(ev_file_src, ev_file_dest)
-		shutil.copystat(ev_file_src, ev_file_dest)
-	if 0==strategy_name.find('locktest'):
-		ev_file_src = "SimuDay_locktest.txt"
-		shutil.copyfile(ev_file_src, ev_file_dest)
-		shutil.copystat(ev_file_src, ev_file_dest)
-
-	if 0==strategy_name.find('rpv'):
-		ev_file_src = "SimuDay_rpv.txt"
-		shutil.copyfile(ev_file_src, ev_file_dest)
-		shutil.copystat(ev_file_src, ev_file_dest)
-	if 0==strategy_name.find('lockrpv'):
-		ev_file_src = "SimuDay_lockrpv.txt"
-		shutil.copyfile(ev_file_src, ev_file_dest)
-		shutil.copystat(ev_file_src, ev_file_dest)
-
-	if 0==strategy_name.find('avgp'):
-		ev_file_src = "ev_avgp_day.txt"
-		shutil.copyfile(ev_file_src, ev_file_dest)
-		shutil.copystat(ev_file_src, ev_file_dest)
-
-	symbol = new_strategy.find("./symbol")
-	check_cont(row[2]) 
-	symbol.set('max_pos', row[3])
-	symbol.set('name', row[2])
-
-def clear(root):
+#############################
+#	1. 假设：假设当前交易程序只支持单个策略。
+#	2. 该方法会清除唯一的strategy下的symbol
+#	元素(保留一个symbol元素用于复制)
+#	3. 如果strategy元素下没有symbol元素，则报异常。
+###########################
+def ClearSymbols(root):
 	'''
 	removes strategy elements from trasev.config until there is 
 	a strategy element left.
 	'''
-	stras = root.findall("./strategies/strategy")
-	stra_cnt = len(stras);
-	if stra_cnt > 1:
-		del stras[0]
-	elif stra_cnt == 0:
-		raise Exception('There is NOT one strategy element!')
+	symbolElements = root.findall("./models/strategy/symbol")	
+	if len(symbolElements) == 0:		
+		raise Exception('There is NOT one symbol element!')
 
-	strategies_e = root.find("./strategies")
-	for stra in stras:
-		strategies_e.remove(stra)
+	strategyElement = root.find("./models/strategy")
+	for symbolElement in symbolElements[1:]:
+		strategyElement.remove(symbolElement)
 
 
 if __name__=="__main__":   
