@@ -33,6 +33,7 @@ function run()
 isNight=$1
 enter_cur_dir
 echo "isNight=${isNight}"
-python ./mc-updater.py $isNight
+python ./mc-updater.py $isNight 0
+python ./mc-updater.py $isNight 1
 sh ./deliveryday-warn.sh
 python ./mc2config.py

@@ -48,9 +48,9 @@ mcFile = "/home/u910019/tick-data/mc/contracts.csv"
 
 mcWarnFile = "/home/u910019/tick-data/mc/mc-warm.csv"
 deliveryDayWarnFile = "/home/u910019/tick-data/mc/deliveryday-warm.csv"
-mediShfeMcFile = "/home/u910019/tick-data/mc/medi-shfe-mc.csv"
-mediDceMcFile = "/home/u910019/tick-data/mc/medi-dce-mc.csv"
-mediZceMcFile = "/home/u910019/tick-data/mc/medi-zce-mc.csv"
+mediShfeSubcribeMcFile = "/home/u910019/tick-data/mc/medi-shfe-subcribed-mc.csv"
+mediDceSubcribeMcFile = "/home/u910019/tick-data/mc/medi-dce-subcribed-mc.csv"
+mediZceSubcribeMcFile = "/home/u910019/tick-data/mc/medi-zce-subcribed-mc.csv"
 yaoShfeSubcribeMcFile = "/home/u910019/tick-data/mc/yao-shfe-subcribed-mc.csv"
 yaoDceSubcribeMcFile = "/home/u910019/tick-data/mc/yao-dce-subcribed-mc.csv"
 yaoZceSubcribeMcFile = "/home/u910019/tick-data/mc/yao-zce-subcribed-mc.csv"
@@ -58,32 +58,36 @@ yaoZceSubcribeMcFile = "/home/u910019/tick-data/mc/yao-zce-subcribed-mc.csv"
 #########################
 # 参数1：脚本名
 # 参数2：是否是夜盘（0：日盘；1：夜盘）
+# 参数3：0：是根据行情数据产生中间数据信息
+#		 1：根据中间数据信息生成行情订阅数据
 #
 #########################
 def main():
 	os.chdir(sys.path[0])
 	os.chdir('../')
-	print("current working directory:" + os.getcwd())
-	
+	print("current working directory:" + os.getcwd())	
 	logging.basicConfig(filename='mc-updater.log',level=logging.DEBUG)
 		
 	argv_len = len(sys.argv)
-	print(argv_len)
-	# 注意：因为某些品种没有夜盘交易(这会给生成主力合约带来麻烦)
-	# 故只从日盘行情数据判断主力合约的换月
+	print(argv_len)	
 	isNight = sys.argv[1]
 	print("isNight:", isNight)
+	option = sys.argv[2]
+	print("option:", option)
 	
 	targetDir = GetTargetDir(isNight)	
 	print("target directory:" + targetDir)
-		
-	WriteDceMcFile(isNight)
-	WriteZceMcFile(isNight)
-	WriteShfeMcFile(isNight)
-	WriteYaoMcFile(isNight)
-	WarnChaningMonth(isNight)
-	UpdateMcForMedi(isNight)	
-	UpdateMcForYao()
+	
+	if option == "0":	# 根据行情数据生成中间文件
+		WriteDceMcFile(isNight)
+		WriteZceMcFile(isNight)
+		WriteShfeMcFile(isNight)
+		WriteYaoMcFile(isNight)
+		WarnChaningMonth(isNight)
+	
+	if option == "1":	# 根据中间文件生成订阅文件
+		UpdateSubscribedMcForMedi(isNight)	
+		UpdateSubscribedMcForYao()
 
 #####################################
 # 从trading-day.txt中获取当前交易日。
@@ -384,11 +388,11 @@ def WarnChaningMonth(isNight):
 		f.write(" ".join(warnContracts))
 
 ########################
-# 为medi更新3个交易所的主力合约文件，并上传到生产服务器。
+# 为medi更新3个交易所的订阅主力合约文件。
 # 因为夜盘有些品种不交易，因此夜盘不生成行情订阅文件
 #
 ########################
-def UpdateMcForMedi(isNight):	
+def UpdateSubscribedMcForMedi(isNight):	
 	if isNight=="1":	# 因为夜盘有些品种不交易，因此夜盘不生成行情订阅文件
 		return
 		
@@ -398,7 +402,7 @@ def UpdateMcForMedi(isNight):
 		reader = csv.DictReader(f)		
 		for row in reader:								
 			shfeCanditateContracts.append(row["r1"])
-	with open(mediShfeMcFile, 'w') as f:
+	with open(mediShfeSubcribeMcFile, 'w') as f:
 		f.write(" ".join(shfeCanditateContracts))
 		
 	dce_mc_filename = os.path.join(GetTargetDir(isNight), dceContractsFile)
@@ -407,7 +411,7 @@ def UpdateMcForMedi(isNight):
 		reader = csv.DictReader(f)		
 		for row in reader:								
 			dceCanditateContracts.append(row["r1"])
-	with open(mediDceMcFile, 'w') as f:
+	with open(mediDceSubcribeMcFile, 'w') as f:
 		f.write(" ".join(dceCanditateContracts))
 		
 	zce_mc_filename = os.path.join(GetTargetDir(isNight), zceContractsFile)
@@ -416,7 +420,7 @@ def UpdateMcForMedi(isNight):
 		reader = csv.DictReader(f)		
 		for row in reader:								
 			zceCanditateContracts.append(row["r1"])
-	with open(mediZceMcFile, 'w') as f:
+	with open(mediZceSubcribeMcFile, 'w') as f:
 		f.write(" ".join(zceCanditateContracts))
 
 ##################
@@ -433,7 +437,7 @@ def IsSubscribedVariety(contract, varietyFile):
 	
 	return varietyOfContract in subscribedVarieties
 	
-def UpdateMcForYaoImp(varietiesFile, subcribedContractFile):		
+def UpdateSubscribedMcForYaoImp(varietiesFile, subcribedContractFile):		
 	mcDict = {}
 		
 	with open(mcFile) as f:
@@ -453,19 +457,20 @@ def UpdateMcForYaoImp(varietiesFile, subcribedContractFile):
 		f.write(" ".join(list(mcDict.keys())))
 			
 ########################
-# 	为yao更新3个交易所的主力合约文件,
-#	然后又其它脚本上传到生产服务器。
-#	ao-zce-mc.csv、yao-shfe-mc.csv、yao-dce-mc.csv是根据
-#	yao实盘使用的主力合约(contracts.csv)分解出的每个交易
+# 	为yao更新3个交易所订阅的主力合约文件:	
+#	yao-zce-subcribed-mc.csv
+#	yao-shfe-subcribed-mc.csv
+#	yao-dce-subcribed-mc.csv
+#	是根据yao实盘使用的主力合约(contracts.csv)分解出的每个交易
 #	所的主力合约，再加上mc-warm.csv的新主力合约，这些主力
 #	合约会上传到各自，这些主力合约会上传到各自交易所的服务
 #	器，替换原来的主力合约文件。
 #
 ########################
-def UpdateMcForYao():	
-	UpdateMcForYaoImp("tools/shfe-varieties.txt", yaoShfeSubcribeMcFile)
-	UpdateMcForYaoImp("tools/dce-varieties.txt", yaoDceSubcribeMcFile)
-	UpdateMcForYaoImp("tools/zce-varieties.txt", yaoZceSubcribeMcFile)
+def UpdateSubscribedMcForYao():	
+	UpdateSubscribedMcForYaoImp("tools/shfe-varieties.txt", yaoShfeSubcribeMcFile)
+	UpdateSubscribedMcForYaoImp("tools/dce-varieties.txt", yaoDceSubcribeMcFile)
+	UpdateSubscribedMcForYaoImp("tools/zce-varieties.txt", yaoZceSubcribeMcFile)
 	
 		
 		
