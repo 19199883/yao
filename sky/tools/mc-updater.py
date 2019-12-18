@@ -63,20 +63,20 @@ yaoZceSubcribeMcFile = "/home/u910019/tick-data/mc/yao-zce-subcribed-mc.csv"
 #
 #########################
 def main():
+	logging.basicConfig(filename='mc-updater.log',level=logging.DEBUG)
+
 	os.chdir(sys.path[0])
 	os.chdir('../')
-	print("current working directory:" + os.getcwd())	
-	logging.basicConfig(filename='mc-updater.log',level=logging.DEBUG)
+	logging.info("current working directory: {0}".format(os.getcwd()))
 		
 	argv_len = len(sys.argv)
-	print(argv_len)	
+	logging.info("argv len: {0}".format(argv_len))
 	isNight = sys.argv[1]
-	print("isNight:", isNight)
 	option = sys.argv[2]
-	print("option:", option)
+	logging.info("isNight:{0}; option: {1}".format(isNight, option))
 	
 	targetDir = GetTargetDir(isNight)	
-	print("target directory:" + targetDir)
+	logging.info("target directory: {0}".format(targetDir))
 	
 	if option == "0":	# 根据行情数据生成中间文件
 		WriteDceMcFile(isNight)
@@ -166,6 +166,7 @@ def GetLastQuote(md_file, totalVolContractDict):
 	with open(md_file) as f:
 		reader = csv.DictReader(f)		
 		for row in reader:					
+			#logging.info("total_vol: {0}".format(row["total_vol"]))
 			lastTotal_vol = int(row["total_vol"])
 			contract = row["symbol"]
 	
@@ -178,21 +179,34 @@ def GetLastQuote(md_file, totalVolContractDict):
 #
 #######################
 def WriteFFLC(varity, mc_file, totalVolContractDict):	
-	print("mc_file " + mc_file)
+	logging.info("mc_file: {0}, varity:{1}".format(mc_file, varity))
 	with open(mc_file, 'a') as mcfile:
 		fieldnames = ["date", "datenext", "product", "r1", "r2", "r3", "r4"]
 		writer = csv.DictWriter(mcfile, fieldnames=fieldnames)
 		keys = totalVolContractDict.keys()
 		keys.sort(reverse=True)
-		print("WriteFFLC keys ", keys)
+
+		contract1 = ""
+		if len(keys) >= 1:
+			contract1 = totalVolContractDict[keys[0]]
+		contract2 = ""
+		if len(keys) >= 2:
+			contract2 = totalVolContractDict[keys[1]]
+		contract3 = ""
+		if len(keys) >= 3:
+			contract3 = totalVolContractDict[keys[2]]
+		contract4 = ""
+		if len(keys) >= 4:
+			contract4 = totalVolContractDict[keys[3]]
+
 		writer.writerow({
 							"date": GetTradingDay(), 
 							"datenext": "",
 							"product": varity,
-							"r1" : totalVolContractDict[keys[0]], 
-							"r2" : totalVolContractDict[keys[1]], 
-							"r3" : totalVolContractDict[keys[2]], 
-							"r4" : totalVolContractDict[keys[3]]
+							"r1" : contract1, 
+							"r2" : contract2, 
+							"r3" : contract3, 
+							"r4" : contract4
 						})
 
 
@@ -217,16 +231,16 @@ def WriteMcFile(varities_file, md_dir, mc_file):
 		for row in reader:
 			varities = row
 			break
-	print("varities: " + varities[0])
+	logging.info("varities: {0}".format(varities[0]))
 	for varity in varities[0].split(' '):
 		totalVolContractDict.clear()
-		print("process " + varity + "...")
+		#logging.info("process: {0} ...".format(varity))
 		md_file = os.path.join(md_dir, varity + '[0-9]*.csv')
-		print("md_file: " + md_file)
+		logging.info("md_file: {0} ...".format(md_file))
 		for file in glob.glob(md_file):
-			print("process " + file)
+			#logging.info("process : {0}".format(file))
 			GetLastQuote(file, totalVolContractDict)
-		if len(list(totalVolContractDict.keys())) >=4 :
+		if len(totalVolContractDict.keys()) > 0:
 			WriteFFLC(varity, mc_file, totalVolContractDict)
 
 #######################
@@ -267,12 +281,12 @@ def WriteZceMcFile(isNight):
 	WriteMcFile(varities_file, md_dir, mc_file)
 
 def WriteYaoMcFileInner(dictReader, yao_mc_filename):
-	print("write yao_mc_filename: " + yao_mc_filename)	
+	logging.info("write yao_mc_filename: {0}".format(yao_mc_filename))
 	with open(yao_mc_filename, 'a') as yao_mcfile:
 		fieldnames = ["date", "datenext", "product", "r1", "r2", "r3", "r4"]
 		writer = csv.DictWriter(yao_mcfile, fieldnames=fieldnames)		
 		for row in dictReader:
-			print("write yao_mc_filename: ", row)
+			#logging.info("write yao_mc_filename: {0}".format(row))
 			writer.writerow({
 							"date": row["date"], 
 							"datenext": row["datenext"],
@@ -329,14 +343,27 @@ def WarnChaningMonthForTotalVol(warnContracts, isNight):
 	yao_mc_filename = os.path.join(GetTargetDir(isNight), yaoContractsFile)
 	with open(yao_mc_filename) as f:
 		reader = csv.DictReader(f)		
-		for row in reader:								
-			canditateContracts.append(row["r1"])
+		for row in reader:
+			contract = row["r1"]
+			if len(contract) > 0:
+				canditateContracts.append(contract)
 	
 	for contract in canditateContracts:
 		if contract not in usingContracts:
 			warnContracts.append(contract)
 				
-
+def IsNullMd(warnContracts, isNight):
+	# 备选主力合约
+	canditateContracts = []
+	yao_mc_filename = os.path.join(GetTargetDir(isNight), yaoContractsFile)
+	if os.path.exists(yao_mc_filename):
+		with open(yao_mc_filename) as f:
+			reader = csv.DictReader(f)		
+			for row in reader:								
+				canditateContracts.append(row["r1"])
+	
+	return len(canditateContracts)==0
+	
 ######################
 # 通过遍历实盘主力合约，找到需要接近交割日提醒的合约，
 # 并存储到warnContracts
@@ -355,12 +382,12 @@ def WarnChaningMonthForDeliveryDay(warnContracts):
 	
 	for contract in usingContracts:
 		contractMonth = int(contract[-3:])
-		print("WarnChaningMonthForDeliveryDay contractMonth:", contract, contractMonth)
+		#logging.info("WarnChaningMonthForDeliveryDay contractMonth: {0} {1}".format(contract, contractMonth))
 		curMonth = int(date.today().strftime("%y%m")[-3:])
-		print("WarnChaningMonthForDeliveryDay curMonth:", curMonth)
+		#logging.info("WarnChaningMonthForDeliveryDay curMonth:{0}".format(curMonth))
 		if contractMonth == curMonth :
 			if (30 - date.today().day) <= 7 :  # TODO: to here
-				print("WarnChaningMonthForDeliveryDay warn contract:" + contract)
+				#logging.info("WarnChaningMonthForDeliveryDay warn contract:{0}".format(contract))
 				warnContracts.append(contract)
 		
 
@@ -377,15 +404,20 @@ def WarnChaningMonth(isNight):
 	warnContracts = []
 	warnContractsForTotalVol = []
 	warnContractsForDeliveryDay = []
-	WarnChaningMonthForTotalVol(warnContractsForTotalVol, isNight)
+
+	if not IsNullMd(warnContractsForTotalVol, isNight):
+		WarnChaningMonthForTotalVol(warnContractsForTotalVol, isNight)
+		warnContracts = warnContractsForTotalVol
+		with open(mcWarnFile, 'w') as f:
+			if len(warnContracts) > 0:
+				f.write(" ".join(warnContracts))
+			else:
+				f.write("")
 	
 	WarnChaningMonthForDeliveryDay(warnContractsForDeliveryDay)
 	with open(deliveryDayWarnFile, 'w') as f:
 		f.write(" ".join(warnContractsForDeliveryDay))
 	
-	warnContracts = warnContractsForTotalVol
-	with open(mcWarnFile, 'w') as f:
-		f.write(" ".join(warnContracts))
 
 ########################
 # 为medi更新3个交易所的订阅主力合约文件。
@@ -433,7 +465,7 @@ def IsSubscribedVariety(contract, varietyFile):
 	with open(varietyFile) as f:
 		line = f.readline().rstrip("\n")
 		subscribedVarieties = line.split(" ")
-		print("subscribedVarieties:", subscribedVarieties)
+		#logging.info("subscribedVarieties:{0}".format(subscribedVarieties))
 	
 	return varietyOfContract in subscribedVarieties
 	

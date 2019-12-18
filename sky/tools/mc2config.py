@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 ########################################
-#  	更新生产环境的配置文件的主力合约
+#  	1. 更新生产环境的配置文件的主力合约以及合约订阅文件
 #	每天日夜盘上传ev文件时，根据主力合约contracts.csv更新配置文
 #	件x-trader.config。如果mc-warm.csv文件有内容，则将其中的合
 #	约条件到x-trader.config的合约列表中。  
@@ -48,7 +48,9 @@ def main():
 	tree = ET.parse(configFile)
 	root = tree.getroot()
 	UpdateConfig(root)
-	tree.write(configFile, encoding="utf-8") #, xml_declaration=True) 		
+	tree.write(configFile, encoding="utf-8") #, xml_declaration=True) 
+
+	# TODO：生成yao的三个交易所的合约订阅文件
 
 #############
 #	在更新配置之前，需要对原配置进行备份。

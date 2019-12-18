@@ -27,7 +27,7 @@ function deliverydaywarn()
 		message="$(cat ${warn_file})"
 		if [[ -n $message ]];then 
 			echo "交割日告警，如下合约即将进入交割日：${message}" | mail -s "交割日告警" 17199883@qq.com
-			echo "交割日告警，如下合约即将进入交割日：${message}" | mail -s "交割日告警" 3580771905@qq.com
+			#echo "交割日告警，如下合约即将进入交割日：${message}" | mail -s "交割日告警" 3580771905@qq.com
 		fi
 	fi	
 }	 

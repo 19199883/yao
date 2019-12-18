@@ -32,9 +32,17 @@ function run()
 
 isNight=$1
 enter_cur_dir
-echo `pwd`
 echo "isNight=${isNight}"
 python ./mc-updater.py $isNight 0
 python ./mc-updater.py $isNight 1
 sh ./deliveryday-warn.sh
-python ./mc2config.py
+
+# yao 只在日盘结束的时候确定吧,就是同一个交易日的夜盘和日盘不发生合约的改变
+if [ $isNight == "0" ];then
+	echo "do execute mc2config.py"
+	python ./mc2config.py
+else
+	echo "do not execute mc2config.py"
+fi
+
+

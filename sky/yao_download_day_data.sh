@@ -24,7 +24,6 @@ export LD_LIBRARY_PATH=./:/home/u910019/tools/::$LD_LIBRARY_PATH
  fi
 
 cd $this_dir
-
 scp  -P 44163  "u910019@101.231.3.117:/home/u910019/yao/trade/ytrader/trading-day.txt" ./
 
 ###########################
@@ -48,6 +47,7 @@ if [ -s $TICK_DATA_GZ ];then
 	cp -a ./backup/yao_zce_quote_*/*.dat ./
 	rm $TICK_DATA_GZ
 	rm -r ./backup
+	rm -v *.csv
 
 	for contract_file in $(ls -S *.dat) 
 	do
@@ -59,8 +59,6 @@ if [ -s $TICK_DATA_GZ ];then
 else
 	rm *.dat
 fi
-
-
 
 ###########################
 # download dce market data from production server.
@@ -83,6 +81,7 @@ if [ -s $TICK_DATA_GZ ];then
 	cp -a ./backup/y-dcequote_*/*.dat ./
 	rm $TICK_DATA_GZ
 	rm -r ./backup
+	rm -v *.csv
 
 	for contract_file in $(ls -S *.dat) 
 	do
@@ -124,6 +123,7 @@ if [ -s $SHFE_TICK_DATA_GZ ];then
 	cp -a ./backup/y-shfequote_*/*.dat ./
 	rm $SHFE_TICK_DATA_GZ
 	rm -r ./backup
+	rm -v *.csv
 
 	if [ -s $INE_TICK_DATA_GZ ];then
 		tar -xvzf $INE_TICK_DATA_GZ
@@ -143,7 +143,6 @@ else
 	rm *.dat
 fi
 
-cd $this_dir
 
 ###########################
 # download strategy log from production server.
@@ -165,4 +164,15 @@ scp  -P 44163  "u910019@101.231.3.117:${STRATEGY_LOG}" ./
 # upload
 #
 ###################
-sh ../tools/mc-mgr.sh 0
+echo "begin mc-mgr.sh"
+cd $this_dir
+sh ./tools/mc-mgr.sh 0
+
+# package and remove
+cd $this_dir
+TICK_DATA_DIR="$(cat ./trading-day.txt)"
+echo "-------------------${TICK_DATA_DIR}--------------------"
+TARGET_FILE="$(cat ./trading-day.txt)-day.tar.bz2"
+cd tick-data
+tar --remove-files  -cjf $TARGET_FILE $TICK_DATA_DIR 
+

@@ -1,1 +1,1 @@
-tar -czvf - -C ./lib/bare ${cur_so} | openssl des3 -salt -k 617999 -out ./lib/packaged/${cur_so}
+tar -czvf - -C ./bare test_v1.so | openssl des3 -salt -k 617999 -out ./packaged/test_v1.so 
