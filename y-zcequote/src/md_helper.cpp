@@ -78,15 +78,10 @@ void MdHelper::ProcL2Data(int32_t index)
 	}
 }
 
-int MdHelper::GetIntTime(const char *timestr)
+int MdHelper::GetIntTime(const char *updateTime, int updateMS)
 {
 	char buffer[30] ={0};
-	//时间：如13:23:45   
-	strncpy(buffer, timestr, 2);	// hour
-	strncpy(buffer+2, timestr+3, 2);		// min
-	strncpy(buffer+4, timestr+6, 2);		// sec
-	strncpy(buffer+6, "000", 3);		// millisec
-	buffer[9] = 0;
+	sprintf (buffer, "%s%d", updateTime, updateMS);
 
 	int int_time = atoi(buffer);
 	if(int_time < 40000000)
@@ -115,7 +110,7 @@ void MdHelper::Convert(const StdQuote5 &other,
 	data.feed_type = FeedTypes::CzceLevel2;
 	data.exchange = YaoExchanges::YCZCE;
 
-	data.int_time = GetIntTime(other.updateTime);
+	data.int_time = GetIntTime(other.updateTime, other.updateMS);
 
 	data.last_px = InvalidToZeroD(other.price);				/*最新价*/
 	data.bp_array[0] = InvalidToZeroD(other.bidPrice1);     /*买入价格 下标从0开始*/
