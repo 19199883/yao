@@ -47,7 +47,7 @@ void MdHelper::ProcL2Data(int32_t index)
 	//			index,
 	//			md->turnover);
 
-	l1_md =  GetData(md->instrument); // md->instrument, e.g. SR1801
+	l1_md =  GetData(md->instrument); // md->instrument, e.g. SR801
 	if(NULL != l1_md)
 	{
 		//clog_info("[test] [%s] ProcL2Data L1 contract:%s%s, time:%s, turnover:%f", 
@@ -209,7 +209,7 @@ void MdHelper::ProcL1MdData(int32_t index)
 }
 
 /*
- *  contract: e.g. SR1801
+ *  contract: e.g. SR801
  */
 TapAPIQuoteWhole* MdHelper::GetData(const char *contract)
 {
@@ -223,7 +223,7 @@ TapAPIQuoteWhole* MdHelper::GetData(const char *contract)
 			break;
 		}
 
-		if(IsEqualSize4Zce(contract, 
+		if(IsEqualSize3Zce(contract, 
 						tmp.Contract.Commodity.CommodityNo, 
 						tmp.Contract.ContractNo1))
 		{ 

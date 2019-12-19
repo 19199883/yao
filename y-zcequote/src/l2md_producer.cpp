@@ -272,7 +272,7 @@ bool L2MDProducer::IsDominant(const char *contract)
 	//clog_warning("[%s] %s, return TRUE in IsDominant.",module_name_,contract);
 	return true;
 #else
-	return IsDominantImpZce((char*)contract, dominant_contracts_, dominant_contract_count_);
+	return IsDominantImp((char*)contract, dominant_contracts_, dominant_contract_count_);
 #endif
 }
 
