@@ -242,6 +242,7 @@ def WriteMcFile(varities_file, md_dir, mc_file):
 			GetLastQuote(file, totalVolContractDict)
 		if len(totalVolContractDict.keys()) > 0:
 			WriteFFLC(varity, mc_file, totalVolContractDict)
+	print("WriteMcFile")
 
 #######################
 # 根据上期的品种文件，指定路径的上期的行情文件，
@@ -250,6 +251,7 @@ def WriteMcFile(varities_file, md_dir, mc_file):
 #
 #######################
 def WriteShfeMcFile(isNight):
+	print("WriteShfeMcFile")
 	varities_file = "tools/shfe-varieties.txt"
 	md_dir = GetShfeMdDir(isNight)
 	mc_dir = GetTargetDir(isNight)	
@@ -434,8 +436,9 @@ def UpdateSubscribedMcForMedi(isNight):
 		reader = csv.DictReader(f)		
 		for row in reader:								
 			shfeCanditateContracts.append(row["r1"])
-	with open(mediShfeSubcribeMcFile, 'w') as f:
-		f.write(" ".join(shfeCanditateContracts))
+	if len(shfeCanditateContracts) > 0:
+		with open(mediShfeSubcribeMcFile, 'w') as f:
+			f.write(" ".join(shfeCanditateContracts))
 		
 	dce_mc_filename = os.path.join(GetTargetDir(isNight), dceContractsFile)
 	dceCanditateContracts = []
@@ -443,8 +446,9 @@ def UpdateSubscribedMcForMedi(isNight):
 		reader = csv.DictReader(f)		
 		for row in reader:								
 			dceCanditateContracts.append(row["r1"])
-	with open(mediDceSubcribeMcFile, 'w') as f:
-		f.write(" ".join(dceCanditateContracts))
+	if len(dceCanditateContracts) > 0:
+		with open(mediDceSubcribeMcFile, 'w') as f:
+			f.write(" ".join(dceCanditateContracts))
 		
 	zce_mc_filename = os.path.join(GetTargetDir(isNight), zceContractsFile)
 	zceCanditateContracts = []
@@ -452,8 +456,9 @@ def UpdateSubscribedMcForMedi(isNight):
 		reader = csv.DictReader(f)		
 		for row in reader:								
 			zceCanditateContracts.append(row["r1"])
-	with open(mediZceSubcribeMcFile, 'w') as f:
-		f.write(" ".join(zceCanditateContracts))
+	if len(zceCanditateContracts) > 0:
+		with open(mediZceSubcribeMcFile, 'w') as f:
+			f.write(" ".join(zceCanditateContracts))
 
 ##################
 #	判断指定的合约是否是订阅的品种。
