@@ -103,30 +103,17 @@ cd tick-data
 #rm -r ${SHFE_TICK_DATA_DIR}
 mkdir -p ${SHFE_TICK_DATA_DIR}
 
-SHFE_TICK_DATA="/home/u910019/yao/market-data/night/backup/y-shfequote_`date +%y%m%d`.tar.gz"
-SHFE_TICK_DATA_GZ="y-shfequote_`date +%y%m%d`.tar.gz"
+SHFE_TICK_DATA="/home/u910019/market-data/shfe-lev2/night/backup/shfe_lev2_data_night_`date +%y%m%d`.tar.gz"
+SHFE_TICK_DATA_GZ="shfe_lev2_data_night_`date +%y%m%d`.tar.gz"
 scp  -P 44163  "u910019@101.231.3.117:${SHFE_TICK_DATA}" ${SHFE_TICK_DATA_DIR}
-
-INE_TICK_DATA="/home/u910019/yao/market-data/night/backup/y-inequote_`date +%y%m%d`.tar.gz"
-INE_TICK_DATA_GZ="y-inequote_`date +%y%m%d`.tar.gz"
-scp  -P 44163  "u910019@101.231.3.117:${INE_TICK_DATA}" ${SHFE_TICK_DATA_DIR}
-
 cd ${SHFE_TICK_DATA_DIR}
 
 if [ -s $SHFE_TICK_DATA_GZ ];then
 	tar -xvzf $SHFE_TICK_DATA_GZ
-	cp -a ./backup/y-shfequote_*/*.dat ./
+	cp -a ./backup/shfe_lev2_data_*/*.dat ./
 	rm $SHFE_TICK_DATA_GZ
 	rm -r ./backup
 	rm -v *.csv
-
-	if [ -s $INE_TICK_DATA_GZ ];then
-		tar -xvzf $INE_TICK_DATA_GZ
-		cp -a ./backup/y-inequote_*/*.dat ./
-		rm $INE_TICK_DATA_GZ
-		rm -r ./backup
-	fi
-
 	for contract_file in $(ls -S *.dat) 
 	do
 		/home/u910019/tools/dat2csvd ${contract_file}
