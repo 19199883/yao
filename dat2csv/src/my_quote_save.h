@@ -3,6 +3,7 @@
 
 #include "quote_cmn_utility.h"
 #include "YaoQuote.h"
+#include "ThostFtdcUserApiStruct.h"
 
 // 行情类型标识定义
 #define GTAEX_CFFEX_QUOTE_TYPE          1
@@ -92,6 +93,23 @@ struct SaveFileHeaderStruct
 
 // 发送数据，也使用该结构做消息头
 typedef SaveFileHeaderStruct SendQuoteDataHeader;
+
+struct SaveData_ShfeLev2Data
+{
+	long long t_;
+	CThostFtdcDepthMarketDataField data_;
+	// 缺省构造
+	SaveData_ShfeLev2Data()
+	{
+		t_ = 0;
+	}
+
+	// 通过时间戳、和网络数据包构造
+	SaveData_ShfeLev2Data(long long t, const CThostFtdcDepthMarketDataField &d)
+		: t_(t), data_(d)
+	{
+	}
+};
 
 
 struct SaveData_YaoQuote

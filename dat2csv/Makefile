@@ -4,7 +4,7 @@ CC:=g++
 DEBUG:=y
 TOP:=..
 DIST_DIR:=$(TOP)/dat2csv/dist
-INCPATH:= -I$(TOP)/3rd/yao/include 
+INCPATH:= -I$(TOP)/3rd/yao/include -I$(TOP)/3rd/ctp/include
 LIBPATH:=
 CPPFLAGS:=-std=c++11 $(INCPATH)
 CFLAGS:=

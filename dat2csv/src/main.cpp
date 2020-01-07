@@ -19,6 +19,7 @@
 #include <iostream>
 #include <chrono>
 #include "yao_quote.h"
+#include "shfe_lev2_quote.h"
 
 char *header = ",feed_type,symbol,exchange,int_time,"
 			   "pre_close_px,pre_settle_px,pre_open_interest,"
@@ -143,6 +144,13 @@ int main(int argc, const char **argv)
 					SaveData_YaoQuote t;
 					f_in.read((char *)&t, sizeof(t));
 					f_out << YaoQuoteToString(i, &t) << std::endl;
+					break;
+				}
+				case SHFE_LEV2_DATA_QUOTE_TYPE:
+				{
+					SaveData_ShfeLev2Data t;
+					f_in.read((char *)&t, sizeof(t));
+					f_out << ShfeLev2QuoteToString(i, &t) << std::endl;
 					break;
 				}
 			default:
