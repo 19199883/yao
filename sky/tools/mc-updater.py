@@ -47,7 +47,9 @@ yaoContractsFile = "contracts.csv"
 mcFile = "/home/u910019/tick-data/mc/contracts.csv"
 
 mcWarnFile = "/home/u910019/tick-data/mc/mc-warm.csv"
+mc2ndWarnFile = "/home/u910019/tick-data/mc/mc-2nd-warm.csv"
 deliveryDayWarnFile = "/home/u910019/tick-data/mc/deliveryday-warm.csv"
+deliveryDayWarnFile2nd = "/home/u910019/tick-data/mc/deliveryday-warm-2nd.csv"
 mediShfeSubcribeMcFile = "/home/u910019/tick-data/mc/medi-shfe-subcribed-mc.csv"
 mediDceSubcribeMcFile = "/home/u910019/tick-data/mc/medi-dce-subcribed-mc.csv"
 mediZceSubcribeMcFile = "/home/u910019/tick-data/mc/medi-zce-subcribed-mc.csv"
@@ -83,7 +85,8 @@ def main():
 		WriteZceMcFile(isNight)
 		WriteShfeMcFile(isNight)
 		WriteYaoMcFile(isNight)
-		WarnChaningMonth(isNight)
+		Warn1stMcChaningMonth(isNight)
+		Warn2ndMcChaningMonth(isNight)
 	
 	if option == "1":	# 根据中间文件生成订阅文件
 		UpdateSubscribedMcForMedi(isNight)	
@@ -331,7 +334,7 @@ def WriteYaoMcFile(isNight):
 # 
 #
 #######################	
-def WarnChaningMonthForTotalVol(warnContracts, isNight):
+def WarnChaningMonthForTotalVolFor1stMc(warnContracts, isNight):
 	usingContracts = []
 	# 实盘主力合约
 	if os.path.exists(mcFile):
@@ -354,6 +357,35 @@ def WarnChaningMonthForTotalVol(warnContracts, isNight):
 		if contract not in usingContracts:
 			warnContracts.append(contract)
 				
+######################
+# 通过比较候选主力合约与实盘主力合约，找到需要换月的合约，
+# 并存储到warnContracts
+# 
+#
+#######################	
+def WarnChaningMonthForTotalVolFor2ndMc(warnContracts, isNight):
+	usingContracts = []
+	# 实盘主力合约
+	if os.path.exists(mcFile):
+		with open(mcFile) as f:
+			reader = csv.DictReader(f)		
+			for row in reader:								
+				usingContracts.append(row["r2"])	
+			
+	# 备选主力合约
+	canditateContracts = []
+	yao_mc_filename = os.path.join(GetTargetDir(isNight), yaoContractsFile)
+	with open(yao_mc_filename) as f:
+		reader = csv.DictReader(f)		
+		for row in reader:
+			contract = row["r2"]
+			if len(contract) > 0:
+				canditateContracts.append(contract)
+	
+	for contract in canditateContracts:
+		if contract not in usingContracts:
+			warnContracts.append(contract)
+
 def IsNullMd(warnContracts, isNight):
 	# 备选主力合约
 	canditateContracts = []
@@ -402,13 +434,14 @@ def WarnChaningMonthForDeliveryDay(warnContracts):
 #    账户是不允许进入交割日的)
 #
 ###########################		
-def WarnChaningMonth(isNight):	
+# TODO: here		
+def Warn1stChaningMonth(isNight):	
 	warnContracts = []
 	warnContractsForTotalVol = []
 	warnContractsForDeliveryDay = []
 
 	if not IsNullMd(warnContractsForTotalVol, isNight):
-		WarnChaningMonthForTotalVol(warnContractsForTotalVol, isNight)
+		WarnChaningMonthForTotalVolFor1stMc(warnContractsForTotalVol, isNight)
 		warnContracts = warnContractsForTotalVol
 		with open(mcWarnFile, 'w') as f:
 			if len(warnContracts) > 0:
@@ -421,6 +454,25 @@ def WarnChaningMonth(isNight):
 		f.write(" ".join(warnContractsForDeliveryDay))
 	
 
+# TODO: here		
+def Warn2ndChaningMonth(isNight):	
+	warnContracts = []
+	warnContractsForTotalVol = []
+	warnContractsForDeliveryDay = []
+
+	if not IsNullMd(warnContractsForTotalVol, isNight):
+		WarnChaningMonthForTotalVolFor2ndMc(warnContractsForTotalVol, isNight)
+		warnContracts = warnContractsForTotalVol
+		with open(mc2ndWarnFile, 'w') as f:
+			if len(warnContracts) > 0:
+				f.write(" ".join(warnContracts))
+			else:
+				f.write("")
+	
+	WarnChaningMonthForDeliveryDayFor2ndMc(warnContractsForDeliveryDay)
+	with open(deliveryDayWarnFile2nd, 'w') as f:
+		f.write(" ".join(warnContractsForDeliveryDay))
+	
 ########################
 # 为medi更新3个交易所的订阅主力合约文件。
 # 因为夜盘有些品种不交易，因此夜盘不生成行情订阅文件
@@ -483,8 +535,18 @@ def UpdateSubscribedMcForYaoImp(varietiesFile, subcribedContractFile):
 			contract = row["r1"]
 			if IsSubscribedVariety(contract, varietiesFile):			
 				mcDict[contract] = contract			
+			# TODO: here				
+			r2contract = row["r2"]
+			if IsSubscribedVariety(r2contract, varietiesFile):			
+				mcDict[r2contract] = r2contract			
 
 	with open(mcWarnFile) as f:
+		line = f.readline().rstrip("\n")
+		for contract in line.split(" "):
+			if IsSubscribedVariety(contract, varietiesFile):
+				mcDict[contract] = contract
+	# TODO: here
+	with open(mc2ndWarnFile) as f:
 		line = f.readline().rstrip("\n")
 		for contract in line.split(" "):
 			if IsSubscribedVariety(contract, varietiesFile):

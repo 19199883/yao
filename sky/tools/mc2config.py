@@ -29,6 +29,7 @@ varietiesFile = "/home/u910019/trader/varieties.txt"
 # 存储实盘正在使用的主力合约的文件
 mcFile = "/home/u910019/tick-data/mc/contracts.csv"
 mcWarnFile = "/home/u910019/tick-data/mc/mc-warm.csv"
+mc2ndWarnFile = "/home/u910019/tick-data/mc/mc-2nd-warm.csv"
 varietyFile = "/home/u910019/trader/varieties.txt"
 
 #########################
@@ -93,8 +94,10 @@ def UpdateConfig(root):
 		reader = csv.DictReader(f)		
 		for row in reader:			
 			mcDict[row["r1"]] = row["r1"]			
+			mcDict[row["r2"]] = row["r2"]			
 		
-	f = fileinput.input(files=mcWarnFile)
+	# TODO: here
+	f = fileinput.input(files=mc2ndWarnFile)
 	for line in f:
 		for contract in line.split(" "):
 			mcDict[contract] = contract
