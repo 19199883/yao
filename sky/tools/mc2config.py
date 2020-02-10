@@ -89,24 +89,25 @@ def IsSubscribedVariety(contract):
 def UpdateConfig(root):
 	ClearSymbols(root)
 
-	mcDict = {}
+	mclist = []
 	with open(mcFile) as f:
 		reader = csv.DictReader(f)		
 		for row in reader:			
-			mcDict[row["r1"]] = row["r1"]			
-			mcDict[row["r2"]] = row["r2"]			
+			mclist.append(row["r1"])			
+			mclist.append(row["r2"])			
 		
 	# TODO: here
 	f = fileinput.input(files=mc2ndWarnFile)
 	for line in f:
 		for contract in line.split(" "):
-			mcDict[contract] = contract
+			if contract not in mclist:
+				mclist.append(contract)
 	f.close()
 
 	strategyElement = root.find("./models/strategy")
 	# find a symbol element as template
 	symbolElementTemplate = strategyElement.find("./symbol")
-	for contract in list(mcDict.keys()):
+	for contract in mclist:
 		if IsSubscribedVariety(contract):
 			print("subscribed to " + contract)
 			AddSymbol(strategyElement, symbolElementTemplate, contract)

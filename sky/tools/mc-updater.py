@@ -527,33 +527,35 @@ def IsSubscribedVariety(contract, varietyFile):
 	return varietyOfContract in subscribedVarieties
 	
 def UpdateSubscribedMcForYaoImp(varietiesFile, subcribedContractFile):		
-	mcDict = {}
+	mclist = []
 		
 	with open(mcFile) as f:
 		reader = csv.DictReader(f)		
 		for row in reader:								
 			contract = row["r1"]
 			if IsSubscribedVariety(contract, varietiesFile):			
-				mcDict[contract] = contract			
+				mclist.append(contract)			
 			# TODO: here				
 			r2contract = row["r2"]
 			if IsSubscribedVariety(r2contract, varietiesFile):			
-				mcDict[r2contract] = r2contract			
+				mclist.append(r2contract)
 
 	with open(mcWarnFile) as f:
 		line = f.readline().rstrip("\n")
 		for contract in line.split(" "):
 			if IsSubscribedVariety(contract, varietiesFile):
-				mcDict[contract] = contract
+				if contract not in mclist:
+					mclist.append(contract)
 	# TODO: here
 	with open(mc2ndWarnFile) as f:
 		line = f.readline().rstrip("\n")
 		for contract in line.split(" "):
 			if IsSubscribedVariety(contract, varietiesFile):
-				mcDict[contract] = contract
+				if contract not in mclist:
+					mclist.append(contract)
 				
 	with open(subcribedContractFile, 'w') as f:
-		f.write(" ".join(list(mcDict.keys())))
+		f.write(" ".join(mclist))
 			
 ########################
 # 	为yao更新3个交易所订阅的主力合约文件:	
