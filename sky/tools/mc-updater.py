@@ -540,19 +540,13 @@ def UpdateSubscribedMcForYaoImp(varietiesFile, subcribedContractFile):
 			if IsSubscribedVariety(r2contract, varietiesFile):			
 				mclist.append(r2contract)
 
-	with open(mcWarnFile) as f:
-		line = f.readline().rstrip("\n")
-		for contract in line.split(" "):
-			if IsSubscribedVariety(contract, varietiesFile):
-				if contract not in mclist:
-					mclist.append(contract)
-	# TODO: here
-	with open(mc2ndWarnFile) as f:
-		line = f.readline().rstrip("\n")
-		for contract in line.split(" "):
-			if IsSubscribedVariety(contract, varietiesFile):
-				if contract not in mclist:
-					mclist.append(contract)
+			close1 = row["close1"]
+			if len(close1) > 0 and IsSubscribedVariety(close1, varietiesFile):			
+				mclist.append(close1)
+
+			close2 = row["close2"]
+			if len(close2) > 0 and IsSubscribedVariety(close2, varietiesFile):			
+				mclist.append(close2)
 				
 	with open(subcribedContractFile, 'w') as f:
 		f.write(" ".join(mclist))

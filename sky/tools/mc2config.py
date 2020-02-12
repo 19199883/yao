@@ -95,14 +95,12 @@ def UpdateConfig(root):
 		for row in reader:			
 			mclist.append(row["r1"])			
 			mclist.append(row["r2"])			
-		
-	# TODO: here
-	f = fileinput.input(files=mc2ndWarnFile)
-	for line in f:
-		for contract in line.split(" "):
-			if contract not in mclist:
-				mclist.append(contract)
-	f.close()
+			close1 = row["close1"]
+			if len(close1) > 0:			
+				mclist.append(close1)
+			close2 = row["close2"]
+			if len(close2) > 0:			
+				mclist.append(close2)
 
 	strategyElement = root.find("./models/strategy")
 	# find a symbol element as template
