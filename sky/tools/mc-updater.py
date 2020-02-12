@@ -435,7 +435,7 @@ def WarnChaningMonthForDeliveryDay(warnContracts):
 #
 ###########################		
 # TODO: here		
-def Warn1stChaningMonth(isNight):	
+def Warn1stMcChaningMonth(isNight):	
 	warnContracts = []
 	warnContractsForTotalVol = []
 	warnContractsForDeliveryDay = []
@@ -455,7 +455,7 @@ def Warn1stChaningMonth(isNight):
 	
 
 # TODO: here		
-def Warn2ndChaningMonth(isNight):	
+def Warn2ndMcChaningMonth(isNight):	
 	warnContracts = []
 	warnContractsForTotalVol = []
 	warnContractsForDeliveryDay = []
