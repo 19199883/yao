@@ -42,6 +42,15 @@ function ChangeMonthwarn()
 			#echo "主力合约换月提醒，如下合约需要换月：${message}" | mail -s "主力合约换月提醒" 3580771905@qq.com
 		fi
 	fi	
+
+	mc_2nd_warn_file="/home/u910019/tick-data/mc/mc-2nd-warm.csv"
+	if [[ -a $mc_2nd_warn_file ]];then	
+		message="$(cat ${mc_2nd_warn_file})"
+		if [[ -n $message ]];then 
+			echo "次主力合约换月提醒，如下合约需要换月：${message}" | mail -s "次主力合约换月提醒" 17199883@qq.com
+			#echo "次主力合约换月提醒，如下合约需要换月：${message}" | mail -s "次主力合约换月提醒" 3580771905@qq.com
+		fi
+	fi	
 }	
 enter_cur_dir
 deliverydaywarn
