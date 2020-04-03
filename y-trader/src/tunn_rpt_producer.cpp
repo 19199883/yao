@@ -96,7 +96,7 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 
 TunnRptProducer::~TunnRptProducer()
 {
-	clog_info("[%s] release tunnrpt_producer.", module_name_);
+	//clog_info("[%s] release tunnrpt_producer.", module_name_);
 }
 
 void TunnRptProducer::ParseConfig()

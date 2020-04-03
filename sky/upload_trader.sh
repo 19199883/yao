@@ -30,6 +30,8 @@ function upload_files
 	scp -Cp -P 8012 /home/u910019/tick-data/mc/medi-zce-subcribed-mc.csv	"u910019@1.193.38.91:/home/u910019/domi_contr_check/"
 	ssh -p 8012 u910019@1.193.38.91 'mv -v /home/u910019/domi_contr_check/medi-zce-subcribed-mc.csv /home/u910019/domi_contr_check/cur_domi_contrs.txt'
 
+	scp -Cp -P 22 /home/u910019/tick-data/mc/contracts.csv	"medi@123.207.100.251:/home/medi/data/"
+
 	echo "---------------uploading finishs----------------------"
 
 }
