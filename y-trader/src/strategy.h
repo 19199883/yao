@@ -22,7 +22,7 @@ using namespace std;
 #define STRATEGY_METHOD_FEED_INIT_POSITION  "st_feed_init_position_"
 
 // 假设一个策略最多产生3000个信号
-#define SIGANDRPT_TABLE_SIZE 1000
+#define SIGANDRPT_TABLE_SIZE 3000
 
 // 一个x-trader最多支持100个策略
 #define MAX_STRATEGY_COUNT 100
