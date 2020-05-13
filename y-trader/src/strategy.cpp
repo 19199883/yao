@@ -244,30 +244,30 @@ void Strategy::FeedMd(YaoQuote* md, int *sig_cnt, signal_t* sigs)
 	{
 		sigs[i].st_id = this->GetId();
 
-	//	 clog_info("[%s] FeedMd  signal: "
-	//				 "strategy id:%d; "
-	//				 "sig_id:%lu; "
-	//				 "exchange:%d; "
-	//				 "symbol:%s;"
-	//				 "open_volume:%d; "
-	//				 "buy_price:%f; "
-	//				 "close_volume:%d; "
-	//				 "sell_price:%f; "
-	//				 "sig_act:%hu;"
-	//				 "sig_openclose:%hu; "
-	//				 "orig_sig_id:%lu",
-	//				module_name_, 
-	//				sigs[i].st_id, 
-	//				sigs[i].sig_id,
-	//				sigs[i].exchange, 
-	//				sigs[i].symbol, 
-	//				sigs[i].open_volume, 
-	//				sigs[i].buy_price,
-	//				sigs[i].close_volume, 
-	//				sigs[i].sell_price, 
-	//				sigs[i].sig_act, 
-	//				sigs[i].sig_openclose, 
-	//				sigs[i].orig_sig_id); 
+		// clog_info("[%s] FeedMd  signal: "
+		//			 "strategy id:%d; "
+		//			 "sig_id:%lu; "
+		//			 "exchange:%d; "
+		//			 "symbol:%s;"
+		//			 "open_volume:%d; "
+		//			 "buy_price:%f; "
+		//			 "close_volume:%d; "
+		//			 "sell_price:%f; "
+		//			 "sig_act:%hu;"
+		//			 "sig_openclose:%hu; "
+		//			 "orig_sig_id:%lu",
+		//			module_name_, 
+		//			sigs[i].st_id, 
+		//			sigs[i].sig_id,
+		//			sigs[i].exchange, 
+		//			sigs[i].symbol, 
+		//			sigs[i].open_volume, 
+		//			sigs[i].buy_price,
+		//			sigs[i].close_volume, 
+		//			sigs[i].sell_price, 
+		//			sigs[i].sig_act, 
+		//			sigs[i].sig_openclose, 
+		//			sigs[i].orig_sig_id); 
 	}
 }
 
