@@ -26,7 +26,7 @@
 //#define EES_UDP_TOPSPEED_QUOTE
 
 // software license
-#define SERVER_NAME  "zztest3"
+#define SERVER_NAME  "zjtest1"
 
 // 合规检查开关
 #define COMPLIANCE_CHECK
