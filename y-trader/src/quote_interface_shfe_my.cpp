@@ -1,301 +1,151 @@
 ﻿#include <thread>         // std::thread
 #include "quote_interface_shfe_my.h"
-#include "yao_utils.h"
 
-std::string MYQuoteData::ToString(const MYShfeMarketData &d) 
-{
-//	clog_info("MYShfeMarketData: instrument:%s, "
-//				"data_flag:%d,buy_total_volume:%d; "
-//				"sell_total_volume:%d; buy_weighted_avg_price:%lf; "
-//				"sell_weighted_avg_price:%lf",
-//				d.InstrumentID, 
-//				d.data_flag, 
-//				d.buy_total_volume,
-//				d.sell_total_volume,
-//				d.buy_weighted_avg_price,
-//				d.sell_weighted_avg_price);
-
-	//clog_info("dir:buy; price, volume");
-	for(int i = 0; i < 30; i++) 
-	{
-//		 clog_info("price%d: %lf, volume%d: %d\n", 
-//					 i, 
-//					 d.buy_price[i], 
-//					 i, 
-//					 d.buy_volume[i]);
-	}
-
-	//clog_info("dir:sell; price, volume");
-	for(int i = 0; i < 30; i++) 
-	{
-//		 clog_debug("price%d: %lf, volume%d: %d\n", 
-//					 i, 
-//					 d.sell_price[i], 
-//					 i, 
-//					 d.sell_volume[i]);
-	}
-  
-  return "";
-}
-
-MYQuoteData::MYQuoteData(ShfeFullDepthMDProducer *fulldepth_md_producer, 
-			ShfeL1MDProducer *l1_md_producer)
-		: fulldepth_md_producer_(fulldepth_md_producer), 
-		l1_md_producer_(l1_md_producer),
-		module_name_("MYQuoteData"), 
-		seq_no_(0), 
-		server_(0)
+MYQuoteData::MYQuoteData(EfhLev2Producer *efhLev2_producer, L1MDProducer *l1_md_producer)
+	: efhLev2Producer_(efhLev2_producer),
+	l1_md_producer_(l1_md_producer),
+	module_name_("MYQuoteData")
 {
 	l1_md_last_index_ = L1MD_NPOS;
 
-	clog_warning("[%s] ~MYShfeQuoteData invoked.", module_name_);
-
 #ifdef PERSISTENCE_ENABLED 
-	 p_save_quote_ = new QuoteDataSave<YaoQuote>( "y-shfequote", YAO_QUOTE_TYPE);
+    p_shfe_lev2_data_save_ = new QuoteDataSave<CThostFtdcDepthMarketDataField>("shfe_lev2_data", SHFE_LEV2_DATA_QUOTE_TYPE);
 #endif
 
-	for (int i=0; i<10; i++)
-	{
-		repairers_[i] = new repairer(fulldepth_md_producer_ );
-		repairers_[i]->server_ = i;
-	}
 }
 
 MYQuoteData::~MYQuoteData()
 {
-#ifdef PERSISTENCE_ENABLED 
-    if (p_save_quote_) delete p_save_quote_;
-#endif
 
-	for (int i=0; i<10; i++)
-	{
-		delete repairers_[i];
-	}
+#ifdef PERSISTENCE_ENABLED 
+    if (p_shfe_lev2_data_save_) delete p_shfe_lev2_data_save_;
+#endif
 
 	clog_warning("[%s] ~MYQuoteData invoked.", module_name_);
 }
 
-void MYQuoteData::ProcShfeFullDepthData(int32_t index)
+void MYQuoteData::CopyLev1ToLev2(CThostFtdcDepthMarketDataField* my_data, efh3_lev2* efh_data )
 {
-	MDPackEx* md = fulldepth_md_producer_->GetData(index);
-	int new_svr = md->content.seqno % 10;
-	if (new_svr != server_) 
-	{
-		//clog_info("[%s] server from %d to %d",module_name_, server_, new_svr); 
-	}
-
-	//clog_info("[%s] proc sn:%d",module_name_, md->content.seqno); 
-
-	repairers_[new_svr]->rev(index);
-
-	bool empty = true;
-	char cur_contract[10];
-	strcpy(cur_contract,"");
-	char new_contract[10];
-	strcpy(new_contract,"");
-	Reset();
-	MDPackEx* data = repairers_[new_svr]->next(empty);
-	while (!empty) 
-	{
-		// empty contract
-		if(IsEmptyString(cur_contract))
-		{ // 为空，表示第一次进入循环
-			strcpy(cur_contract,data->content.instrument);
-		}
-		strcpy(new_contract,data->content.instrument);
-
-		if(!IsEqualContract(cur_contract,new_contract))
-		{
-			FillFullDepthInfo();
-			Send(cur_contract);
-			Reset();
-		}
+		// from level1
+		my_data->UpperLimitPrice =	  InvalidToZeroD(my_data->UpperLimitPrice);
+		my_data->LowerLimitPrice =	  InvalidToZeroD(my_data->LowerLimitPrice);
+		my_data->HighestPrice =		  InvalidToZeroD(my_data->HighestPrice);
+		my_data->LowestPrice =		  InvalidToZeroD(my_data->LowestPrice);
+		my_data->OpenPrice =		  InvalidToZeroD(my_data->OpenPrice);
+		my_data->ClosePrice =		  InvalidToZeroD(my_data->ClosePrice);
+		my_data->PreClosePrice =	  InvalidToZeroD(my_data->PreClosePrice);			
+		my_data->PreOpenInterest =	  InvalidToZeroD(my_data->PreOpenInterest);
+		my_data->SettlementPrice =	  InvalidToZeroD(my_data->SettlementPrice);
+		my_data->PreSettlementPrice = InvalidToZeroD(my_data->PreSettlementPrice);			
+		//my_data->PreDelta =			  InvalidToZeroD(my_data->PreDelta);
+		//my_data->CurrDelta =		  InvalidToZeroD(my_data->CurrDelta);
+		// the below is from sfh_lev2
+		my_data->LastPrice =	InvalidToZeroD(efh_data->m_last_px);															
+		my_data->Volume =					   efh_data->m_last_share;
+		my_data->Turnover =     InvalidToZeroD(efh_data->m_turnover);				
+		strcpy(my_data->UpdateTime,efh_data->m_update_time);
+		my_data->UpdateMillisec = efh_data->m_millisecond;
+		my_data->OpenInterest = InvalidToZeroD(efh_data->m_open_interest);	
+		// my_datalev2_data_ = efh_data->m_symbol_code;
+		my_data->BidPrice1 =    InvalidToZeroD(efh_data->m_bid_1_px);
+		my_data->BidPrice2 =    InvalidToZeroD(efh_data->m_bid_2_px);
+		my_data->BidPrice3 =    InvalidToZeroD(efh_data->m_bid_3_px);
+		my_data->BidPrice4 =    InvalidToZeroD(efh_data->m_bid_4_px);
+		my_data->BidPrice5 =    InvalidToZeroD(efh_data->m_bid_5_px);
 		
-		// 别放到买卖对用缓冲，待该合约的数据都接受完后，统一处理
-		if(data->content.direction == SHFE_FTDC_D_Buy)
-		{
-			buy_data_cursor_ = buy_data_cursor_ + 1;
-			buy_data_buffer_[buy_data_cursor_] = data;
-		}
-		else if(data->content.direction == SHFE_FTDC_D_Sell)
-		{
-			sell_data_cursor_ = sell_data_cursor_ + 1;
-			sell_data_buffer_[sell_data_cursor_] = data;
-		}
-		strcpy(cur_contract,data->content.instrument);
+		my_data->BidVolume1 =				   efh_data->m_bid_1_share;
+		my_data->BidVolume2 =				   efh_data->m_bid_2_share;
+		my_data->BidVolume3 =				   efh_data->m_bid_3_share;
+		my_data->BidVolume4 =				   efh_data->m_bid_4_share;
+		my_data->BidVolume5 =				   efh_data->m_bid_5_share;
+		
+		my_data->AskPrice1 =    InvalidToZeroD(efh_data->m_ask_1_px);
+		my_data->AskPrice2 =    InvalidToZeroD(efh_data->m_ask_2_px);
+		my_data->AskPrice3 =    InvalidToZeroD(efh_data->m_ask_3_px);
+		my_data->AskPrice4 =    InvalidToZeroD(efh_data->m_ask_4_px);
+		my_data->AskPrice5 =    InvalidToZeroD(efh_data->m_ask_5_px);
+		
+		my_data->AskVolume1 =                  efh_data->m_ask_1_share;		
+		my_data->AskVolume2 =                  efh_data->m_ask_2_share;
+		my_data->AskVolume3 =                  efh_data->m_ask_3_share;		
+		my_data->AskVolume4 =                  efh_data->m_ask_4_share;
+		my_data->AskVolume5 =                  efh_data->m_ask_5_share;			
 
-		data = repairers_[new_svr]->next(empty);
-		if(empty)
-		{ 
-			FillFullDepthInfo();
-			Send(cur_contract); 
-			Reset();
-		}
-	}
-
-	server_ = new_svr;
 }
 
-void MYQuoteData::FillBuyFullDepthInfo()
+void MYQuoteData::ProcEfhLev2Data(int32_t index)
 {
-    target_data_.buy_total_volume = 0;
-    target_data_.buy_weighted_avg_price = 0;
-    double amount = 0;
+	efh3_lev2* efh_data = efhLev2Producer_->GetData(index);
 
-	bool damaged = false;
-	// VPair数据计数器，用于计数从尾部开始最多30笔数据，用于复制盘口30档数据用
-	int price30_count = MY_SHFE_QUOTE_PRICE_POS_COUNT - 1; 
-	double price30[MY_SHFE_QUOTE_PRICE_POS_COUNT] = {0};
-	int vol30[MY_SHFE_QUOTE_PRICE_POS_COUNT] = {0};
-	for(int i=buy_data_cursor_; i>=0; i--)
-	{ // 从尾部向前遍历MDPackEx数据 
-		MDPackEx *src_mdpackex = buy_data_buffer_[i];
-		if (src_mdpackex->damaged) damaged = true;
+	// TODO: commented for debug
+	//char buffer[2048];
+	//clog_info("[%s] rev efh3_lev2:%s", 
+	//			module_name_,
+	//			EfhLev2Producer::Format(*efh_data, buffer));
 
-		for(int j=src_mdpackex->content.count-1; j>=0; j--)
-		{ //从尾部向前遍历PVPair数据 
-			PVPair &src_pvpaire = src_mdpackex->content.data[j];
-
-			// 处理30档买方向数据
-			if(price30_count >= 0)
-			{
-				price30[price30_count] = src_pvpaire.price;  
-				vol30[price30_count] = src_pvpaire.volume;  
-				price30_count = price30_count - 1;
-			}
-
-			// 计算总委买量
-			target_data_.buy_total_volume += src_pvpaire.volume;
-			amount += src_pvpaire.price * src_pvpaire.volume;
-		} // for(int j=buy_data_buffer_[i].content.count-1; j>=0; j--)//从尾部向前遍历PVPair数据 
-	} // for(int i=buy_data_cursor_; i>=0; i--) // 从尾部向前遍历MDPackEx数据 
-	
-	// 计算均价
-	if(damaged) target_data_.buy_total_volume = 0;
-	if (target_data_.buy_total_volume > 0)
-	{
-		target_data_.buy_weighted_avg_price = amount / target_data_.buy_total_volume;
-	}
-	// 拷贝盘口30档买方向数据
-	memcpy(target_data_.buy_volume, vol30, sizeof(vol30));
-	memcpy(target_data_.buy_price, price30, sizeof(price30));
-}
-
-void MYQuoteData::FillSellFullDepthInfo()
-{
-    target_data_.sell_total_volume = 0;
-    target_data_.sell_weighted_avg_price = 0;
-    double amount = 0;
-
-	bool damaged = false;
-	// VPair数据计数器，用于计数从尾部开始最多30笔数据，用于复制盘口30档数据用
-	int price30_count = MY_SHFE_QUOTE_PRICE_POS_COUNT - 1; 
-	double price30[MY_SHFE_QUOTE_PRICE_POS_COUNT] = {0};
-	int vol30[MY_SHFE_QUOTE_PRICE_POS_COUNT] = {0};
-	for(int i=sell_data_cursor_; i>=0; i--)
-	{ // 从尾部向前遍历MDPackEx数据 
-		MDPackEx *src_mdpackex = sell_data_buffer_[i];
-		if (src_mdpackex->damaged) damaged = true;
-
-		for(int j=src_mdpackex->content.count-1; j>=0; j--)
-		{ //从尾部向前遍历PVPair数据 
-			PVPair &src_pvpaire = src_mdpackex->content.data[j];
-
-			// 处理30档卖方向数据
-			if(price30_count >= 0)
-			{
-				price30[price30_count] = src_pvpaire.price;  
-				vol30[price30_count] = src_pvpaire.volume;  
-				price30_count = price30_count - 1;
-			}
-
-			// 计算总委卖量
-			target_data_.sell_total_volume += src_pvpaire.volume;
-			amount += src_pvpaire.price * src_pvpaire.volume;
-		} // for(int j=sell_data_buffer_[i].content.count-1; j>=0; j--)//从尾部向前遍历PVPair数据 
-	} // for(int i=sell_data_cursor_; i>=0; i--) // 从尾部向前遍历MDPackEx数据 
-	
-	// 计算均价
-	if(damaged) target_data_.sell_total_volume = 0;
-	if (target_data_.sell_total_volume > 0){
-		target_data_.sell_weighted_avg_price = amount / target_data_.sell_total_volume;
-	}
-	// 拷贝盘口30档卖方向数据
-	memcpy(target_data_.sell_volume, vol30, sizeof(vol30));
-	memcpy(target_data_.sell_price, price30, sizeof(price30));
-}
-
-// done
-void MYQuoteData::FillFullDepthInfo()
-{
-	FillBuyFullDepthInfo();
-	FillSellFullDepthInfo();
-}
-
-// done
-void MYQuoteData::Send(const char* contract)
-{
-	if(!l1_md_producer_->IsDominant(contract))
+	// discard option
+	if(strlen(efh_data->m_symbol) > 6)
 	{
 		return;
 	}
 
-	CDepthMarketDataField* l1_md = NULL;
+	if(!efhLev2Producer_->IsDominant(efh_data->m_symbol)) return;
 
-	//clog_info("[%s] SHFE send %s.", module_name_,contract);
+
+	CThostFtdcDepthMarketDataField* my_data = NULL;
 	if(l1_md_last_index_ != L1MD_NPOS)
 	{
-		 l1_md =  l1_md_producer_->GetLastData(contract, l1_md_last_index_);
-	}
+		 my_data =  l1_md_producer_->GetLastData(efh_data->m_symbol, l1_md_last_index_);
+		if(NULL != my_data)
+		{	
+			CopyLev1ToLev2(my_data, efh_data);
 
-	if(NULL != l1_md)
-	{
-		target_data_.data_flag = 6; 
-		memcpy(&target_data_, l1_md, sizeof(CDepthMarketDataField));
+			// TODO: log
+			char buffer[5120];
+			//clog_info("[%s] send data:%s", 
+			//			module_name_,
+			//			ShfeLev2Formater::Format(*my_data,buffer));
 
-		YaoQuoteHelper::Convert(&yaoquote_, &target_data_);
-
-		if (yaoquote_handler_ != NULL) 
-		{ 
-			yaoquote_handler_(&yaoquote_); 
-		}
+			if (lev2_data_handler_ != NULL) { lev2_data_handler_(my_data); }
 
 #ifdef PERSISTENCE_ENABLED 
-				timeval t;
-				gettimeofday(&t, NULL);
-				p_save_quote_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &yaoquote_);
+			timeval t;
+			gettimeofday(&t, NULL);
+			p_shfe_lev2_data_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, my_data);
 #endif
-	} 
-	else
-	{
-		//clog_info("[%s] can not find lev1 for:%s",module_name_, contract);
+		}
+		else
+		{
+			CThostFtdcDepthMarketDataField my_data;
+			memset(&my_data, 0, sizeof(CThostFtdcDepthMarketDataField));
+			strcpy(my_data.InstrumentID, efh_data->m_symbol);
+
+			CopyLev1ToLev2(&my_data, efh_data);
+
+#ifdef PERSISTENCE_ENABLED 
+			timeval t;
+			gettimeofday(&t, NULL);
+			p_shfe_lev2_data_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &my_data);
+
+			// TODO: log
+			char buffer[5120];
+			clog_info("[%s] new contract data:%s", 
+						module_name_,
+						ShfeLev2Formater::Format(my_data, buffer));
+#endif
+			clog_warning("[%s] can not find lev1 for:%s",module_name_, efh_data->m_symbol);
+		}
 	}
 }
 
-void MYQuoteData::SetQuoteDataHandler(std::function<void(YaoQuote*)> quote_handler)
+void MYQuoteData::SetQuoteDataHandler(std::function<void(CThostFtdcDepthMarketDataField*)> quote_handler)
 {
 	clog_warning("[%s] SetQuoteDataHandler invoked.", module_name_);
-	yaoquote_handler_ = quote_handler;
+	lev2_data_handler_ = quote_handler;
 }
 
-void MYQuoteData::ProcShfeL1MdData(int32_t index)
+void MYQuoteData::ProcL1MdData(int32_t index)
 {
 	l1_md_last_index_ = index;
-	CDepthMarketDataField* md = l1_md_producer_->GetData(index);
-
-//	clog_info("[%s] ProcL1MdData:constract:%s;index:%d", 
-//				module_name_, 
-//				md->InstrumentID, 
-//				l1_md_last_index_); 
 }
 
-void MYQuoteData::Reset()
-{
-	memset(target_data_.buy_price, 0, sizeof(target_data_.buy_price));
-	memset(target_data_.buy_volume, 0, sizeof(target_data_.buy_volume));
-	memset(target_data_.sell_price, 0, sizeof(target_data_.sell_price));
-	memset(target_data_.sell_volume, 0, sizeof(target_data_.sell_volume));
-
-	buy_data_cursor_ = -1;
-	sell_data_cursor_ = -1;
-}

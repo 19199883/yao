@@ -1,4 +1,5 @@
-﻿#pragma once
+﻿#ifndef MY_QUOTE_INTERFACE_SHFE_MY_H_
+#define MY_QUOTE_INTERFACE_SHFE_MY_H_
 
 #include <sys/types.h>
 #include <sys/time.h>
@@ -8,15 +9,13 @@
 #include "quote_datatype_shfe_my.h"
 #include "quote_datatype_shfe_deep.h"
 #include "quote_datatype_level1.h"
-#include "shfe_l1md_producer.h"
-#include "repairer.h"
-#include "shfe_fulldepthmd_producer.h"
+#include "l1md_producer.h"
 #include "vrt_value_obj.h"
 #include "quote_cmn_save.h"
 #include "my_cmn_util_funcs.h"
 #include "quote_cmn_utility.h"
 #include "quote_cmn_save.h"
-#include "YaoQuote.h"
+#include "efh_lev2_producer.h"
 
 using namespace std;
 
@@ -24,76 +23,29 @@ class DLL_PUBLIC MYQuoteData
 {
 	public:
 
-		MYQuoteData(ShfeFullDepthMDProducer *fulldepth_md_producer, 
-					ShfeL1MDProducer *l1_md_producer);
+		MYQuoteData(EfhLev2Producer *efhLev2_producer, L1MDProducer *l1_md_producer);
 		~MYQuoteData();
 
-		void SetQuoteDataHandler(std::function<void(YaoQuote *)> quote_handler);
-		// business logic
-		void ProcShfeL1MdData(int32_t index);
-		void ProcShfeFullDepthData(int32_t index);
+		void SetQuoteDataHandler(std::function<void(CThostFtdcDepthMarketDataField *)> quote_handler);
+		void ProcL1MdData(int32_t index);
+		void ProcEfhLev2Data(int32_t index);
 
+		QuoteDataSave<CThostFtdcDepthMarketDataField> *p_shfe_lev2_data_save_;
 	private:
 		// 禁止拷贝和赋值
 		MYQuoteData(const MYQuoteData & other);
 		MYQuoteData operator=(const MYQuoteData & other);
 
-	
-		MYShfeMarketData target_data_;
-		YaoQuote yaoquote_;
-	
-		// 假设最多支持10个全挡数据服务器
-		repairer* repairers_[10];
-		int server_;
-		int seq_no_;
-	
-	    ShfeFullDepthMDProducer* fulldepth_md_producer_;
-		ShfeL1MDProducer* l1_md_producer_;
+		void CopyLev1ToLev2(CThostFtdcDepthMarketDataField* my_data, efh3_lev2* efh_data );
+
+	    EfhLev2Producer* efhLev2Producer_;
+		L1MDProducer* l1_md_producer_;
 		int32_t l1_md_last_index_;
 	
 	private:
-		std::string ToString(const MYShfeMarketData &d);
-
-		/*
-		 * 使用full_depth_data填充target
-		 *
-		 */ 
-		void FillFullDepthInfo();
-		/*
-		 * 向target_data_填充盘口30档忙方向数据，以及总委买量和均价
-		 */
-		void FillBuyFullDepthInfo();
-		/*
-		 * 向target_data_填充盘口30档卖方向数据，以及总委卖量和均价
-		 */
-		void FillSellFullDepthInfo();
-		/*
-		 * 将用于生成MYShfeMarketData过程中使用的成员数据重置成初始状态
-		 */
-		void Reset();
-		/*
-		 * 存储买方向MDPackEx数据在FullDepthProcuder缓冲区的索引。
-		 */	
-		MDPackEx* buy_data_buffer_[1200];
-		int buy_data_cursor_;
-		MDPackEx* sell_data_buffer_[1200];
-		int sell_data_cursor_;
-	
-		/*
-		 * data:已经通过ProcFullDepthData函数填充了全挡数据内容 
-		 * contract:数据所属的合约
-		 * 该函数对data(已经通过ProcFullDepthData函数填充了全挡数据内容)
-		 * 填充对用合约的最新一档行情，然后发送给订阅者
-		 */
-		void Send(const char* contract);
 		const char *module_name_;  
-
 	    // 数据处理函数对象
-	    std::function<void(YaoQuote *)> yaoquote_handler_;
-
-#ifdef PERSISTENCE_ENABLED 
-	QuoteDataSave<YaoQuote> *p_save_quote_;
-
-#endif
+	    std::function<void(CThostFtdcDepthMarketDataField *)> lev2_data_handler_;
 };
 
+#endif  //MY_QUOTE_INTERFACE_SHFE_MY_H_
