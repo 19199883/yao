@@ -244,30 +244,30 @@ void Strategy::FeedMd(YaoQuote* md, int *sig_cnt, signal_t* sigs)
 	{
 		sigs[i].st_id = this->GetId();
 
-		// clog_info("[%s] FeedMd  signal: "
-		//			 "strategy id:%d; "
-		//			 "sig_id:%lu; "
-		//			 "exchange:%d; "
-		//			 "symbol:%s;"
-		//			 "open_volume:%d; "
-		//			 "buy_price:%f; "
-		//			 "close_volume:%d; "
-		//			 "sell_price:%f; "
-		//			 "sig_act:%hu;"
-		//			 "sig_openclose:%hu; "
-		//			 "orig_sig_id:%lu",
-		//			module_name_, 
-		//			sigs[i].st_id, 
-		//			sigs[i].sig_id,
-		//			sigs[i].exchange, 
-		//			sigs[i].symbol, 
-		//			sigs[i].open_volume, 
-		//			sigs[i].buy_price,
-		//			sigs[i].close_volume, 
-		//			sigs[i].sell_price, 
-		//			sigs[i].sig_act, 
-		//			sigs[i].sig_openclose, 
-		//			sigs[i].orig_sig_id); 
+		 clog_info("[%s] FeedMd  signal: "
+					 "strategy id:%d; "
+					 "sig_id:%lu; "
+					 "exchange:%d; "
+					 "symbol:%s;"
+					 "open_volume:%d; "
+					 "buy_price:%f; "
+					 "close_volume:%d; "
+					 "sell_price:%f; "
+					 "sig_act:%hu;"
+					 "sig_openclose:%hu; "
+					 "orig_sig_id:%lu",
+					module_name_, 
+					sigs[i].st_id, 
+					sigs[i].sig_id,
+					sigs[i].exchange, 
+					sigs[i].symbol, 
+					sigs[i].open_volume, 
+					sigs[i].buy_price,
+					sigs[i].close_volume, 
+					sigs[i].sell_price, 
+					sigs[i].sig_act, 
+					sigs[i].sig_openclose, 
+					sigs[i].orig_sig_id); 
 	}
 }
 
@@ -540,32 +540,32 @@ void Strategy::FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, sig
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
 		clog_warning("[%s] FeedTunnRpt latency:%d us", module_name_, latency); 
 #endif
-		//clog_info("[%s] FeedTunnRpt: "
-		//			"strategy id:%d; "
-		//			"sig_id:%lu; "
-		//			"symbol:%s; "
-		//			"sig_act:%hu; "
-		//			"order_volume:%d; "
-		//			"order_price:%f; "
-		//			"exec_price:%f; "
-		//			"exec_volume:%d; "
-		//			"acc_volume:%d; "
-		//			"status:%d; "
-		//			"killed:%d; "
-		//			"rejected:%d",
-		//			module_name_, 
-		//			setting_.config.st_id, 
-		//			sigrpt.sig_id, 
-		//			sigrpt.symbol,
-		//			sigrpt.sig_act, 
-		//			sigrpt.order_volume, 
-		//			sigrpt.order_price, 
-		//			sigrpt.exec_price,
-		//			sigrpt.exec_volume, 
-		//			sigrpt.acc_volume,
-		//			sigrpt.status,
-		//			sigrpt.killed,
-		//			sigrpt.rejected);
+		clog_info("[%s] FeedTunnRpt: "
+					"strategy id:%d; "
+					"sig_id:%lu; "
+					"symbol:%s; "
+					"sig_act:%hu; "
+					"order_volume:%d; "
+					"order_price:%f; "
+					"exec_price:%f; "
+					"exec_volume:%d; "
+					"acc_volume:%d; "
+					"status:%d; "
+					"killed:%d; "
+					"rejected:%d",
+					module_name_, 
+					setting_.config.st_id, 
+					sigrpt.sig_id, 
+					sigrpt.symbol,
+					sigrpt.sig_act, 
+					sigrpt.order_volume, 
+					sigrpt.order_price, 
+					sigrpt.exec_price,
+					sigrpt.exec_volume, 
+					sigrpt.acc_volume,
+					sigrpt.status,
+					sigrpt.killed,
+					sigrpt.rejected);
 }
 
 void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty, 

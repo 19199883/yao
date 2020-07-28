@@ -367,9 +367,9 @@ void UniConsumer::ProcSigs(Strategy &strategy,
 			int32_t sig_cnt, 
 			signal_t *sigs)
 {
-	//clog_info("[%s] [ProcSigs] sig_cnt: %d; ", 
-	//			module_name_, 
-	//			sig_cnt);
+	clog_info("[%s] [ProcSigs] sig_cnt: %d; ", 
+				module_name_, 
+				sig_cnt);
 
 	for (int i = 0; i < sig_cnt; i++)
 	{

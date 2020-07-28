@@ -6,7 +6,7 @@
 
 #define DOUBLE_CHECH_PRECISION 0.000001
 
-#define MAX_CONTRACT_NUMBER 16
+#define MAX_CONTRACT_NUMBER 80
 
 struct OrderInfo
 {
@@ -51,7 +51,7 @@ class Compliance
 		 * contracts存储不同的合约，合约在contracts的下标记为:n,
 		 * 那么cur_cancel_times_[n]用于记录该合约累计撤单数 
 		 */
-		char contracts_[MAX_CONTRACT_NUMBER][12];
+		char contracts_[MAX_CONTRACT_NUMBER][13];
 		int cur_cancel_times_[MAX_CONTRACT_NUMBER];
 };
 

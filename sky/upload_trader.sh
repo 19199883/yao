@@ -7,8 +7,25 @@ function upload_files
 	echo "--------------uploading begins -----------------------"
 
 	ssh -p 44163 u910019@101.231.3.117 'cp -a /home/u910019/yao/trade/ytrader/x-trader.config /home/u910019/yao/trade/ytrader/x-trader_`date +%y%m%d`.config'
-	scp -Cp -P 44163 ./trader/x-trader.config	"u910019@101.231.3.117:/home/u910019/yao/trade/ytrader/"
-	scp -Cp -P 44163 ./trader/ev_from_cache	"u910019@101.231.3.117:/home/u910019/yao/trade/ytrader/ev/"
+
+	echo "begin to scp config"
+	scp -vCp -P 44163 ./trader/x-trader.config	"u910019@101.231.3.117:/home/u910019/yao/trade/ytrader/"
+	while [ $? -ne 0 ]
+	do
+		echo "failed to scp config"
+		scp -vCp -P 44163 ./trader/x-trader.config	"u910019@101.231.3.117:/home/u910019/yao/trade/ytrader/"
+	done
+	echo "suceeded to to scp config"
+
+
+	echo "begin to scp ev file"
+	scp -vCp -P 44163 ./trader/ev_from_cache	"u910019@101.231.3.117:/home/u910019/yao/trade/ytrader/ev/"
+	while [ $? -ne 0 ]
+	do
+		echo "failed to scp ev file"
+		scp -vCp -P 44163 ./trader/ev_from_cache	"u910019@101.231.3.117:/home/u910019/yao/trade/ytrader/ev/"
+	done
+	echo "succeeded to scp ev file"
 
 # yao subcirbed contracts
 	scp -Cp -P 44163 /home/u910019/tick-data/mc/yao-shfe-subcribed-mc.csv	"u910019@101.231.3.117:/home/u910019/yao/mc/"
