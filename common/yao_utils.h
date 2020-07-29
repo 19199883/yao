@@ -31,7 +31,7 @@ class YaoQuoteHelper
 
 	}
 
-	static void Convert(YaoQuote *dest, const MYShfeMarketData* source)
+	static void Convert(YaoQuote *dest, const CThostFtdcDepthMarketDataField* source)
 	{
 		dest->feed_type = FeedTypes::ShfeLevel2;
 		strcpy(dest->symbol, source->InstrumentID);		/*合约编码*/

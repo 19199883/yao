@@ -16,6 +16,7 @@
 #include "quote_cmn_utility.h"
 #include "quote_cmn_save.h"
 #include "efh_lev2_producer.h"
+#include "YaoQuote.h"
 
 using namespace std;
 
@@ -26,11 +27,11 @@ class DLL_PUBLIC MYQuoteData
 		MYQuoteData(EfhLev2Producer *efhLev2_producer, L1MDProducer *l1_md_producer);
 		~MYQuoteData();
 
-		void SetQuoteDataHandler(std::function<void(CThostFtdcDepthMarketDataField *)> quote_handler);
+		void SetQuoteDataHandler(std::function<void(YaoQuote *)> quote_handler);
 		void ProcL1MdData(int32_t index);
 		void ProcEfhLev2Data(int32_t index);
 
-		QuoteDataSave<CThostFtdcDepthMarketDataField> *p_shfe_lev2_data_save_;
+		QuoteDataSave<YaoQuote> *p_shfe_lev2_data_save_;
 	private:
 		// 禁止拷贝和赋值
 		MYQuoteData(const MYQuoteData & other);
@@ -45,7 +46,8 @@ class DLL_PUBLIC MYQuoteData
 	private:
 		const char *module_name_;  
 	    // 数据处理函数对象
-	    std::function<void(CThostFtdcDepthMarketDataField *)> lev2_data_handler_;
+	    std::function<void(YaoQuote*)> lev2_data_handler_;
+		YaoQuote yaoquote_;
 };
 
 #endif  //MY_QUOTE_INTERFACE_SHFE_MY_H_

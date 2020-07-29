@@ -9,21 +9,20 @@
 #include <tinyxml.h>
 #include <tinystr.h>
 #include "YaoQuote.h"
-#include "quote_interface_ine_my.h"
 #include "quote_interface_shfe_my.h"
 
 using namespace std::placeholders; 
 
 UniConsumer::UniConsumer(struct vrt_queue* queue, 
-			ShfeL1MDProducer* shfeL1MDProducer, 
-			ShfeFullDepthMDProducer* shfeFullDepthMDProducer,
+			L1MDProducer* l1MDProducer, 
+			EfhLev2Producer* efhLev2Producer,
 			DceQuote *dceQuote,
 			ZceQuote *zceQuote,
 			TunnRptProducer *tunn_rpt_producer) 
 		: module_name_("uni_consumer"),
 		running_(true), 
-		shfeL1MDProducer_(shfeL1MDProducer), 
-		shfeFullDepthMDProducer_(shfeFullDepthMDProducer),
+		l1MDProducer_(l1MDProducer), 
+		efhLev2Producer_(efhLev2Producer),
 		dceQuote_(dceQuote),
 		zceQuote_(zceQuote),
 		tunn_rpt_producer_(tunn_rpt_producer)
@@ -205,14 +204,9 @@ void UniConsumer::Start()
 {
 	running_  = true;
 
-	MYQuoteData myquotedata(shfeFullDepthMDProducer_, shfeL1MDProducer_);
+	MYQuoteData myquotedata(efhLev2Producer_, l1MDProducer_);
 	auto f_shfemarketdata = std::bind(&UniConsumer::ProcYaoQuote, this, _1);
 	myquotedata.SetQuoteDataHandler(f_shfemarketdata);
-
-	// INE sc 
-	MYIneQuoteData myinequotedata(shfeFullDepthMDProducer_, shfeL1MDProducer_);
-	auto f_inemarketdata = std::bind(&UniConsumer::ProcYaoQuote, this,_1);
-	myinequotedata.SetQuoteDataHandler(f_inemarketdata);
 
 	int rc = 0;
 	struct vrt_value  *vvalue;
@@ -225,28 +219,26 @@ void UniConsumer::Start()
 				cork_container_of(vvalue, struct vrt_hybrid_value, parent);
 			switch (ivalue->data)
 			{
-				case INE_L1_MD:
-					myinequotedata.ProcIneL1MdData(ivalue->index);
 				case SHFE_L1_MD:
-					myquotedata.ProcShfeL1MdData(ivalue->index);
+					myquotedata.ProcL1MdData(ivalue->index);
 					break;
-				// 解决原油(SC)因序号与上期其它品种的序号是独立的，从而造成数据问题。
-				// 解决方法：将sc与其它品种行情分成2种独立行情
-				case INE_FULL_DEPTH_MD:
-					myinequotedata.ProcIneFullDepthData(ivalue->index);
+
+				case EFH_LEV2:
+					myquotedata.ProcEfhLev2Data(ivalue->index);
 					break;
-				case SHFE_FULL_DEPTH_MD:
-					myquotedata.ProcShfeFullDepthData(ivalue->index);
-					break;
+
 				case DCE_YAO_DATA:
 					ProcDceYaoData(ivalue->index);
 					break;
+
 				case ZCE_YAO_DATA:
 					ProcZceYaoData(ivalue->index);
 					break;
+
 				case TUNN_RPT:
 					ProcTunnRpt(ivalue->index);
 					break;
+
 				default:
 					clog_warning("[%s] [start] unexpected index: %d", 
 								module_name_, 
@@ -267,8 +259,8 @@ void UniConsumer::Stop()
 {
 	if(running_)
 	{
-		shfeL1MDProducer_->End();
-		shfeFullDepthMDProducer_->End();
+		l1MDProducer_->End();
+		efhLev2Producer_->End();
 		dceQuote_->End();
 		zceQuote_->End();
 		tunn_rpt_producer_->End();

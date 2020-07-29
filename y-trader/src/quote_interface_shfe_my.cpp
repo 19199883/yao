@@ -1,5 +1,6 @@
 ﻿#include <thread>         // std::thread
 #include "quote_interface_shfe_my.h"
+#include "yao_utils.h"
 
 MYQuoteData::MYQuoteData(EfhLev2Producer *efhLev2_producer, L1MDProducer *l1_md_producer)
 	: efhLev2Producer_(efhLev2_producer),
@@ -9,7 +10,7 @@ MYQuoteData::MYQuoteData(EfhLev2Producer *efhLev2_producer, L1MDProducer *l1_md_
 	l1_md_last_index_ = L1MD_NPOS;
 
 #ifdef PERSISTENCE_ENABLED 
-    p_shfe_lev2_data_save_ = new QuoteDataSave<CThostFtdcDepthMarketDataField>("shfe_lev2_data", SHFE_LEV2_DATA_QUOTE_TYPE);
+    p_shfe_lev2_data_save_ = new QuoteDataSave<YaoQuote>( "y-shfequote", YAO_QUOTE_TYPE);
 #endif
 
 }
@@ -99,6 +100,7 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 		if(NULL != my_data)
 		{	
 			CopyLev1ToLev2(my_data, efh_data);
+			YaoQuoteHelper::Convert(&yaoquote_, my_data);
 
 			// TODO: log
 			char buffer[5120];
@@ -106,12 +108,12 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 			//			module_name_,
 			//			ShfeLev2Formater::Format(*my_data,buffer));
 
-			if (lev2_data_handler_ != NULL) { lev2_data_handler_(my_data); }
+			if (lev2_data_handler_ != NULL) { lev2_data_handler_(&yaoquote_); }
 
 #ifdef PERSISTENCE_ENABLED 
 			timeval t;
 			gettimeofday(&t, NULL);
-			p_shfe_lev2_data_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, my_data);
+			p_shfe_lev2_data_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &yaoquote_);
 #endif
 		}
 		else
@@ -121,11 +123,12 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 			strcpy(my_data.InstrumentID, efh_data->m_symbol);
 
 			CopyLev1ToLev2(&my_data, efh_data);
+			YaoQuoteHelper::Convert(&yaoquote_, &my_data);
 
 #ifdef PERSISTENCE_ENABLED 
 			timeval t;
 			gettimeofday(&t, NULL);
-			p_shfe_lev2_data_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &my_data);
+			p_shfe_lev2_data_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &yaoquote_);
 
 			// TODO: log
 			char buffer[5120];
@@ -138,7 +141,7 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 	}
 }
 
-void MYQuoteData::SetQuoteDataHandler(std::function<void(CThostFtdcDepthMarketDataField*)> quote_handler)
+void MYQuoteData::SetQuoteDataHandler(std::function<void(YaoQuote*)> quote_handler)
 {
 	clog_warning("[%s] SetQuoteDataHandler invoked.", module_name_);
 	lev2_data_handler_ = quote_handler;

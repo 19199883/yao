@@ -16,7 +16,7 @@
  * 如下宏根据情况进行定义
 */
 // 行情持久化开关
-//#define PERSISTENCE_ENABLED
+#define PERSISTENCE_ENABLED
 //#define LATENCY_MEASURE
 
 // 一档行情的选择
@@ -47,6 +47,11 @@
 // 满足一天足够的下单量，以空间换时间
 #define RPT_BUFFER_SIZE 15000
 
+#ifdef PERSISTENCE_ENABLED 
+	#define MAX_CONTRACT_COUNT 2048
+#else
+	#define MAX_CONTRACT_COUNT 1024
+#endif
 
 #ifdef PERSISTENCE_ENABLED 
 	#define MAX_DOMINANT_CONTRACT_COUNT 5120
@@ -89,8 +94,7 @@ class Log
 	enum HybridData {
 		DCE_YAO_DATA = 0, 
 		ZCE_YAO_DATA,
-		SHFE_FULL_DEPTH_MD,
-		INE_FULL_DEPTH_MD,
+		EFH_LEV2,
 		SHFE_L1_MD,
 		INE_L1_MD,
 		ZCE_L1_MD,

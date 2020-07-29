@@ -13,8 +13,8 @@
 #include "uni_consumer.h"
 #include "pos_calcu.h"
 #include "ctp_data_formater.h"
-#include "shfe_fulldepthmd_producer.h"
-#include "shfe_l1md_producer.h"
+#include "efh_lev2_producer.h"
+#include "l1md_producer.h"
 #include "dce_md_receiver.h"
 #include "zce_md_receiver.h"
 
@@ -22,8 +22,8 @@
 #define  QUEUE_SIZE  4096
 
 UniConsumer *uniConsumer = NULL;
-ShfeFullDepthMDProducer *shfe_full_producer = NULL;
-ShfeL1MDProducer *shfe_l1_md_producer = NULL; 
+EfhLev2Producer* efhLev2Producer = NULL;
+L1MDProducer* l1MDProducer = NULL; 
 TunnRptProducer *tunnRptProducer = NULL;
 DceQuote *dceQuote = NULL;
 ZceQuote *zceQuote = NULL;
@@ -43,7 +43,7 @@ int main(/*int argc, const char **argv*/)
 	sigaction(SIGUSR2, &SIGINT_act, NULL);
 
 	// clog setting		   CLOG_LEVEL_WARNING
-	clog_set_minimum_level(CLOG_LEVEL_WARNING);
+	clog_set_minimum_level(CLOG_LEVEL_INFO);
 	FILE *fp;/*文件指针*/
 	fp=fopen("./x-trader.log","w+");
 
@@ -72,7 +72,7 @@ int main(/*int argc, const char **argv*/)
 	clog_warning("PERSISTENCE_ENABLEDon off"); 
 #endif
 	// version
-	clog_warning("version:ytrader_2020-06-22_r"); 
+	clog_warning("version:ytrader_2020-07-29_r"); 
 	
 	struct vrt_queue  *queue;
 	int64_t  result;
@@ -83,8 +83,8 @@ int main(/*int argc, const char **argv*/)
 
 	dceQuote = new DceQuote(queue);
 	zceQuote = new ZceQuote(queue);
-	shfe_full_producer = new ShfeFullDepthMDProducer(queue);
-	shfe_l1_md_producer = new ShfeL1MDProducer(queue); 
+	efhLev2Producer  = new EfhLev2Producer(queue);
+	l1MDProducer  = new L1MDProducer(queue); 
 	tunnRptProducer = new TunnRptProducer(queue);
 
 #ifdef PERSISTENCE_ENABLED 
@@ -97,8 +97,8 @@ int main(/*int argc, const char **argv*/)
 #endif
 
 	uniConsumer = new UniConsumer (queue, 
-				shfe_l1_md_producer ,
-				shfe_full_producer, 
+				l1MDProducer,
+				efhLev2Producer, 
 				dceQuote,
 				zceQuote,
 				tunnRptProducer);

@@ -16,8 +16,8 @@
 #include "loadlibraryproxy.h"
 #include "compliance.h"
 #include "quote_datatype_dce_level2.h"
-#include "shfe_fulldepthmd_producer.h"
-#include "shfe_l1md_producer.h"
+#include "efh_lev2_producer.h"
+#include "l1md_producer.h"
 #include "dce_md_receiver.h"
 #include "zce_md_receiver.h"
 
@@ -41,8 +41,8 @@ class UniConsumer
 {
 	public:
 		UniConsumer(struct vrt_queue *queue, 
-					ShfeL1MDProducer* shfeL1MDProducer, 
-					ShfeFullDepthMDProducer* shfeFullDepthMDProducer,
+					L1MDProducer* l1MDProducer, 
+					EfhLev2Producer* efhLev2Producer,
 					DceQuote *dceQuote,
 					ZceQuote *zceQuote,
 					TunnRptProducer *tunn_rpt_producer);
@@ -94,8 +94,8 @@ class UniConsumer
 
 
 		QuoteDataSave<YaoQuote> *p_yao_md_save_;
-		ShfeL1MDProducer *shfeL1MDProducer_; 
-		ShfeFullDepthMDProducer *shfeFullDepthMDProducer_;
+		L1MDProducer *l1MDProducer_; 
+		EfhLev2Producer  *efhLev2Producer_;
 		DceQuote *dceQuote_;
 		ZceQuote *zceQuote_;
 
