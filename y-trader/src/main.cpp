@@ -17,6 +17,7 @@
 #include "l1md_producer.h"
 #include "dce_md_receiver.h"
 #include "zce_md_receiver.h"
+#include "ctp_data_formater.h"
 
 /* Note that the parameter for queue size is a power of 2. */
 #define  QUEUE_SIZE  4096
@@ -43,7 +44,7 @@ int main(/*int argc, const char **argv*/)
 	sigaction(SIGUSR2, &SIGINT_act, NULL);
 
 	// clog setting		   CLOG_LEVEL_WARNING
-	clog_set_minimum_level(CLOG_LEVEL_INFO);
+	clog_set_minimum_level(CLOG_LEVEL_WARNING);
 	FILE *fp;/*文件指针*/
 	fp=fopen("./x-trader.log","w+");
 
@@ -112,8 +113,8 @@ int main(/*int argc, const char **argv*/)
 	vrt_queue_free(queue);
 
 	delete tunnRptProducer; 
-	delete shfe_full_producer, 
-	delete shfe_l1_md_producer ,
+	delete efhLev2Producer, 
+	delete l1MDProducer,
 	delete dceQuote;
 	delete zceQuote;
 	delete uniConsumer;

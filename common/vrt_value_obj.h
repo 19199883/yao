@@ -47,11 +47,6 @@
 // 满足一天足够的下单量，以空间换时间
 #define RPT_BUFFER_SIZE 15000
 
-#ifdef PERSISTENCE_ENABLED 
-	#define MAX_CONTRACT_COUNT 2048
-#else
-	#define MAX_CONTRACT_COUNT 1024
-#endif
 
 #ifdef PERSISTENCE_ENABLED 
 	#define MAX_DOMINANT_CONTRACT_COUNT 5120

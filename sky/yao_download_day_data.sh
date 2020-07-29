@@ -109,13 +109,13 @@ cd tick-data
 # rm -r ${SHFE_TICK_DATA_DIR}
 mkdir -p ${SHFE_TICK_DATA_DIR}
 
-SHFE_TICK_DATA="/home/u910019/market-data/shfe-lev2/day/backup/shfe_lev2_data_day_`date +%y%m%d`.tar.gz"
-SHFE_TICK_DATA_GZ="shfe_lev2_data_day_`date +%y%m%d`.tar.gz"
+SHFE_TICK_DATA="/home/u910019/yao/market-data/day/backup/y-shfequote_`date +%y%m%d`.tar.gz"
+SHFE_TICK_DATA_GZ="y-shfequote_`date +%y%m%d`.tar.gz"
 scp  -P 44163  "u910019@101.231.3.117:${SHFE_TICK_DATA}" ${SHFE_TICK_DATA_DIR}
 cd ${SHFE_TICK_DATA_DIR}
 if [ -s $SHFE_TICK_DATA_GZ ];then
 	tar -xvzf $SHFE_TICK_DATA_GZ
-	cp -a ./backup/shfe_lev2_data_*/*.dat ./
+	cp -a ./backup/y-shfequote_*/*.dat ./
 	rm $SHFE_TICK_DATA_GZ
 	rm -r ./backup
 	rm -v *.csv

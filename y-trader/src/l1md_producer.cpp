@@ -5,6 +5,7 @@
 #include "quote_cmn_utility.h"
 #include <tinyxml.h>
 #include <tinystr.h>
+#include "ctp_data_formater.h"
 
 using namespace std::placeholders;
 using namespace std;
@@ -81,7 +82,7 @@ void L1MDProducer::ParseConfig()
 		strcpy(config_.yield, disruptor_node->Attribute("yield"));
 	} else { clog_error("[%s] x-shmd.config error: Disruptor node missing.", module_name_); }
 
-    TiXmlElement *l1md_node = RootElement->FirstChildElement("L1Md");
+    TiXmlElement *l1md_node = RootElement->FirstChildElement("ShfeL1Md");
 	if (l1md_node != NULL){
 		strcpy(config_.efh_sf_eth, l1md_node->Attribute("efh_sf_eth"));
 
@@ -107,7 +108,7 @@ void L1MDProducer::ParseConfig()
 		clog_warning("[%s] is_multicast:%d ", module_name_,is_multicast_); 
 
 	} else{
-		clog_error("[%s] x-shmd.config error: L1Md node missing.", module_name_); 
+		clog_error("[%s] x-shmd.config error: ShfeL1Md node missing.", module_name_); 
 	}
 	
 	// contracts file
@@ -294,7 +295,7 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *data)
 	vrt_producer_claim(producer_, &vvalue);
 	ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
 	ivalue->index = Push(*data);
-	ivalue->data = L1_MD;
+	ivalue->data = SHFE_L1_MD;
 	vrt_producer_publish(producer_);
 }
 

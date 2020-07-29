@@ -1,6 +1,7 @@
 ﻿#include <thread>         // std::thread
 #include "quote_interface_shfe_my.h"
 #include "yao_utils.h"
+#include "ctp_data_formater.h"
 
 MYQuoteData::MYQuoteData(EfhLev2Producer *efhLev2_producer, L1MDProducer *l1_md_producer)
 	: efhLev2Producer_(efhLev2_producer),

@@ -124,7 +124,7 @@ class L1MDProducer : public CThostFtdcMdSpi
 		 * check whether the given contract is dominant.
 		 */
 		bool IsDominant(const char *contract);
-		char dominant_contracts_[MAX_CONTRACT_COUNT][10];
+		char dominant_contracts_[MAX_DOMINANT_CONTRACT_COUNT][10];
 		int  contract_count_;
 
 		/*

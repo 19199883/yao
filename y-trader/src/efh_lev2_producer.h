@@ -258,7 +258,7 @@ class EfhLev2Producer
 		int InitMDApi();
 
 		int32_t dominant_contract_count_;
-		char dominant_contracts_[MAX_CONTRACT_COUNT][10];
+		char dominant_contracts_[MAX_DOMINANT_CONTRACT_COUNT][10];
 
 		/*
 		 *disruptor相关
