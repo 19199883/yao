@@ -104,12 +104,12 @@ void ZceQuote::RevData()
 	udp_fd_ = udp_fd; 
     if (udp_fd < 0) 
 	{
-        clog_error("[%s] MY_SHFE_MD - CreateUdpFD failed.",module_name_);
+        clog_error("[%s] MY_ZCE_MD - CreateUdpFD failed.",module_name_);
         return;
     }
 	else
 	{
-        clog_warning("[%s] MY_SHFE_MD - CreateUdpFD succeeded.",module_name_);
+        clog_warning("[%s] MY_ZCE_MD - CreateUdpFD succeeded.",module_name_);
 	}
 
     char buf[2048];
@@ -128,9 +128,9 @@ void ZceQuote::RevData()
 		{
 			YaoQuote *quote = (YaoQuote*)buf;
 
-		//	clog_info("[%s] rev ZceYaoData:%s", 
-		//			module_name_,
-		//			YaoQuote::ToString(quote).c_str());
+	//		clog_info("[%s] rev ZceYaoData:%s", 
+	//				module_name_,
+	//				YaoQuote::ToString(quote).c_str());
 
 			struct vrt_value  *vvalue;
 			struct vrt_hybrid_value  *ivalue;

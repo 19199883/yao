@@ -73,6 +73,13 @@ int DceQuote::InitMDApi()
 					config_.LocalIp,config_.Port);
         return -1;
     }
+	else
+	{
+        clog_error("[%s] UDP - bind succeeded: %s:%d", 
+					module_name_, 
+					config_.LocalIp,
+					config_.Port);
+	}
 
     // set nonblock flag
     //int socket_ctl_flag = fcntl(udp_client_fd, F_GETFL);
@@ -105,12 +112,12 @@ void DceQuote::RevData()
 	udp_fd_ = udp_fd; 
     if (udp_fd < 0) 
 	{
-        clog_error("[%s] MY_SHFE_MD - CreateUdpFD failed.",module_name_);
+        clog_error("[%s] MY_DCE_MD - CreateUdpFD failed.",module_name_);
         return;
     }
 	else
 	{
-        clog_warning("[%s] MY_SHFE_MD - CreateUdpFD succeeded.",module_name_);
+        clog_warning("[%s] MY_DCE_MD - CreateUdpFD succeeded.",module_name_);
 	}
 
     char buf[2048];
@@ -129,9 +136,9 @@ void DceQuote::RevData()
 		{
 			YaoQuote *quote = (YaoQuote*)buf;
 
-			//clog_info("[%s] rev DceYaoData:%s", 
-			//		module_name_,
-			//		YaoQuote::ToString(quote).c_str());
+	//		clog_info("[%s] rev DceYaoData:%s", 
+	//				module_name_,
+	//				YaoQuote::ToString(quote).c_str());
 
 			struct vrt_value  *vvalue;
 			struct vrt_hybrid_value  *ivalue;

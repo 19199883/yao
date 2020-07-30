@@ -273,9 +273,9 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *data)
 {
 	// TODO: commented for debug
 	 char buffer[5120];
-	clog_info("[%s] rev lev1 data:%s",
-				module_name_,
-				ShfeLev2Formater::Format(*data,buffer) );
+	//clog_info("[%s] rev lev1 data:%s",
+	//			module_name_,
+	//			ShfeLev2Formater::Format(*data,buffer) );
 
 	if (ended_) return;
 

@@ -164,10 +164,10 @@ int TunnRptProducer::ReqOrderInsert(CThostFtdcInputOrderField *pInputOrder)
 	}
 	else 
 	{
-		clog_info("[%s] ReqOrderInsert - ret=%d - %s", 
-					module_name_, 
-					ret, 
-					CtpDatatypeFormater::ToString(pInputOrder).c_str());
+		//clog_info("[%s] ReqOrderInsert - ret=%d - %s", 
+		//			module_name_, 
+		//			ret, 
+		//			CtpDatatypeFormater::ToString(pInputOrder).c_str());
 	}
 
 	return ret;
@@ -451,7 +451,8 @@ void TunnRptProducer::End()
 		if (NULL != api_) 
 		{
 			api_->RegisterSpi(NULL);
-			api_->Release();
+			// TODO: 执行Release会core dump
+			// api_->Release();
 			//api_ = NULL;
 			ended_ = true;		
 			clog_warning("[%s]api release.", module_name_);

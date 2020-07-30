@@ -73,7 +73,7 @@ int main(/*int argc, const char **argv*/)
 	clog_warning("PERSISTENCE_ENABLEDon off"); 
 #endif
 	// version
-	clog_warning("version:ytrader_2020-07-29_r"); 
+	clog_warning("version:ytrader_2020-07-30_r"); 
 	
 	struct vrt_queue  *queue;
 	int64_t  result;
