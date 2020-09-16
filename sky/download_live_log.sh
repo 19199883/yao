@@ -44,6 +44,7 @@ if [ $? -ne 0 ]; then
 
 	echo "交易程序重启完成。"
 
+	sleep 15
 	scp  -P 44163  "u910019@101.231.3.117:${STRATEGY_LOG}" ./
 
 fi
