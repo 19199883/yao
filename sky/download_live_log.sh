@@ -37,14 +37,17 @@ if [ $? -ne 0 ]; then
 	cat "" | mail -s "关闭交易程序并重启。。。" 3580771905@qq.com
 	cat "" | mail -s "关闭交易程序并重启。。。" 17199883@qq.com
 
-	ssh -p 44163  u910019@101.231.3.117 "sh /home/u910019/yao/trade/ytrader/start_only.sh" &
+	ssh -p 44163  u910019@101.231.3.117 "sh /home/u910019/yao/trade/ytrader/start_only.sh >/dev/null 2>&1" 
+	
 	echo "交易程序重启完成。"
 	echo "" | mail -s "交易程序重启完成。" 3580771905@qq.com
 	echo "" | mail -s "交易程序重启完成。" 17199883@qq.com
 
 	echo "交易程序重启完成。"
 
-	sleep 15
+	 sleep 15
+
+
 	scp  -P 44163  "u910019@101.231.3.117:${STRATEGY_LOG}" ./
 
 fi
