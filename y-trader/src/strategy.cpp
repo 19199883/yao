@@ -45,10 +45,14 @@ Strategy::Strategy()
 
 void Strategy::End(void)
 {
+	fflush (Log::fp);
+
 	//fclose(pfDayLogFile_);
 	clog_warning("[%s] strategy(id:%d) close log file", 
 				module_name_, 
 				this->setting_.config.st_id);
+
+	fflush (Log::fp);
 
 	if (this->pfn_destroy_ != NULL)
 	{

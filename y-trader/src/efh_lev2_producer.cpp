@@ -126,6 +126,7 @@ void EfhLev2Producer::End()
 
 		vrt_producer_eof(producer_);
 		clog_warning("[%s] End exit", module_name_);
+		fflush (Log::fp);
 	}
 	fflush (Log::fp);
 }

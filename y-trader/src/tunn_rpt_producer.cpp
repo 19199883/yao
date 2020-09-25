@@ -437,6 +437,8 @@ bool TunnRptProducer::IsFinal(TThostFtdcOrderStatusType   OrderStatus)
 
 void TunnRptProducer::End()
 {
+	fflush (Log::fp);
+
 	if(!ended_){
 		CThostFtdcUserLogoutField logoutinfo;
 		memset(&logoutinfo, 0, sizeof(logoutinfo));		 
@@ -456,9 +458,12 @@ void TunnRptProducer::End()
 			//api_ = NULL;
 			ended_ = true;		
 			clog_warning("[%s]api release.", module_name_);
+			fflush (Log::fp);
 		}
 		(vrt_producer_eof(producer_));
 		clog_warning("[%s] End exit", module_name_);
+
+		fflush (Log::fp);
 	}
 }
 

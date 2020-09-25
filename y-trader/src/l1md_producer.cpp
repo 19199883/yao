@@ -309,10 +309,12 @@ void L1MDProducer::End()
 			api_->Release();
 			api_ = NULL;
 			clog_warning("[%s] ThostFtdcMdApi stop", module_name_);
+			fflush (Log::fp);
 		}
 
 		vrt_producer_eof(producer_);
 		clog_warning("[%s] End exit", module_name_);
+		fflush (Log::fp);
 	}
 	fflush (Log::fp);
 }

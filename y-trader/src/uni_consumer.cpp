@@ -262,6 +262,8 @@ void UniConsumer::Stop()
 {
 	if(running_)
 	{
+		fflush (Log::fp);
+
 		l1MDProducer_->End();
 		efhLev2Producer_->End();
 		dceQuote_->End();
