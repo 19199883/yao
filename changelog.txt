@@ -1,3 +1,7 @@
+2020-10-09:
+1. shfe-ees-lev2: shfe level2 uses efh3.2.
+2. Add the node IneEfhLev2 in x-trader.config.
+
 2020-07-30
 release 上期行情升级到level 2行情。
 
