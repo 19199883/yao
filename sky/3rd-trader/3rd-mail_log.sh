@@ -46,7 +46,7 @@ function mail_log()
 	 IFS=$IFS.OLD
 
 	echo "find the file:${last_log}"
-	cat "${last_log}" | mail -s "strategy log" 3580771905@qq.com
+	cat "${last_log}" | mail -s "3rd-strategy log" 3580771905@qq.com
 
 }	 
 
