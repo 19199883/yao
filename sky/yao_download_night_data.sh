@@ -20,6 +20,22 @@ export LD_LIBRARY_PATH=./:/home/u910019/tools/::$LD_LIBRARY_PATH
 cd $this_dir
 scp  -P 44163  "u910019@101.231.3.117:/home/u910019/yao/trade/ytrader/trading-day.txt" ./
 
+
+TRADING_DAY="$(cat ./trading-day.txt)"
+TRADING_DAY_SECONDS=`date -d "$TRADING_DAY" +%s` 
+echo "TRADING_DAY_SECONDS=$TRADING_DAY_SECONDS"
+
+CALENDAR_DAY="$(date +%Y%m%d)"
+echo "CALENDAR_DAY=$CALENDAR_DAY"
+CALENDAR_DAY_SECONDS=`date -d "$CALENDAR_DAY" +%s` 
+echo "CALENDAR_DAY_SECONDS=$CALENDAR_DAY_SECONDS"
+
+if [[ $CALENDAR_DAY_SECONDS -gt $TRADING_DAY_SECONDS ]]; then
+	echo "$CALENDAR_DAY_SECONDS  > $TRADING_DAY_SECONDS!!!!"
+	exit
+fi
+
+
 ###########################
 # download zce market data from production server.
 #
