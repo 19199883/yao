@@ -57,7 +57,7 @@
 #define	RCV_BUF_SIZE		65535
 
 // 单个策略最大支持的合约数
-#define MAX_CONTRACT_COUNT_FOR_STRATEGY 100
+#define MAX_CONTRACT_COUNT_FOR_STRATEGY 200
 
 
 #ifdef __cplusplus
