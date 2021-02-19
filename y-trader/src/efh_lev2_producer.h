@@ -78,7 +78,7 @@ enum SOCKET_EVENT
 struct efh3_lev2
 {
 	unsigned int	m_sequence;				///<会话编号
-	char			m_exchange_id;			///<市场  0 表示中金  1表示上期
+	char			m_exchange_id;			///<市场  0 表示中金  1表示上期 2上期能源
 	char			m_channel_id;			///<通道编号
 	char			m_symbol[8];			///<合约
 	char			m_update_time_h;		///<最后更新的时间hh

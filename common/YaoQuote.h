@@ -7,8 +7,9 @@ enum YaoExchanges
 {
 	YSHFE	= 'A',
 	YCFFEX	= 'G',
-	YDCE		= 'B',
-	YCZCE	= 'C'
+	YDCE	= 'B',
+	YCZCE	= 'C',
+	YINE	= 'N'
 };
 
 enum FeedTypes

@@ -35,7 +35,7 @@ class YaoQuoteHelper
 	{
 		dest->feed_type = FeedTypes::ShfeLevel2;
 		strcpy(dest->symbol, source->InstrumentID);		/*合约编码*/
-		dest->exchange = YaoExchanges::YSHFE;
+		dest->exchange = source->ExchangeID[0];
 		dest->int_time = GetIntTime(source->UpdateTime, source-> UpdateMillisec);
 		dest->pre_close_px =		InvalidToZeroD(source->PreClosePrice);	/*前收盘价格*/
 		dest->pre_settle_px =	InvalidToZeroD(source->PreSettlementPrice);	/*前结算价格*/

@@ -553,6 +553,7 @@ void* EfhLev2Producer::on_socket_server_event_thread_Ine()
 			line = shfemarketdata_buffer_ + next_index;
 			memcpy(line, &rev_buffer, sizeof(efh3_lev2 ));
 
+			((efh3_lev2*)line)->m_exchange_id = 2;
 			on_receive_quote((efh3_lev2*)line, next_index);
 		}	
 

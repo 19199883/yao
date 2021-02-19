@@ -136,9 +136,9 @@ void DceQuote::RevData()
 		{
 			YaoQuote *quote = (YaoQuote*)buf;
 
-	//		clog_info("[%s] rev DceYaoData:%s", 
-	//				module_name_,
-	//				YaoQuote::ToString(quote).c_str());
+			clog_info("[%s] rev DceYaoData:%s", 
+					module_name_,
+					YaoQuote::ToString(quote).c_str());
 
 			struct vrt_value  *vvalue;
 			struct vrt_hybrid_value  *ivalue;

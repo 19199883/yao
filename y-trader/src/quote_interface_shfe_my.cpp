@@ -41,7 +41,17 @@ void MYQuoteData::CopyLev1ToLev2(CThostFtdcDepthMarketDataField* my_data, efh3_l
 		my_data->PreSettlementPrice = InvalidToZeroD(my_data->PreSettlementPrice);			
 		//my_data->PreDelta =			  InvalidToZeroD(my_data->PreDelta);
 		//my_data->CurrDelta =		  InvalidToZeroD(my_data->CurrDelta);
+
 		// the below is from sfh_lev2
+		if(2 ==  efh_data->m_exchange_id)
+		{
+			my_data->ExchangeID[0] = YaoExchanges::YINE;
+		}
+		else
+		{
+			my_data->ExchangeID[0] = YaoExchanges::YSHFE;
+		}
+
 		my_data->LastPrice =	InvalidToZeroD(efh_data->m_last_px);															
 		my_data->Volume =					   efh_data->m_last_share;
 		my_data->Turnover =     InvalidToZeroD(efh_data->m_turnover);				
@@ -110,6 +120,10 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 			YaoQuoteHelper::Convert(&yaoquote_, my_data);
 
 			// TODO: log
+			clog_info("[%s] rev ShfeYaoData:%s", 
+					module_name_,
+					YaoQuote::ToString(&yaoquote_).c_str());
+
 			char buffer[5120];
 	//		clog_info("[%s] send data:%s", 
 	//					module_name_,
