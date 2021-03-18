@@ -89,6 +89,7 @@ bool IsEmptyString(char *str);
 bool IsDominantImp(char *contract, char buffer[][10], int32_t buffer_size);
 
 /////////////////////the following is for zc3///////////////////
+
 /*
 * check whether the given contract is dominant.
 * contract:SR1802, 要判断是否是主力合约的合约
@@ -98,6 +99,10 @@ bool IsDominantImpZce(const char* contract,
 			char buffer[][10], 
 			int32_t buffer_size);
 
+/*
+ * commciodity_no: SM
+ * contract_no: 108
+ * */
 bool IsDominantImpZce(const char*commciodity_no, 
 			const char* contract_no, 
 			char buffer[][10], 
@@ -112,10 +117,18 @@ bool IsDominantImpZce(const char*commciodity_no,
 bool IsEqualSize3Zce(const char *contract, const char*commidity_no, const char* contract_no);
 
 /*
+ * 判断commidity_no和contract_no代表的合约是否与contract指定的完整合约相等，如：
+ * contract:SR1801
+ * commidity_no:SR
+ * contract_no:801
+ */
+bool IsEqualSize4Zce(const char *contract, const char*commidity_no, const char* contract_no);
+
+/*
  * 判断contract_size3是否与contract_size4相等，如：
  * contract_size3:SR801
  * contract_size4:SR1801
  */
-bool IsEqualZce(const char *contract_size3, const char* contract_size4);
+bool IsEqualContractSize3Size4Zce(const char *contract_size3, const char* contract_size4);
 
 char* get_curtime(char buffer[],int size);
