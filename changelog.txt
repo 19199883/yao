@@ -1,3 +1,19 @@
+2021-03-18
+ce quote:行情恢复到旧版本的行情格式（之前要升级，后来升级后，延续了旧的格式）
+金瑞目前同时运行新旧2个版本：
+1. 新版本
+instrument: SA2106, 
+	updateTime: 21:00:02,
+	updateMS: 250
+
+2. 旧版本
+	instrument: CF2105, 
+	updateTime:	10:41:13 
+	updateMS：132020
+
+	我们当前采用旧版本
+
+
 2020-10-09:
 1. shfe-ees-lev2: shfe level2 uses efh3.2.
 2. Add the node IneEfhLev2 in x-trader.config.
