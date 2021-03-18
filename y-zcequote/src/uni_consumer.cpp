@@ -168,9 +168,9 @@ void UniConsumer::ProcYaoQuote(YaoQuote* md)
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
-	//clog_info("[%s] send YaoQuote: %s", 
-	//			module_name_,
-	//			YaoQuote::ToString(md).c_str());
+	clog_info("[%s] send YaoQuote: %s", 
+				module_name_,
+				YaoQuote::ToString(md).c_str());
 
 	memcpy(send_buf_, md, sizeof(YaoQuote));
 	int result = sendto(local_sev_socket_, 
