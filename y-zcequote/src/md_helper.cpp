@@ -5,7 +5,7 @@
 #include <thread>         // std::thread
 #include "md_helper.h"
 
-MdHelper::MdHelper(L2MDProducer *l2_md_producer, TapMDProducer *l1_md_producer) 
+MdHelper::MdHelper(L2MDProducer *l2_md_producer, Lev1Producer *l1_md_producer) 
 	 :  l2_md_producer_(l2_md_producer), 
 		l1_md_producer_(l1_md_producer), 
 		module_name_("MdHelper")
@@ -16,9 +16,8 @@ MdHelper::MdHelper(L2MDProducer *l2_md_producer, TapMDProducer *l1_md_producer)
 
 	for(int i = 0; i < MAX_DOMINANT_CONTRACT_COUNT; i++)
 	{
-		TapAPIQuoteWhole &tmp = md_buffer_[i];
-		strcpy(tmp.Contract.Commodity.CommodityNo, "");
-		strcpy(tmp.Contract.ContractNo1, "");
+		CThostFtdcDepthMarketDataField &tmp = md_buffer_[i];
+		strcpy(tmp.InstrumentID, "");
 	}
 
 
@@ -38,7 +37,7 @@ MdHelper::~MdHelper()
 
 void MdHelper::ProcL2Data(int32_t index)
 {
-	TapAPIQuoteWhole* l1_md = NULL;
+	CThostFtdcDepthMarketDataField* l1_md = NULL;
 
 	StdQuote5* md = l2_md_producer_->GetData(index);
 	// discard option
@@ -55,12 +54,11 @@ void MdHelper::ProcL2Data(int32_t index)
 	l1_md =  GetData(md->instrument); // md->instrument, e.g. AP2110
 	if(NULL != l1_md)
 	{
-		clog_info("[test] [%s] ProcL2Data L1 contract:%s%s, time:%s, turnover:%f", 
+		clog_info("[test] [%s] ProcL2Data L1 contract:%s, time:%s, turnover:%f", 
 					module_name_, 
-					l1_md->Contract.Commodity.CommodityNo, 
-					l1_md->Contract.ContractNo1, 
-					l1_md->DateTimeStamp, 
-					l1_md->QTotalTurnover);
+					l1_md->InstrumentID, 
+					l1_md->UpdateTime, 
+					l1_md->Turnover);
 
 		Convert(*md, l1_md, target_data_);
 		if (mymd_handler_ != NULL) mymd_handler_(&target_data_);
@@ -103,18 +101,18 @@ int MdHelper::GetIntTime(const char *timestr)
 
 }
 
-// 看TapAPIQuoteWhole合约组成
+// 看CThostFtdcDepthMarketDataField合约组成
 // 看StdQuote5合约组成
 // 看YaoQuote合约组成
 /*
  *
- * TapAPIQuoteWhole.DateTimeStamp: 2019-11-07 22:32:35.000
+ * CThostFtdcDepthMarketDataField.DateTimeStamp: 2019-11-07 22:32:35.000
  *	StdQuote5.updateTime:22:32:35; StdQuote5.updateMS:80804(不是毫秒，而是一个累加值)
  *  StdQuote5.instrument:SR2001
  *
  */
 void MdHelper::Convert(const StdQuote5 &other, 
-			TapAPIQuoteWhole *tap_data, 
+			CThostFtdcDepthMarketDataField *lev1Data, 
 			YaoQuote &data)
 {
 	data.feed_type = FeedTypes::CzceLevel2;
@@ -152,22 +150,21 @@ void MdHelper::Convert(const StdQuote5 &other,
 	data.total_buy_ordsize = (int)other.buyv;	/*委买总量*/
 	data.total_sell_ordsize = (int)other.sellv;	/*委卖总量*/
 
-	if(tap_data != NULL)
+	if(lev1Data != NULL)
 	{ // contents from level1 
-		strcpy(data.symbol, tap_data->Contract.Commodity.CommodityNo);		/*合约编码*/
-		strcpy(data.symbol + 2, tap_data->Contract.ContractNo1);		/*合约编码*/
-		data.pre_close_px = InvalidToZeroD(tap_data->QPreClosingPrice);	/*前收盘价格*/
-		data.pre_settle_px = InvalidToZeroD(tap_data->QPreSettlePrice);	/*前结算价格*/
-		data.pre_open_interest = (int)tap_data->QPrePositionQty;		/*previous days's positions */
-		data.open_interest = (int)tap_data->QPositionQty;	/*持仓量*/
-		data.open_px = InvalidToZeroD(tap_data->QOpeningPrice);	/*开盘价*/
-		data.high_px = InvalidToZeroD(tap_data->QHighPrice);	    /*最高价*/
-		data.low_px = InvalidToZeroD(tap_data->QLowPrice);	        /*最低价*/
-		data.avg_px = InvalidToZeroD(tap_data->QAveragePrice);	/*均价*/
-		data.upper_limit_px = InvalidToZeroD(tap_data->QLimitUpPrice);	/*涨停板*/
-		data.lower_limit_px = InvalidToZeroD(tap_data->QLimitDownPrice);	/*跌停板*/
-		data.close_px = InvalidToZeroD(tap_data->QClosingPrice);	    /*收盘价*/
-		data.settle_px = InvalidToZeroD(tap_data->QSettlePrice);	/*结算价*/
+		strcpy(data.symbol, lev1Data->InstrumentID);		/*合约编码*/
+		data.pre_close_px = InvalidToZeroD(lev1Data->PreClosePrice);	/*前收盘价格*/
+		data.pre_settle_px = InvalidToZeroD(lev1Data->PreSettlementPrice);	/*前结算价格*/
+		data.pre_open_interest = InvalidToZeroD(lev1Data->PreOpenInterest);		/*previous days's positions */
+		data.open_interest = InvalidToZeroD(lev1Data->OpenInterest);	/*持仓量*/
+		data.open_px = InvalidToZeroD(lev1Data->OpenPrice);	/*开盘价*/
+		data.high_px = InvalidToZeroD(lev1Data->HighestPrice);	    /*最高价*/
+		data.low_px = InvalidToZeroD(lev1Data->LowestPrice);	        /*最低价*/
+		data.avg_px = InvalidToZeroD(lev1Data->AveragePrice);	/*均价*/
+		data.upper_limit_px = InvalidToZeroD(lev1Data->UpperLimitPrice);	/*涨停板*/
+		data.lower_limit_px = InvalidToZeroD(lev1Data->LowerLimitPrice);	/*跌停板*/
+		data.close_px = InvalidToZeroD(lev1Data->ClosePrice);	    /*收盘价*/
+		data.settle_px = InvalidToZeroD(lev1Data->SettlementPrice);	/*结算价*/
 		
 		// data.implied_bid_size // yao 不需要
 		//data.implied_ask_size  // yao 不需要
@@ -183,61 +180,53 @@ void MdHelper::SetQuoteDataHandler(std::function<void(YaoQuote*)> quote_handler)
 
 void MdHelper::ProcL1MdData(int32_t index)
 {
-	TapAPIQuoteWhole *new_l1_md =  l1_md_producer_->GetData(index);
+	CThostFtdcDepthMarketDataField *new_l1_md = l1_md_producer_->GetData(index);
 
-	TapAPIQuoteWhole *old_l1_md = NULL;
+	CThostFtdcDepthMarketDataField *old_l1_md = NULL;
 	for(int i = 0; i < MAX_DOMINANT_CONTRACT_COUNT; i++)
 	{
-		TapAPIQuoteWhole &tmp = md_buffer_[i];
-		if(strcmp(tmp.Contract.ContractNo1, "") == 0)
+		CThostFtdcDepthMarketDataField *tmp = &md_buffer_[i];
+		if(IsEmptyString(tmp->InstrumentID))
 		{ // 空字符串表示已到了缓存中第一个未使用的缓存项
-			old_l1_md = &tmp; 
+			old_l1_md = tmp; 
 			break;
 		}
 
-		if(strcmp(new_l1_md->Contract.Commodity.CommodityNo, 
-						tmp.Contract.Commodity.CommodityNo) == 0 && 
-					strcmp(new_l1_md->Contract.ContractNo1, 
-						tmp.Contract.ContractNo1) == 0)
-		{ // contract: e.g. SR1801
-			old_l1_md = &tmp; 
+		if( strcmp(new_l1_md->InstrumentID, tmp->InstrumentID) == 0)
+		{ // TODO: see contract value
+			old_l1_md = tmp; 
 			break;
 		}
 	}
 
 	*old_l1_md = *new_l1_md;
 
-		clog_info("[%s] ProcL1MdData invoked. contract:%s%s", 
+		clog_info("[%s] ProcL1MdData invoked. contract:%s", 
 					module_name_, 
-					new_l1_md->Contract.ContractNo1,
-					new_l1_md->Contract.Commodity.CommodityNo);
+					new_l1_md->InstrumentID);
 }
 
-/*
- *  contract: e.g. AP2110
- */
-TapAPIQuoteWhole* MdHelper::GetData(const char *contract)
-{
-	TapAPIQuoteWhole* data = NULL;
 
+/*
+ *  contract: e.g. SR1801
+ */
+CThostFtdcDepthMarketDataField* MdHelper::GetData(const char *contract)
+{
+	CThostFtdcDepthMarketDataField* data = NULL;
 	for(int i = 0; i < MAX_DOMINANT_CONTRACT_COUNT; i++)
 	{
-		TapAPIQuoteWhole &tmp = md_buffer_[i];
-		if(strcmp(tmp.Contract.ContractNo1, "") == 0)
+		CThostFtdcDepthMarketDataField *tmp = &md_buffer_[i];
+		if(IsEmptyString(tmp->InstrumentID))
 		{ // 空字符串表示已到了缓存中第一个未使用的缓存项
 			break;
 		}
 
-		// contract: e.g. SR1801
-		if(IsEqualSize4Zce(contract, 
-						tmp.Contract.Commodity.CommodityNo, 
-						tmp.Contract.ContractNo1))
-		{ 
-			data = &tmp; 
+		if(IsSize3EqualSize4(tmp->InstrumentID, contract))
+		{ // contract: e.g. SR1801
+			data = tmp; 
 			break;
 		}
 	}
 
 	return data;
 }
-

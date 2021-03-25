@@ -8,7 +8,7 @@
 #include <string>
 #include <functional>   // std::bind
 #include "l2md_producer.h"
-#include "tap_md_producer.h"
+#include "lev1_producer.h"
 #include "vrt_value_obj.h"
 #include "quote_cmn_utility.h"
 #include "quote_datatype_czce_level2.h"
@@ -21,7 +21,7 @@ class MdHelper
 {
 	public:
 
-		MdHelper(L2MDProducer* l2_md_producer, TapMDProducer *l1_md_producer);
+		MdHelper(L2MDProducer* l2_md_producer, Lev1Producer *l1_md_producer);
 		~MdHelper();
 
 		void SetQuoteDataHandler(std::function<void(YaoQuote*)> quote_handler);
@@ -33,24 +33,24 @@ class MdHelper
 		MdHelper operator=(const MdHelper & other);
 	
 		void Convert(const StdQuote5 &other,
-					TapAPIQuoteWhole *tap_data, 
+					CThostFtdcDepthMarketDataField *tap_data, 
 					YaoQuote &data);
 		YaoQuote target_data_;
 	
 		int GetIntTime(const char *updateTime);
 
 	    L2MDProducer* l2_md_producer_;
-		TapMDProducer * l1_md_producer_;
+		Lev1Producer * l1_md_producer_;
 		/*
 		 * contract: 要获取行情的合约, SR1801
 		 * 获取指定合约最新的一档行情。
 		 * contract: e.g. SR1801
 		 */
-		TapAPIQuoteWhole* GetData(const char *contract);
+		CThostFtdcDepthMarketDataField* GetData(const char *contract);
 		/*
 		 * 存储一档最新行情，每个合约一个存储位置
 		 */
-		TapAPIQuoteWhole md_buffer_[MAX_DOMINANT_CONTRACT_COUNT] ;
+		CThostFtdcDepthMarketDataField md_buffer_[MAX_DOMINANT_CONTRACT_COUNT] ;
 	
 	private:
 		const char *module_name_;  

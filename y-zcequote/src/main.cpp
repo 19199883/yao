@@ -8,14 +8,14 @@
 #include <signal.h>     /* signal */
 #include "vrt_value_obj.h"
 #include "l2md_producer.h"
-#include "tap_md_producer.h"
+#include "lev1_producer.h"
 #include "uni_consumer.h"
 
 /* Note that the parameter for queue size is a power of 2. */
 #define  QUEUE_SIZE  4096
 UniConsumer *uniConsumer = NULL;
 L2MDProducer *l2_md_producer = NULL;
-TapMDProducer *l1_md_producer = NULL; 
+Lev1Producer *l1_md_producer = NULL; 
 
 static void
 SIG_handler(int s)
@@ -66,7 +66,7 @@ int main(/*int argc, const char **argv*/)
 
 	rip_check(queue = vrt_queue_new("x-trader queue", vrt_hybrid_value_type(), QUEUE_SIZE));
 	l2_md_producer = new L2MDProducer(queue);
-	l1_md_producer = new TapMDProducer(queue);
+	l1_md_producer = new Lev1Producer(queue);
 	uniConsumer = new UniConsumer (queue, l1_md_producer, l2_md_producer);
 	uniConsumer->Start();
 

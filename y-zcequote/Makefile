@@ -6,9 +6,10 @@ TOP:=..
 DIST_DIR:=$(TOP)/y-zcequote/dist
 INCPATH:=-I$(TOP)/3rd/esunny/include -I$(TOP)/3rd/tinyxml/include \
 		 -I$(TOP)/3rd/utils/include -I$(TOP)/3rd/zce_md/include \
-		 -I$(TOP)/3rd/yao/include 
+		 -I$(TOP)/3rd/yao/include -I$(TOP)/3rd/ctp/include
 LIBPATH:=-L$(TOP)/3rd/esunny/lib -L$(TOP)/3rd/tinyxml/lib \
-		 -L$(TOP)/3rd/utils/lib -L$(TOP)/3rd/zce_md/lib
+		 -L$(TOP)/3rd/utils/lib -L$(TOP)/3rd/zce_md/lib \
+		 -L$(TOP)/3rd/ctp/lib
 CPPFLAGS:=-std=c++11 $(INCPATH)
 CFLAGS:=
 LDFLAGS:= 
@@ -16,7 +17,7 @@ OBJPATH:=./obj
 BINPATH:=./bin
 LIBS:=-lpthread -lTapQuoteAPI -lTapTradeAPI  -ltinyxml -lutils -ldl \
 	  -lbowsprit -lcheck -lclogger -lcork -lvrt -luuid -lboost_filesystem \
-	  -lboost_system
+	  -lboost_system -lthostmduserapi_se
 DEPS:=.depends
 OUT:=y-zcequote
 PACKAGE_NAME:=$(OUT)

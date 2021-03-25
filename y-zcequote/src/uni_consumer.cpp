@@ -13,7 +13,7 @@ using namespace std::placeholders;
 using namespace std::chrono;
 
 UniConsumer::UniConsumer(struct vrt_queue  *queue, 
-			TapMDProducer *l1md_producer, 
+			Lev1Producer *l1md_producer, 
 			L2MDProducer *l2md_producer)
 :	 module_name_("uni_consumer"),
 	running_(true), 
@@ -114,6 +114,8 @@ void UniConsumer::Start()
 	MdHelper myquotedata(l2_md_producer_, l1_md_producer_);
 	auto f_md = std::bind(&UniConsumer::ProcYaoQuote, this,_1);
 	myquotedata.SetQuoteDataHandler(f_md);
+
+	l1_md_producer_->Start();
 
 	int rc = 0;
 	struct vrt_value  *vvalue;

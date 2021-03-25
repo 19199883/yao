@@ -9,7 +9,7 @@
 #include <list>
 #include <unordered_map>
 #include "vrt_value_obj.h"
-#include "tap_md_producer.h"
+#include "lev1_producer.h"
 #include "l2md_producer.h"
 #include <tinyxml.h>
 #include <tinystr.h>
@@ -33,7 +33,7 @@ class UniConsumer
 {
 	public:
 		UniConsumer(struct vrt_queue  *queue, 
-					TapMDProducer *l1md_producer, 
+					Lev1Producer *l1md_producer, 
 					L2MDProducer *l2md_producer);
 		~UniConsumer();
 
@@ -49,7 +49,7 @@ class UniConsumer
 		const char* module_name_;  
 		struct vrt_consumer *consumer_;
 		L2MDProducer *l2_md_producer_;
-		TapMDProducer *l1_md_producer_;
+		Lev1Producer *l1_md_producer_;
 		void ParseConfig();
 
 		// business logic
