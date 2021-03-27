@@ -134,7 +134,7 @@ int L2MDProducer::InitMDApi()
 	getsockopt(udp_client_fd, SOL_SOCKET, SO_RCVBUF, &opt_val, &opt_len);
 	clog_warning("[%s] get default SO_RCVBUF option: %d.", module_name_, opt_val);
 
-    int rcvbufsize = RCV_BUF_SIZE;
+    int rcvbufsize = UDP_RCV_BUF_SIZE;
     int ret = setsockopt(udp_client_fd,
 				SOL_SOCKET,
 				SO_RCVBUF,

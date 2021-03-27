@@ -83,7 +83,7 @@ void UniConsumer::InitMarketDataServer()
 					config_.MarketDataReceiverPort); 
 	}
 
-    int sndbufsize = 5120;
+    int sndbufsize =  UDP_RCV_BUF_SIZE;
     int ret = setsockopt(local_sev_socket_, 
 				SOL_SOCKET, 
 				SO_SNDBUF , 
