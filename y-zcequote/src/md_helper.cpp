@@ -40,11 +40,11 @@ void MdHelper::ProcL2Data(int32_t index)
 	CThostFtdcDepthMarketDataField* l1_md = NULL;
 
 	StdQuote5* md = l2_md_producer_->GetData(index);
-	// discard option
-	if(strlen(md->instrument) > 6)
-	{
-		return;
-	}
+
+#ifdef PERSISTENCE_ENABLED 
+	// 用于记录接收多少行情，看哪里有数据丢失
+	clog_warning("l2p");
+#endif
 
 	clog_info("[test] ProcL2Data StdQuote5 contract:%s, idx:%d, turnover:%f", 
 				md->instrument,

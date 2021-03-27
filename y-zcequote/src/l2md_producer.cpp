@@ -196,6 +196,11 @@ void L2MDProducer::RevData()
 			continue;
 		}
 
+#ifdef PERSISTENCE_ENABLED 
+		// 用于记录接收多少行情，看哪里有数据丢失
+		clog_warning("l2r");
+#endif
+
 		// 看StdQuote5合约组成: AP2110
 		bool dominant = IsDominant(md->instrument);
 
