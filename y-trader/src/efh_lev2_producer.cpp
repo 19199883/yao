@@ -210,7 +210,7 @@ bool EfhLev2Producer::sock_init()
 		getsockopt(m_sock, SOL_SOCKET, SO_RCVBUF, &opt_val, &opt_len);
 		clog_warning("[%s] get default SO_RCVBUF option: %d.", module_name_, opt_val);
 
-		int receive_buf_size  = EFH_RCV_BUF_SIZE;	
+		int receive_buf_size  = UDP_RCV_BUF_SIZE;	
 		if (setsockopt(m_sock, 
 						SOL_SOCKET, 
 						SO_RCVBUF, 
@@ -418,7 +418,7 @@ bool EfhLev2Producer::sock_init_Ine()
 		getsockopt(m_sock_Ine, SOL_SOCKET, SO_RCVBUF, &opt_val, &opt_len);
 		clog_warning("[%s] Ine get default SO_RCVBUF option: %d.", module_name_, opt_val);
 
-		int receive_buf_size  = EFH_RCV_BUF_SIZE;	
+		int receive_buf_size  = UDP_RCV_BUF_SIZE;	
 		if (setsockopt(m_sock_Ine, 
 						SOL_SOCKET, 
 						SO_RCVBUF, 

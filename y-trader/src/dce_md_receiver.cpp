@@ -92,7 +92,7 @@ int DceQuote::InitMDApi()
     //    clog_error("UDP - set socket control flag with nonblock failed.");
     //}
 
-    int rcvbufsize = 1 * 1024 * 1024;
+    int rcvbufsize = UDP_RCV_BUF_SIZE;
     int ret = setsockopt(udp_client_fd, 
 				SOL_SOCKET, 
 				SO_RCVBUF, 
