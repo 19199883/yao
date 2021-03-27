@@ -345,6 +345,8 @@ void Lev1Producer::InitMDApi()
 	api_->RegisterFront(addr);
     api_->Init();
 	clog_warning("[%s] CTP - RegisterFront, addr: %s", module_name_, addr);
+
+	fflush (Log::fp);
 }
 
 void Lev1Producer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *data)

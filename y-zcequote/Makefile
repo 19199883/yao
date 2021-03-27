@@ -1,7 +1,7 @@
 # Makefile 
 
 CC:=g++
-DEBUG:=n
+DEBUG:=y
 TOP:=..
 DIST_DIR:=$(TOP)/y-zcequote/dist
 INCPATH:=-I$(TOP)/3rd/esunny/include -I$(TOP)/3rd/tinyxml/include \
@@ -15,7 +15,7 @@ CFLAGS:=
 LDFLAGS:= 
 OBJPATH:=./obj
 BINPATH:=./bin
-LIBS:=-lpthread -lTapQuoteAPI -lTapTradeAPI  -ltinyxml -lutils -ldl \
+LIBS:=-lpthread -ltinyxml -lutils -ldl \
 	  -lbowsprit -lcheck -lclogger -lcork -lvrt -luuid -lboost_filesystem \
 	  -lboost_system -lthostmduserapi_se
 DEPS:=.depends

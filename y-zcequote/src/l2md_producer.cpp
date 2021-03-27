@@ -157,6 +157,8 @@ int L2MDProducer::InitMDApi()
         clog_error("[%s] UDP - set SO_RCVBUF failed.",module_name_);
     }
 
+	fflush (Log::fp);
+
     return udp_client_fd;
 }
 
@@ -171,6 +173,8 @@ void L2MDProducer::RevData()
         return;
     }
 	clog_warning("[%s] InitMDApi succeeded.",module_name_);
+
+	fflush (Log::fp);
 
     sockaddr_in src_addr;
     unsigned int addr_len = sizeof(sockaddr_in);
