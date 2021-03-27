@@ -14,7 +14,7 @@
 #include <tinystr.h>
 #include <fstream>
 #include "ctp_data_formater.h"
-#include "DataCollect.h"
+//#include "DataCollect.h"
 #include "quote_cmn_utility.h"
 #include "vrt_value_obj.h"
 
