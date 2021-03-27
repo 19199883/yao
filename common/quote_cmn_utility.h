@@ -72,6 +72,8 @@ IPAndPortNum ParseIPAndPortNum(const std::string &addr_cfg);
 typedef std::pair<std::string, std::string> IPAndPortStr;
 IPAndPortStr ParseIPAndPortStr(const std::string &addr_cfg);
 
+char* get_curtime(char buffer[],int size);
+
 /*
  * 从文件file中读取主力合约，并存储到buffer中。
  * 假设主力合约最多MAX_DOMINANT_CONTRACT_COUNT 个。
@@ -86,49 +88,33 @@ bool IsEqualContract(char *contract1, char* contract2);
 
 bool IsEmptyString(char *str);
 
-bool IsDominantImp(char *contract, char buffer[][10], int32_t buffer_size);
 
 /////////////////////the following is for zc3///////////////////
 
 /*
 * check whether the given contract is dominant.
-* contract:SR1802, 要判断是否是主力合约的合约
-* buffer: dominant contract list
+* contract:SR802, 要判断是否是主力合约的合约
+* buffer: dominant contract list, contract: SR802
 */
-bool IsDominantImpZce(const char* contract, 
+bool IsDominantSize3Imp(const char* contract, 
 			char buffer[][10], 
-			int32_t buffer_size);
+		int32_t buffer_size);
 
 /*
- * commciodity_no: SM
- * contract_no: 108
- * */
-bool IsDominantImpZce(const char*commciodity_no, 
-			const char* contract_no, 
+* check whether the given contract is dominant.
+* contract:SR1802, 要判断是否是主力合约的合约
+* buffer: dominant contract list, contract: SR802
+*/
+bool IsDominantSize4Imp(const char* contract, 
 			char buffer[][10], 
-			int32_t buffer_size);
+		int32_t buffer_size);
 
 /*
- * 判断commidity_no和contract_no代表的合约是否与contract指定的完整合约相等，如：
- * contract:SR801
- * commidity_no:SR
- * contract_no:801
- */
-bool IsEqualSize3Zce(const char *contract, const char*commidity_no, const char* contract_no);
+ *  * 判断contract_size3是否与contract_size4相等，如：
+ *   * contract_size3:SR801
+ *    * contract_size4:SR1801
+ *     */
+bool IsSize3EqualSize4(const char *contract_size3, 
+			const char* contract_size4);
 
-/*
- * 判断commidity_no和contract_no代表的合约是否与contract指定的完整合约相等，如：
- * contract:SR1801
- * commidity_no:SR
- * contract_no:801
- */
-bool IsEqualSize4Zce(const char *contract, const char*commidity_no, const char* contract_no);
 
-/*
- * 判断contract_size3是否与contract_size4相等，如：
- * contract_size3:SR801
- * contract_size4:SR1801
- */
-bool IsEqualContractSize3Size4Zce(const char *contract_size3, const char* contract_size4);
-
-char* get_curtime(char buffer[],int size);

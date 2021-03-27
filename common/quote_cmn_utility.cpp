@@ -42,6 +42,20 @@ IPAndPortStr ParseIPAndPortStr(const std::string &addr_cfg)
     return std::make_pair(addr_ip, addr_port);
 }
 
+
+char* get_curtime(char buffer[],int size)
+{
+	time_t rawtime;
+	struct tm * timeinfo;
+
+	time (&rawtime);
+	timeinfo = localtime (&rawtime);
+
+	strftime (buffer,size,"%H:%M:%S",timeinfo);
+
+	return buffer;
+}
+
 int32_t LoadDominantContracts(string file, char buffer[][10])
 {
 	int32_t count = 0;
@@ -73,6 +87,15 @@ int32_t LoadDominantContracts(string file, char buffer[][10])
 	return count;
 }
 
+bool IsEmptyString(char *str)
+{
+	if(0 == str[0]){
+		return true;
+	}else{
+		return false;
+	}
+}
+
 bool IsEqualContract(char *contract1, char* contract2)
 {
 	if (strcmp(contract1, contract2) == 0)
@@ -83,46 +106,21 @@ bool IsEqualContract(char *contract1, char* contract2)
 	}
 }
 
-bool IsEmptyString(char *str)
-{
-	if(0 == str[0]){
-		return true;
-	}else{
-		return false;
-	}
-}
-
-
-bool IsDominantImp(char *contract, char buffer[][10], int32_t buffer_size)
-{
-	bool is_dominant = false;
-
-	for(int i=0; i<buffer_size; i++)
-	{
-		if(buffer[i][0]==0) break; // hit bottom
-
-		if(IsEqualContract(buffer[i], contract))
-		{
-			is_dominant = true;
-			break;
-		}
-	}
-
-	return is_dominant;
-}
-
-
 /////////////////////the following is for zce/////////////
 
-bool IsDominantImpZce(char *contract, char buffer[][10], int32_t buffer_size)
+/*
+ *contract: SR801
+ *buffer[0].contract:SR801
+ *
+ */
+bool IsDominantSize3Imp(const char* contract, char buffer[][10], 
+	int32_t buffer_size)
 {
 	bool is_dominant = false;
 
-	for(int i=0; i<buffer_size; i++)
+	for(int i = 0; i < buffer_size; i++)
 	{
-		if(buffer[i][0]==0) break; // hit bottom
-
-		if(IsEqualContractSize3Size4Zce(buffer[i], contract))
+		if(strcmp(buffer[i], contract) == 0)
 		{
 			is_dominant = true;
 			break;
@@ -133,16 +131,19 @@ bool IsDominantImpZce(char *contract, char buffer[][10], int32_t buffer_size)
 }
 
 
-bool IsDominantImpZce(const char*commciodity_no, // e.g. SM
-			const char* contract_no, // e.g. 108
-			char buffer[][10], 
-			int32_t buffer_size)
+/*
+ *contract: SR1801
+ *buffer[0].contract:SR801
+ *
+ */
+bool IsDominantSize4Imp(const char* contract, char buffer[][10], 
+	int32_t buffer_size)
 {
 	bool is_dominant = false;
 
-	for(int i=0; i<buffer_size; i++)
+	for(int i = 0; i < buffer_size; i++)
 	{
-		if(IsEqualSize3Zce(buffer[i], commciodity_no, contract_no))
+		if(IsSize3EqualSize4(buffer[i], contract))
 		{
 			is_dominant = true;
 			break;
@@ -152,39 +153,9 @@ bool IsDominantImpZce(const char*commciodity_no, // e.g. SM
 	return is_dominant;
 }
 
-// contract:e.g. SR801
-// commodity_no: SR
-// contract_no: 801
-bool IsEqualSize3Zce(const char *contract, const char*commodity_no, const char* contract_no)
-{
-	if(strncmp(contract, commodity_no, 2) == 0 && 
-				strncmp(contract+2, contract_no, 3) == 0)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
 
-
-// contract:e.g. SR1801
-bool IsEqualSize4Zce(const char *contract, const char*commodity_no, const char* contract_no)
-{
-	if(strncmp(contract, commodity_no, 2) == 0 && 
-				strncmp(contract+3, contract_no, 3) == 0)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
-
-
-bool IsEqualContractSize3Size4Zce(const char *contract_size3, const char* contract_size4)
+bool IsSize3EqualSize4(const char *contract_size3, 
+			const char* contract_size4)
 {
 	// contract:e.g. SR1801
 	if(strncmp(contract_size3, contract_size4, 2) == 0 && 
@@ -197,15 +168,4 @@ bool IsEqualContractSize3Size4Zce(const char *contract_size3, const char* contra
 		return false;
 	}
 }
-char* get_curtime(char buffer[],int size)
-{
-	time_t rawtime;
-	struct tm * timeinfo;
 
-	time (&rawtime);
-	timeinfo = localtime (&rawtime);
-
-	strftime (buffer,size,"%H:%M:%S",timeinfo);
-
-	return buffer;
-}
