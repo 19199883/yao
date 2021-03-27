@@ -95,6 +95,7 @@ L2MDProducer::~L2MDProducer()
 {
 }
 
+// done
 int L2MDProducer::InitMDApi()
 {
     // init udp socket
@@ -110,29 +111,33 @@ int L2MDProducer::InitMDApi()
     servaddr.sin_addr.s_addr = inet_addr(config_.ip);
     servaddr.sin_port = htons(config_.port);
 	clog_warning("[%s] UDP - bind:%s:%d",module_name_,config_.ip,config_.port);
-    if (bind(udp_client_fd, (sockaddr *) &servaddr, sizeof(servaddr)) != 0)
-	{
-        clog_error("[%s] UDP - bind failed:%s:%d",
-					module_name_,
-					config_.ip,
-					config_.port);
+    if (bind(udp_client_fd, (sockaddr *) &servaddr, sizeof(servaddr)) != 0){
+        clog_error("[%s] UDP - bind failed:%s:%d",module_name_,config_.ip,config_.port);
         return -1;
     }
 
-#ifdef MD_UDP_NOBLOCK
+#ifdef PERSISTENCE_ENABLED 
+#else
     // set nonblock flag
-//    int socket_ctl_flag = fcntl(udp_client_fd, F_GETFL);
-//    if (socket_ctl_flag < 0){
-//        MY_LOG_WARN("UDP - get socket control flag failed.");
-//    }
-//    if (fcntl(udp_client_fd, F_SETFL, socket_ctl_flag | O_NONBLOCK) < 0){
-//        MY_LOG_WARN("UDP - set socket control flag with nonblock failed.");
-//    }
+    int socket_ctl_flag = fcntl(udp_client_fd, F_GETFL);
+    if (socket_ctl_flag < 0){
+        clog_warning("UDP - get socket control flag failed.");
+    }
+    if (fcntl(udp_client_fd, F_SETFL, socket_ctl_flag | O_NONBLOCK) < 0){
+        clog_warning("UDP - set socket control flag with nonblock failed.");
+    }
 #endif
 
-    int rcvbufsize = 5120;
+	// set RCVBUF size
+	int opt_val = 0;
+	socklen_t opt_len = sizeof(opt_val);
+	getsockopt(udp_client_fd, SOL_SOCKET, SO_RCVBUF, &opt_val, &opt_len);
+	clog_warning("[%s] get default SO_RCVBUF option: %d.", module_name_, opt_val);
+
+    int rcvbufsize = RCV_BUF_SIZE;
     int ret = setsockopt(udp_client_fd,
-				SOL_SOCKET,SO_RCVBUF, 
+				SOL_SOCKET,
+				SO_RCVBUF,
 				(const void *)&rcvbufsize,
 				sizeof(rcvbufsize));
     if (ret != 0)
@@ -140,19 +145,21 @@ int L2MDProducer::InitMDApi()
         clog_error("[%a] UDP - set SO_RCVBUF failed.",module_name_);
     }
 
+	opt_val = 0;
+	opt_len = sizeof(opt_val);
+	getsockopt(udp_client_fd, SOL_SOCKET, SO_RCVBUF, &opt_val, &opt_len);
+	clog_warning("[%s] get SO_RCVBUF option: %d.", module_name_, opt_val);
+	//----end set RCVBUF size
+
     int broadcast_on = 1;
-    ret = setsockopt(udp_client_fd, 
-				SOL_SOCKET, 
-				SO_BROADCAST, 
-				&broadcast_on, 
-				sizeof(broadcast_on));
-    if (ret != 0)
-	{
+    ret = setsockopt(udp_client_fd, SOL_SOCKET, SO_BROADCAST, &broadcast_on, sizeof(broadcast_on));
+    if (ret != 0){
         clog_error("[%s] UDP - set SO_RCVBUF failed.",module_name_);
     }
 
     return udp_client_fd;
 }
+
 
 void L2MDProducer::RevData()
 {
@@ -165,79 +172,55 @@ void L2MDProducer::RevData()
     }
 	clog_warning("[%s] InitMDApi succeeded.",module_name_);
 
-    char buf[2048];
-    int data_len = 0;
     sockaddr_in src_addr;
     unsigned int addr_len = sizeof(sockaddr_in);
+
+	int data_len  = 0;
+
+	int buffer_size = sizeof(StdQuote5);
+	StdQuote5* line = NULL;
     while (!ended_)
 	{
-        data_len = recvfrom(udp_fd, buf, 2048, 0, (sockaddr *)&src_addr, &addr_len);
-        if (data_len == -1) 
-		{
-            int error_no = errno;
-			clog_error("[%s] UDP-recvfrom failed, error_no=%d.",module_name_,error_no);
-			fflush (Log::fp);
-            if (error_no == 0 || error_no == 251 || 
-				error_no == EWOULDBLOCK) 
-			{/*251 for PARisk */ //20060224 IA64 add 0
-                continue;
-            }
-			else
-			{
-                continue;
-            }
-        }
+		int32_t next_index = Push();
+		line = md_buffer_ + next_index;
 
-		StdQuote5* md = (StdQuote5 *)(buf);
-
-		// discard option
-		if(strlen(md->instrument) > 6)
+        data_len = recvfrom(udp_fd, line, buffer_size, 0, (sockaddr *)&src_addr, &addr_len);
+		if (data_len < 0) 
 		{
 			continue;
-		}
-
+		} 
+		else if (0 == data_len)
+		{
+			continue;
+		}					
+		else
+		{
+			// discard option
+			if(strlen(line->instrument) > 6)
+			{
+				continue;
+			}
 #ifdef PERSISTENCE_ENABLED 
 		// 用于记录接收多少行情，看哪里有数据丢失
 		clog_warning("l2r");
 #endif
+			on_receive_quote(next_index);
+		}
+    } // end while (!ended_) 
+	clog_warning("[%s] RevData exit.",module_name_);
 
-		// 看StdQuote5合约组成: AP2110
-		bool dominant = IsDominant(md->instrument);
+}
 
-		clog_info("[test] StdQuote5 rev [%s]dominant:%d contract:%s, time:%s %d", 
-					module_name_, 
-					dominant, 
-					md->instrument, 
-					md->updateTime, 
-					md->updateMS);
-
-		// 抛弃非主力合约
-		if(!dominant) continue;
-#ifdef LATENCY_MEASURE
-		 static int cnt = 0;
-		 perf_ctx::insert_t0(cnt);
-		 cnt++;
-#endif
+void L2MDProducer::on_receive_quote(int32_t index)
+{
 
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;
 		vrt_producer_claim(producer_, &vvalue);
 		ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-		ivalue->index = Push(*md);
+		ivalue->index = index;
 		ivalue->data = ZCE_L2_MD;
 		vrt_producer_publish(producer_);
-
-		clog_info("[test] after push StdQuote5 [%s]dominant:%d contract:%s, time:%s %d,idx:%d", 
-					module_name_, 
-					dominant, 
-					md->instrument, 
-					md->updateTime, 
-					md->updateMS,
-					ivalue->index);
-
-    } // end while (!ended_) 
-	clog_warning("[%s] RevData exit.",module_name_);
-
 }
 
 void L2MDProducer::End()
@@ -258,18 +241,18 @@ void L2MDProducer::End()
 	fflush (Log::fp);
 }
 
-int32_t L2MDProducer::Push(const StdQuote5& md)
+int32_t L2MDProducer::Push()
 {
 	static int32_t md_cursor = L2MD_BUFFER_SIZE - 1;
 	md_cursor++;
 	if (md_cursor % L2MD_BUFFER_SIZE == 0)
 	{
 		md_cursor = 0;
-	}
-	md_buffer_[md_cursor] = md;
+	}	
 
 	return md_cursor;
 }
+
 
 StdQuote5* L2MDProducer::GetData(int32_t index)
 {

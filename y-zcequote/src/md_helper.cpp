@@ -51,6 +51,11 @@ void MdHelper::ProcL2Data(int32_t index)
 				index,
 				md->turnover);
 
+	// 看StdQuote5合约组成: AP2110
+	bool dominant = l2_md_producer_->IsDominant(md->instrument);
+	// 抛弃非主力合约
+	if(!dominant) return;
+
 	l1_md =  GetData(md->instrument); // md->instrument, e.g. AP2110
 	if(NULL != l1_md)
 	{
