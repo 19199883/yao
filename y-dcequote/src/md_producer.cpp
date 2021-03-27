@@ -203,7 +203,7 @@ int MDProducer::InitMDApi()
    // }
 
     // set buffer length
-    int rcvbufsize = 1 * 1024 * 1024;
+    int rcvbufsize = UDP_RCV_BUF_SIZE;
     int ret = setsockopt(udp_client_fd, SOL_SOCKET, SO_RCVBUF, 
 			(const void *) &rcvbufsize, sizeof(rcvbufsize));
     if (ret != 0)
