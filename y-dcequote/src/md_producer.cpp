@@ -420,14 +420,6 @@ YaoQuote* MDProducer::ProcessOrderStatData(MDOrderStatistic* newOrderStat)
 				DceQuoteFormat::ToString(newOrderStat).c_str());
 
 	YaoQuote* valid_quote = NULL;
-
-	MDOrderStatistic* orderStat = this->GetOrderStatData(newOrderStat->ContractID);
-	if(NULL == orderStat)
-	{
-		orderStat = this->GetNewOrderStatData();
-	}
-	*orderStat = *newOrderStat;
-
 	YaoQuote* quote = this->GetDepthData(newOrderStat->ContractID);
 	if(NULL == quote)
 	{
@@ -438,10 +430,10 @@ YaoQuote* MDProducer::ProcessOrderStatData(MDOrderStatistic* newOrderStat)
 	}
 	else
 	{
-		quote->total_buy_ordsize =  orderStat->TotalBuyOrderNum;	
-		quote->total_sell_ordsize = orderStat->TotalSellOrderNum;
-		quote->weighted_buy_px =  InvalidToZeroD(orderStat->WeightedAverageBuyOrderPrice);   
-		quote->weighted_sell_px = InvalidToZeroD(orderStat->WeightedAverageSellOrderPrice);
+		quote->total_buy_ordsize =  newOrderStat->TotalBuyOrderNum;	
+		quote->total_sell_ordsize = newOrderStat->TotalSellOrderNum;
+		quote->weighted_buy_px =  InvalidToZeroD(newOrderStat->WeightedAverageBuyOrderPrice);   
+		quote->weighted_sell_px = InvalidToZeroD(newOrderStat->WeightedAverageSellOrderPrice);
 
 		valid_quote = quote;
 	}
