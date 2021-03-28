@@ -31,6 +31,8 @@ class DLL_PUBLIC MYQuoteData
 		void ProcL1MdData(int32_t index);
 		void ProcEfhLev2Data(int32_t index);
 
+		void Convert(YaoQuote *dest, const CThostFtdcDepthMarketDataField* source);
+
 		QuoteDataSave<YaoQuote> *p_shfe_lev2_data_save_;
 	private:
 		// 禁止拷贝和赋值

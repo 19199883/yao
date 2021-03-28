@@ -55,14 +55,6 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 	}
 
 		
-	char pSystemInfo[344];
-	int len;
-	int rtn = CTP_GetSystemInfo(pSystemInfo, len);
-	clog_warning("[%s] CTP_GetSystemInfo:%d; systeminfo:%s", 
-				module_name_, 
-				rtn, 
-				pSystemInfo);
-
 	// create ctp object
 	char addr[2048];
 	strcpy(addr, this->config_.address.c_str());
