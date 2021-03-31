@@ -44,7 +44,7 @@ int main(/*int argc, const char **argv*/)
 	sigaction(SIGUSR2, &SIGINT_act, NULL);
 
 	// clog setting		   CLOG_LEVEL_WARNING
-	clog_set_minimum_level(CLOG_LEVEL_WARNING);
+	clog_set_minimum_level(CLOG_LEVEL_INFO);
 	FILE *fp;/*文件指针*/
 	fp=fopen("./x-trader.log","w+");
 
@@ -74,6 +74,7 @@ int main(/*int argc, const char **argv*/)
 #endif
 	// version
 	clog_warning("version:ytrader_2021-03-17"); 
+	clog_warning("version:ytrader_2021-03-28"); 
 	
 	struct vrt_queue  *queue;
 	int64_t  result;

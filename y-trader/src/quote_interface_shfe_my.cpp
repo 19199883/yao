@@ -97,9 +97,9 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 
 	// TODO: commented for debug
 	char buffer[2048];
-	//clog_info("[%s] rev efh3_lev2:%s", 
-	//			module_name_,
-	//			EfhLev2Producer::Format(*efh_data, buffer));
+//	clog_info("[%s] rev efh3_lev2:%s", 
+//				module_name_,
+//				EfhLev2Producer::Format(*efh_data, buffer));
 
 	// discard option
 	if(strlen(efh_data->m_symbol) > 6)
@@ -120,14 +120,14 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 			Convert(&yaoquote_, my_data);
 
 			// TODO: log
-			clog_info("[%s] rev ShfeYaoData:%s", 
-					module_name_,
-					YaoQuote::ToString(&yaoquote_).c_str());
+			//clog_info("[%s] rev ShfeYaoData:%s", 
+			//		module_name_,
+			//		YaoQuote::ToString(&yaoquote_).c_str());
 
 			char buffer[5120];
-	//		clog_info("[%s] send data:%s", 
-	//					module_name_,
-	//					ShfeLev2Formater::Format(*my_data,buffer));
+		//	clog_info("[%s] send data:%s", 
+		//				module_name_,
+		//				ShfeLev2Formater::Format(*my_data,buffer));
 
 			if (lev2_data_handler_ != NULL) { lev2_data_handler_(&yaoquote_); }
 

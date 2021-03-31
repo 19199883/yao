@@ -169,10 +169,6 @@ bool L1MDProducer::IsDominant(const char *contract)
 #endif
 }
 
-/////////////////
-//A使用飞马UDP行情
-/////////////////
-#ifdef FEMAS_TOPSPEED_QUOTE
 void L1MDProducer::OnFrontConnected()
 {
     clog_warning("[%s] shfe_ex(CTP): OnFrontConnected", module_name_);
@@ -189,43 +185,70 @@ void L1MDProducer::OnFrontDisconnected(int nReason)
     clog_warning("[%s] CTP - OnFrontDisconnected, nReason: %d", module_name_, nReason);
 }
 
-void L1MDProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, 
-			CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+void L1MDProducer::OnRspUserLogin(
+			CThostFtdcRspUserLoginField *pRspUserLogin, 
+			CThostFtdcRspInfoField *pRspInfo, 
+			int nRequestID, 
+			bool bIsLast)
 {
     int error_code = pRspInfo ? pRspInfo->ErrorID : 0;
-    clog_warning("[%s] CTP - OnRspUserLogin, error code: %d", module_name_,error_code);
+    clog_warning("[%s] CTP - OnRspUserLogin, error code: %d", 
+				module_name_,
+				error_code);
 
 	std::ifstream is;
 	int count = 0;
 	is.open (config_.contracts_file);
 	string contrs = "";
-	if (is) {
-		getline(is, contrs);
-		contrs += " ";
-		size_t start_pos = 0;
-		size_t end_pos = 0;
-		string contr = "";
-		while ((end_pos=contrs.find(" ",start_pos)) != string::npos){
-			contr = contrs.substr (start_pos, end_pos-start_pos);
-			pp_instruments_[count] = new char(strlen(contr.c_str())+1);
-			strcpy(pp_instruments_[count],contr.c_str());
-			clog_warning("[%s] ThostFtdcMdApi subscribe:%d, %s",module_name_, count, 
+	if (is) 
+	{
+		getline(is, contrs);				
+			
+		char *str = (char*)contrs.c_str();	  
+		 char * pch;		  
+		 pch = strtok (str, " ");
+		 while (pch != NULL)
+		  {			
+			pp_instruments_[count] = new char(strlen(pch)+1);
+			strcpy(pp_instruments_[count], pch);
+			clog_warning("[%s] ThostFtdcMdApi subscribe:%d, %s",
+						module_name_, 
+						count, 
 						pp_instruments_[count]);
-			start_pos = end_pos + 1;
-			count++;
-		}
-	}else { clog_error("[%s] ThostFtdcMdApi can't open: %s", module_name_, config_.contracts_file); }
+					    	
+		    	pch = strtok (NULL, " ");
+		    	count++;
+		  }
 
-    if (error_code == 0){
+
+	}
+	else 
+	{ 
+		clog_error("[%s] ThostFtdcMdApi can't open: %s", 
+					module_name_, 
+					config_.contracts_file); 
+	}
+
+    if (error_code == 0)
+	{
         int err = api_->SubscribeMarketData(pp_instruments_, count);
-			clog_warning("[%s] TSubscribeMarketData:%d",module_name_,err);
-    } else {
+			clog_warning("[%s] TSubscribeMarketData:%d; count:%d",
+						module_name_,
+						err,
+						count);
+    } 
+	else
+	{
         std::string err_str("null");
-        if (pRspInfo && pRspInfo->ErrorMsg[0] != '\0') {
+        if (pRspInfo && pRspInfo->ErrorMsg[0] != '\0') 
+		{
             err_str = pRspInfo->ErrorMsg;
         }
-        clog_warning("[%s] CTP-Logon fail, error code: %d; error info: %s",module_name_,
-			error_code, err_str.c_str());
+        clog_warning("[%s] CTP-Logon fail, error"
+					"code: %d; error info: %s",
+					module_name_,
+					error_code, 
+					err_str.c_str());
     }
 }
 
@@ -318,5 +341,4 @@ void L1MDProducer::End()
 	}
 	fflush (Log::fp);
 }
-#endif
 

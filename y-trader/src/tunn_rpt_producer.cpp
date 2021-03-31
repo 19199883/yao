@@ -84,6 +84,7 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 #else
 	api_->Init(); 
 #endif
+	fflush (Log::fp);
 }
 
 TunnRptProducer::~TunnRptProducer()
@@ -132,6 +133,7 @@ void TunnRptProducer::ParseConfig()
 	{
 		clog_error("[%s] x-trader.config error: Tunnel node missing.", module_name_); 
 	}
+	fflush (Log::fp);
 }
 
 int TunnRptProducer::ReqOrderInsert(CThostFtdcInputOrderField *pInputOrder)
@@ -234,6 +236,8 @@ void TunnRptProducer::OnFrontConnected()
 				module_name_, 
 				ret, 
 				CtpDatatypeFormater::ToString(&a).c_str());
+
+	fflush (Log::fp);
 }
 
 void TunnRptProducer::OnRspAuthenticate(CThostFtdcRspAuthenticateField *pRspAuthenticateField, 
@@ -254,6 +258,8 @@ void TunnRptProducer::OnRspAuthenticate(CThostFtdcRspAuthenticateField *pRspAuth
 					pRspInfo->ErrorMsg);
     }
 	this->ReqLogin();
+
+	fflush (Log::fp);
 }
 
 void TunnRptProducer::OnFrontDisconnected(int nReason)
@@ -350,6 +356,8 @@ void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
 					pRspInfo->ErrorID, 
 					pRspInfo->ErrorMsg);
     }
+
+	fflush (Log::fp);
 }
 
 void TunnRptProducer::OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm,
