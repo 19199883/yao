@@ -106,6 +106,25 @@ bool IsEqualContract(char *contract1, char* contract2)
 	}
 }
 
+bool IsDominantImp(char *contract, char buffer[][10], int32_t buffer_size)
+{
+	bool is_dominant = false;
+
+	for(int i=0; i<buffer_size; i++)
+	{
+		if(buffer[i][0]==0) break; // hit bottom
+
+		if(IsEqualContract(buffer[i], contract))
+		{
+			is_dominant = true;
+			break;
+		}
+	}
+
+	return is_dominant;
+}
+
+
 /////////////////////the following is for zce/////////////
 
 /*

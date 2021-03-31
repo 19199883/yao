@@ -88,6 +88,7 @@ bool IsEqualContract(char *contract1, char* contract2);
 
 bool IsEmptyString(char *str);
 
+bool IsDominantImp(char *contract, char buffer[][10], int32_t buffer_size);
 
 /////////////////////the following is for zc3///////////////////
 
