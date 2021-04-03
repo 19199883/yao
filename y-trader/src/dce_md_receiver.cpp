@@ -54,57 +54,6 @@ DceQuote::~DceQuote()
 #endif
 }
 
-int DceQuote::InitMDApi()
-{
-    // init udp socket
-    int udp_client_fd = socket(AF_INET, SOCK_DGRAM, 0);
-    int son = 1;
-    setsockopt(udp_client_fd, SOL_SOCKET, SO_REUSEADDR, (char *) &son, sizeof(son));
-
-    struct sockaddr_in servaddr;
-    memset(&servaddr, 0, sizeof(servaddr));
-    servaddr.sin_family = AF_INET; //IPv4协议
-    servaddr.sin_addr.s_addr = inet_addr(config_.LocalIp);
-    servaddr.sin_port = htons(config_.Port);
-    if (bind(udp_client_fd, (sockaddr *) &servaddr, sizeof(servaddr)) != 0)
-	{
-        clog_error("[%s] UDP - bind failed: %s:%d", 
-					module_name_, 
-					config_.LocalIp,config_.Port);
-        return -1;
-    }
-	else
-	{
-        clog_error("[%s] UDP - bind succeeded: %s:%d", 
-					module_name_, 
-					config_.LocalIp,
-					config_.Port);
-	}
-
-    // set nonblock flag
-    //int socket_ctl_flag = fcntl(udp_client_fd, F_GETFL);
-    //if (socket_ctl_flag < 0)
-	//{
-    //    clog_error("UDP - get socket control flag failed.");
-    //}
-    //if (fcntl(udp_client_fd, F_SETFL, socket_ctl_flag | O_NONBLOCK) < 0)
-	//{
-    //    clog_error("UDP - set socket control flag with nonblock failed.");
-    //}
-
-    int rcvbufsize = UDP_RCV_BUF_SIZE;
-    int ret = setsockopt(udp_client_fd, 
-				SOL_SOCKET, 
-				SO_RCVBUF, 
-				(const void *) &rcvbufsize, 
-				sizeof(rcvbufsize));
-    if (ret != 0)
-	{
-        clog_error("UDP - set SO_RCVBUF failed.");
-    }
-
-    return udp_client_fd;
-}
 
 void DceQuote::RevData()
 {
@@ -126,12 +75,19 @@ void DceQuote::RevData()
     unsigned int addr_len = sizeof(sockaddr_in);
     while (!ended_)
 	{
+#ifdef  DCE_UDP_SEND_DATA
         data_len = recvfrom(udp_fd, 
 					buf, 
 					sizeof(buf), 
 					0, 
 					(sockaddr *) &src_addr, 
 					&addr_len);
+#endif
+
+#ifdef  DCE_TCP_SEND_DATA
+        data_len  = recv(udp_fd_, buf, sizeof(buf), 0);
+#endif
+
         if (data_len > 0)
 		{
 			YaoQuote *quote = (YaoQuote*)buf;
@@ -195,3 +151,74 @@ YaoQuote* DceQuote::GetData(int32_t index)
 }
 
 
+#ifdef  DCE_UDP_SEND_DATA
+int DceQuote::InitMDApi()
+{
+    // init udp socket
+    int udp_client_fd = socket(AF_INET, SOCK_DGRAM, 0);
+    int son = 1;
+    setsockopt(udp_client_fd, SOL_SOCKET, SO_REUSEADDR, (char *) &son, sizeof(son));
+
+    struct sockaddr_in servaddr;
+    memset(&servaddr, 0, sizeof(servaddr));
+    servaddr.sin_family = AF_INET; //IPv4协议
+    servaddr.sin_addr.s_addr = inet_addr(config_.LocalIp);
+    servaddr.sin_port = htons(config_.Port);
+    if (bind(udp_client_fd, (sockaddr *) &servaddr, sizeof(servaddr)) != 0)
+	{
+        clog_error("[%s] UDP - bind failed: %s:%d", 
+					module_name_, 
+					config_.LocalIp,config_.Port);
+        return -1;
+    }
+	else
+	{
+        clog_error("[%s] UDP - bind succeeded: %s:%d", 
+					module_name_, 
+					config_.LocalIp,
+					config_.Port);
+	}
+
+    int rcvbufsize = UDP_RCV_BUF_SIZE;
+    int ret = setsockopt(udp_client_fd, 
+				SOL_SOCKET, 
+				SO_RCVBUF, 
+				(const void *) &rcvbufsize, 
+				sizeof(rcvbufsize));
+    if (ret != 0)
+	{
+        clog_error("UDP - set SO_RCVBUF failed.");
+    }
+
+    return udp_client_fd;
+}
+#endif
+
+#ifdef  DCE_TCP_SEND_DATA
+int DceQuote::InitMDApi()
+{
+    int client = socket(AF_INET, SOCK_STREAM, 0);
+    if (client == -1) 
+	{
+		 clog_error("[%s] accept socket error: %s(errno: %d)",
+					 module_name_,
+					 strerror(errno),
+					 errno);
+    }
+    // connect
+    struct sockaddr_in serverAddr;
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(config_.Port);
+    serverAddr.sin_addr.s_addr = inet_addr(config_.LocalIp);
+    if (connect(client, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0)
+	{
+		 clog_error("[%s] accept socket error: %s(errno: %d)",
+					 module_name_,
+					 strerror(errno),
+					 errno);
+    }
+
+	return client;
+}
+
+#endif

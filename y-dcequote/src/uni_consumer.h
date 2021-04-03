@@ -24,6 +24,8 @@
 #include <mutex>          // std::mutex, std::lock_guard
 
 
+#define MAX_CONNECT_COUNT 10
+
 struct Uniconfig
 {
 	// disruptor yield strategy
@@ -58,9 +60,17 @@ class UniConsumer
 		void ProcYaoQuote(int32_t index);
 		Uniconfig config_;
 
+		char send_buf_[5120];
+#ifdef  DCE_UDP_SEND_DATA
 		int local_sev_socket_;
 		struct sockaddr_in marketdata_rev_socket_addr_;
-		char send_buf_[5120];
+#endif		
+
+#ifdef  DCE_TCP_SEND_DATA
+		std::thread *thread_lisnten_;
+		 int  listenfd_;
+		 int connfd_[MAX_CONNECT_COUNT];
+#endif
 };
 
 #endif

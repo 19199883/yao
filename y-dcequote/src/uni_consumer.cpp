@@ -11,6 +11,14 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer)
 	running_(true), 
 	md_producer_(md_producer)
 {
+
+#ifdef  DCE_TCP_SEND_DATA
+	for(int i=0; i<MAX_CONNECT_COUNT; i++)
+	{
+		connfd_[i] = -1;
+	}
+#endif	
+
 	ParseConfig();
 	(this->consumer_ = vrt_consumer_new(module_name_, queue));
 
@@ -61,51 +69,17 @@ void UniConsumer::ParseConfig()
 	this->config_.MarketDataReceiverPort = atoi(marketDataServerNode->Attribute("port"));
 }
 
-void UniConsumer::InitMarketDataServer()
-{
-	local_sev_socket_= socket(AF_INET, SOCK_DGRAM, 0);
-	if(-1 == local_sev_socket_)
-	{
-		clog_error("[%s] MarketDataServer: create socket error, ip:%s; port:%d", 
-					module_name_,
-					config_.MarketDataReceiverIp,
-					config_.MarketDataReceiverPort); 
-	}
-	else
-	{
-		clog_error("[%s] MarketDataServer: create socket succeed, ip:%s; port:%d", 
-					module_name_,
-					config_.MarketDataReceiverIp,
-					config_.MarketDataReceiverPort); 
-	}
-
-    int sndbufsize = UDP_RCV_BUF_SIZE;
-    int ret = setsockopt(local_sev_socket_, 
-				SOL_SOCKET, 
-				SO_SNDBUF , 
-				(const void *) &sndbufsize, 
-				sizeof(sndbufsize));
-    if (ret != 0)
-	{
-        clog_error("UDP - set SO_SNDBUF failed.");
-    }
-
-	bzero(&marketdata_rev_socket_addr_, sizeof(marketdata_rev_socket_addr_));
-	marketdata_rev_socket_addr_.sin_family = AF_INET;   
-	marketdata_rev_socket_addr_.sin_addr.s_addr = inet_addr(config_.MarketDataReceiverIp); 
-	marketdata_rev_socket_addr_.sin_port = htons(config_.MarketDataReceiverPort);  //网络字节序
-}
-
-void UniConsumer::CloseMarketDataServer()
-{
-	close(local_sev_socket_);
-}
-
-
 void UniConsumer::Start()
 {
-	InitMarketDataServer();
 	running_  = true;
+
+#ifdef  DCE_UDP_SEND_DATA
+	InitMarketDataServer();
+#endif	
+
+#ifdef  DCE_TCP_SEND_DATA
+	thread_lisnten_ = new std::thread(&UniConsumer::InitMarketDataServer, this);
+#endif	
 
 	int rc = 0;
 	struct vrt_value  *vvalue;
@@ -155,6 +129,10 @@ void UniConsumer::ProcYaoQuote(int32_t index)
 				YaoQuote::ToString(md).c_str());
 
 	memcpy(send_buf_, md, sizeof(YaoQuote));
+
+ #ifdef  DCE_UDP_SEND_DATA
+	clog_info("[%s] ProcYaoQuote use UDP", module_name_);
+
 	int result = sendto(local_sev_socket_, 
 				send_buf_, 
 				sizeof(YaoQuote), 
@@ -165,5 +143,132 @@ void UniConsumer::ProcYaoQuote(int32_t index)
 	{
 		clog_error("[%s] socket sendto error.", module_name_);
 	}
+#endif
+
+#ifdef DCE_TCP_SEND_DATA
+	clog_info("[%s] ProcYaoQuote use TCP", module_name_);
+
+	for(int i=0; i<MAX_CONNECT_COUNT; i++)
+	{
+		if(-1 == connfd_[i]) break;
+		send(connfd_[i], send_buf_, sizeof(YaoQuote), 0);
+	}
+#endif
 }
 
+#ifdef  DCE_UDP_SEND_DATA
+void UniConsumer::InitMarketDataServer()
+{
+	clog_info("[%s] InitMarketDataServer use UDP", module_name_);
+
+	local_sev_socket_= socket(AF_INET, SOCK_DGRAM, 0);
+	if(-1 == local_sev_socket_)
+	{
+		clog_error("[%s] MarketDataServer: create socket error, ip:%s; port:%d", 
+					module_name_,
+					config_.MarketDataReceiverIp,
+					config_.MarketDataReceiverPort); 
+	}
+	else
+	{
+		clog_error("[%s] MarketDataServer: create socket succeed, ip:%s; port:%d", 
+					module_name_,
+					config_.MarketDataReceiverIp,
+					config_.MarketDataReceiverPort); 
+	}
+
+    int sndbufsize = UDP_RCV_BUF_SIZE;
+    int ret = setsockopt(local_sev_socket_, 
+				SOL_SOCKET, 
+				SO_SNDBUF , 
+				(const void *) &sndbufsize, 
+				sizeof(sndbufsize));
+    if (ret != 0)
+	{
+        clog_error("UDP - set SO_SNDBUF failed.");
+    }
+
+	bzero(&marketdata_rev_socket_addr_, sizeof(marketdata_rev_socket_addr_));
+	marketdata_rev_socket_addr_.sin_family = AF_INET;   
+	marketdata_rev_socket_addr_.sin_addr.s_addr = inet_addr(config_.MarketDataReceiverIp); 
+	marketdata_rev_socket_addr_.sin_port = htons(config_.MarketDataReceiverPort);  //网络字节序
+}
+
+void UniConsumer::CloseMarketDataServer()
+{
+	clog_info("[%s] CloseMarketDataServer  use UDP", module_name_);
+
+	close(local_sev_socket_);
+}
+
+#endif
+
+#ifdef  DCE_TCP_SEND_DATA
+void UniConsumer::CloseMarketDataServer()
+{
+	clog_info("[%s] CloseMarketDataServer  use TCP", module_name_);
+
+	for(int i=0; i<MAX_CONNECT_COUNT; i++)
+	{
+		if(-1 != connfd_[i])
+		{
+			 close(connfd_[i]);
+		}
+	}
+
+     close(listenfd_);
+}
+
+void UniConsumer::InitMarketDataServer()
+{
+	clog_info("[%s] InitMarketDataServer use TCP", module_name_);
+
+     struct sockaddr_in  servaddr;
+     char  buff[4096];
+     int  n;
+ 
+     if( (listenfd_ = socket(AF_INET, SOCK_STREAM, 0)) == -1 )
+	 {
+          clog_error("[%s] create socket error: %s(errno: %d)\n",
+					  module_name_,
+					  strerror(errno),
+					  errno);
+     }
+ 
+     memset(&servaddr, 0, sizeof(servaddr));
+     servaddr.sin_family = AF_INET;
+     servaddr.sin_addr.s_addr = inet_addr(config_.MarketDataReceiverIp);
+     servaddr.sin_port = htons(config_.MarketDataReceiverPort);
+ 
+     if( bind(listenfd_, (struct sockaddr*)&servaddr, sizeof(servaddr)) == -1)
+	 {
+         clog_error("[%s] bind socket error: %s(errno: %d)\n",
+					 module_name_,
+					 strerror(errno),
+					 errno);
+     }
+ 
+     if( listen(listenfd_, MAX_CONNECT_COUNT) == -1)
+	 {
+         clog_error("[%s] listen socket error: %s(errno: %d)\n",
+					 module_name_,
+					 strerror(errno),
+					 errno);
+     }
+ 
+	 int i = 0;
+     while(running_)
+	 {
+         if( (connfd_[i] = accept(listenfd_, (struct sockaddr*)NULL, NULL)) == -1)
+		 {
+             clog_error("[%s] accept socket error: %s(errno: %d)",
+						 module_name_,
+						 strerror(errno),
+						 errno);
+             continue;
+         }
+		 i++;
+     }
+}
+
+#endif
