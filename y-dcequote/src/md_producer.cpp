@@ -1,6 +1,8 @@
 #include <functional>   // std::bind
 #include <sys/types.h>
 #include <sys/time.h>
+#include <thread>         // std::this_thread::sleep_for
+#include <chrono>         // std::chrono::seconds
 #include <sys/socket.h>
 #include <unistd.h>
 #include <errno.h>
@@ -114,11 +116,6 @@ MDProducer::MDProducer(struct vrt_queue  *queue)
 	{
 		this->producer_ ->yield = vrt_yield_strategy_hybrid();
 	}
-
-	//////////////// debug start ////////////////////
-    thread_rev_ = new std::thread(&MDProducer::test, this);
-	//////////////////////debug end //////////////////
-
 
     thread_rev_ = new std::thread(&MDProducer::RevData, this);
 }
@@ -266,61 +263,6 @@ YaoQuote* MDProducer::ProcessDepthData(MDBestAndDeep* depthdata )
 	return valid_quote;
 }
 
-
-/////////////////// debug start /////////////////////////
-// TODO: test
-void MDProducer::test()
-{
-	for(int i=0; i<3000000; i++)
-	{
-			YaoQuote *quote ;
-            if (i % 2 == 0)
-			{
-				MDBestAndDeep p ;
-				strcpy(p.Contract, "a2105");
-				// discard option
-				if(strlen(p.Contract) > 6)
-				{
-					continue;
-				}
-
-				if(!(IsDominant(p.Contract))) continue; // 抛弃非主力合约
-				quote = ProcessDepthData(&p);
-            }
-			else 
-			{
-				MDOrderStatistic p;
-				strcpy(p.ContractID, "a2105");
-				// discard option
-				if(strlen(p.ContractID) > 6)
-				{
-					continue;
-				}
-
-				if(!(IsDominant(p.ContractID))) continue; // 抛弃非主力合约
-				quote = this->ProcessOrderStatData(&p);
-            }
-
-			if(NULL != quote)
-			{
-				quote->int_time = i;
-
-				struct vrt_value  *vvalue;
-				struct vrt_hybrid_value  *ivalue;
-				vrt_producer_claim(producer_, &vvalue);
-				ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-				ivalue->index = Push(*quote);
-				ivalue->data = DCE_YAO_DATA;
-				vrt_producer_publish(producer_);
-			}
-	}
-}
-
-
-
-
-////////////////////////debug end ///////////////////////
-//
 void MDProducer::RevData()
 {
 	int udp_fd = InitMDApi();
