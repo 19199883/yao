@@ -283,12 +283,26 @@ void MDProducer::RevData()
             if (type == EDataType::eMDBestAndDeep)
 			{
                 MDBestAndDeep * p = (MDBestAndDeep *) (buf + 1);
+
+				// discard option
+				if(strlen(p->Contract) > 6)
+				{
+					continue;
+				}
+
 				if(!(IsDominant(p->Contract))) continue; // 抛弃非主力合约
 				quote = ProcessDepthData(p);
             }
 			else if (type == EDataType::eMDOrderStatistic)
 			{
                 MDOrderStatistic * p = (MDOrderStatistic *) (buf + 1);
+
+				// discard option
+				if(strlen(p->ContractID) > 6)
+				{
+					continue;
+				}
+
 				if(!(IsDominant(p->ContractID))) continue; // 抛弃非主力合约
 				quote = this->ProcessOrderStatData(p);
             }
@@ -424,7 +438,7 @@ YaoQuote* MDProducer::ProcessOrderStatData(MDOrderStatistic* newOrderStat)
 	if(NULL == quote)
 	{
 		valid_quote = NULL;
-        clog_info("[%s] can not find MDBestAndDeep %s", 
+        clog_error("[%s] can not find MDBestAndDeep %s", 
 					module_name_,
 					newOrderStat->ContractID);
 	}
