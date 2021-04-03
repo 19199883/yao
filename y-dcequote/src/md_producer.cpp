@@ -115,6 +115,11 @@ MDProducer::MDProducer(struct vrt_queue  *queue)
 		this->producer_ ->yield = vrt_yield_strategy_hybrid();
 	}
 
+	//////////////// debug start ////////////////////
+    thread_rev_ = new std::thread(&MDProducer::test, this);
+	//////////////////////debug end //////////////////
+
+
     thread_rev_ = new std::thread(&MDProducer::RevData, this);
 }
 
@@ -240,9 +245,82 @@ YaoQuote* MDProducer::ProcessDepthData(MDBestAndDeep* depthdata )
 	}
 	Convert(*depthdata, *quote);
 
+	MDOrderStatistic* orderStat = this->GetOrderStatData(depthdata->Contract);
+	if(NULL == orderStat)
+	{
+		valid_quote = NULL;
+    //    clog_info("[%s] can not find MDOrderStatistic: %s", 
+	//				module_name_,
+	//				depthdata->Contract);
+	}
+	else
+	{
+		quote->total_buy_ordsize =  orderStat->TotalBuyOrderNum;	
+		quote->total_sell_ordsize = orderStat->TotalSellOrderNum;
+		quote->weighted_buy_px =  InvalidToZeroD(orderStat->WeightedAverageBuyOrderPrice);   
+		quote->weighted_sell_px = InvalidToZeroD(orderStat->WeightedAverageSellOrderPrice);
+
+		valid_quote = quote;
+	}
+
 	return valid_quote;
 }
 
+
+/////////////////// debug start /////////////////////////
+// TODO: test
+void MDProducer::test()
+{
+	for(int i=0; i<3000000; i++)
+	{
+			YaoQuote *quote ;
+            if (i % 2 == 0)
+			{
+				MDBestAndDeep p ;
+				strcpy(p.Contract, "a2105");
+				// discard option
+				if(strlen(p.Contract) > 6)
+				{
+					continue;
+				}
+
+				if(!(IsDominant(p.Contract))) continue; // 抛弃非主力合约
+				quote = ProcessDepthData(&p);
+            }
+			else 
+			{
+				MDOrderStatistic p;
+				strcpy(p.ContractID, "a2105");
+				// discard option
+				if(strlen(p.ContractID) > 6)
+				{
+					continue;
+				}
+
+				if(!(IsDominant(p.ContractID))) continue; // 抛弃非主力合约
+				quote = this->ProcessOrderStatData(&p);
+            }
+
+			if(NULL != quote)
+			{
+				quote->int_time = i;
+
+				struct vrt_value  *vvalue;
+				struct vrt_hybrid_value  *ivalue;
+				vrt_producer_claim(producer_, &vvalue);
+				ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+				ivalue->index = Push(*quote);
+				ivalue->data = DCE_YAO_DATA;
+				vrt_producer_publish(producer_);
+			}
+	}
+}
+
+
+
+
+////////////////////////debug end ///////////////////////
+//
 void MDProducer::RevData()
 {
 	int udp_fd = InitMDApi();
@@ -434,20 +512,28 @@ YaoQuote* MDProducer::ProcessOrderStatData(MDOrderStatistic* newOrderStat)
 				DceQuoteFormat::ToString(newOrderStat).c_str());
 
 	YaoQuote* valid_quote = NULL;
+
+	MDOrderStatistic* orderStat = this->GetOrderStatData(newOrderStat->ContractID);
+	if(NULL == orderStat)
+	{
+		orderStat = this->GetNewOrderStatData();
+	}
+	*orderStat = *newOrderStat;
+
 	YaoQuote* quote = this->GetDepthData(newOrderStat->ContractID);
 	if(NULL == quote)
 	{
 		valid_quote = NULL;
-        clog_error("[%s] can not find MDBestAndDeep %s", 
-					module_name_,
-					newOrderStat->ContractID);
+    //    clog_info("[%s] can not find MDBestAndDeep %s", 
+	//				module_name_,
+	//				newOrderStat->ContractID);
 	}
 	else
 	{
-		quote->total_buy_ordsize =  newOrderStat->TotalBuyOrderNum;	
-		quote->total_sell_ordsize = newOrderStat->TotalSellOrderNum;
-		quote->weighted_buy_px =  InvalidToZeroD(newOrderStat->WeightedAverageBuyOrderPrice);   
-		quote->weighted_sell_px = InvalidToZeroD(newOrderStat->WeightedAverageSellOrderPrice);
+		quote->total_buy_ordsize =  orderStat->TotalBuyOrderNum;	
+		quote->total_sell_ordsize = orderStat->TotalSellOrderNum;
+		quote->weighted_buy_px =  InvalidToZeroD(orderStat->WeightedAverageBuyOrderPrice);   
+		quote->weighted_sell_px = InvalidToZeroD(orderStat->WeightedAverageSellOrderPrice);
 
 		valid_quote = quote;
 	}
