@@ -117,11 +117,6 @@ MDProducer::MDProducer(struct vrt_queue  *queue)
 		this->producer_ ->yield = vrt_yield_strategy_hybrid();
 	}
 
-	//////////////// debug start ////////////////////
-    thread_rev_ = new std::thread(&MDProducer::test, this);
-	//////////////////////debug end //////////////////
-
-
     thread_rev_ = new std::thread(&MDProducer::RevData, this);
 }
 
@@ -267,72 +262,6 @@ YaoQuote* MDProducer::ProcessDepthData(MDBestAndDeep* depthdata )
 
 	return valid_quote;
 }
-
-
-/////////////////// debug start /////////////////////////
-// TODO: test
-void MDProducer::test()
-{
-	for(int i=0; i<30000; i++)
-	{
-			YaoQuote *quote ;
-
-			if(i % 80 == 0)
-			{
-				 std::this_thread::sleep_for (std::chrono::milliseconds(200));
-			}
-
-            if (i % 2 == 0)
-			{
-				MDBestAndDeep p ;
-				strcpy(p.Contract, "a2105");
-				// discard option
-				if(strlen(p.Contract) > 6)
-				{
-					continue;
-				}
-
-				quote = ProcessDepthData(&p);
-            }
-			else 
-			{
-				MDOrderStatistic p;
-				strcpy(p.ContractID, "a2105");
-				// discard option
-				if(strlen(p.ContractID) > 6)
-				{
-					continue;
-				}
-
-				quote = this->ProcessOrderStatData(&p);
-            }
-
-			if(NULL != quote)
-			{
-				quote->int_time = i;
-#ifdef PERSISTENCE_ENABLED 
-				timeval t;
-				gettimeofday(&t, NULL);
-				p_save_quote_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, quote);
-#endif
-				if(!(IsDominant(quote->symbol))) continue; // 抛弃非主力合约
-
-				struct vrt_value  *vvalue;
-				struct vrt_hybrid_value  *ivalue;
-				vrt_producer_claim(producer_, &vvalue);
-				ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-				ivalue->index = Push(*quote);
-				ivalue->data = DCE_YAO_DATA;
-				vrt_producer_publish(producer_);
-			}
-	}
-}
-
-
-
-
-////////////////////////debug end ///////////////////////
-//
 
 void MDProducer::RevData()
 {

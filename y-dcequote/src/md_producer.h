@@ -56,10 +56,6 @@ class MDProducer
 		 */
 		bool IsDominant(const char *contract);
 
-		////////////TODO: debug start
-		void test();
-		///////////////end debug/////////////
-
 	private:
 		int32_t Push(const YaoQuote& md);
 		/*
