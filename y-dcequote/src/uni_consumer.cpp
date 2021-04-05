@@ -150,7 +150,7 @@ void UniConsumer::ProcYaoQuote(int32_t index)
 
 	for(int i=0; i<MAX_CONNECT_COUNT; i++)
 	{
-		if(-1 == connfd_[i]) break;
+		if( connfd_[i] < 0) break;
 		send(connfd_[i], send_buf_, sizeof(YaoQuote), 0);
 	}
 #endif
@@ -188,6 +188,12 @@ void UniConsumer::InitMarketDataServer()
         clog_error("UDP - set SO_SNDBUF failed.");
     }
 
+
+	int opt_val = 0;
+	int opt_len = sizeof(opt_val);
+	getsockopt(local_sev_socket_, SOL_SOCKET, SO_RCVBUF, &opt_val, &opt_len);
+	clog_warning("[%s] get SO_RCVBUF option: %d.", module_name_, opt_val);
+
 	bzero(&marketdata_rev_socket_addr_, sizeof(marketdata_rev_socket_addr_));
 	marketdata_rev_socket_addr_.sin_family = AF_INET;   
 	marketdata_rev_socket_addr_.sin_addr.s_addr = inet_addr(config_.MarketDataReceiverIp); 
@@ -210,7 +216,7 @@ void UniConsumer::CloseMarketDataServer()
 
 	for(int i=0; i<MAX_CONNECT_COUNT; i++)
 	{
-		if(-1 != connfd_[i])
+		if(connfd_[i] >= 0)
 		{
 			 close(connfd_[i]);
 		}

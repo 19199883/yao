@@ -33,6 +33,13 @@ int main(/*int argc, const char **argv*/)
 	struct clog_handler *clog_handler = clog_stream_handler_new_fp(fp, true, "%l %m");
 	clog_handler_push_process(clog_handler);
 
+#ifdef DCE_UDP_SEND_DATA  
+	clog_warning("DCE_UDP_SEND_DATA"); 
+#endif
+#ifdef DCE_TCP_SEND_DATA
+	clog_warning("DCE_TCP_SEND_DATA"); 
+#endif
+
 #ifdef LATENCY_MEASURE
 	clog_warning("latency measure on"); 
 #else
@@ -53,7 +60,7 @@ int main(/*int argc, const char **argv*/)
 
 
 	// version
-	clog_warning("version:dce-quote_2019-11-25_r"); 
+	clog_warning("version:dce-quote_2021-04-05_r"); 
 
 	struct vrt_queue  *queue;
 	int64_t  result;
