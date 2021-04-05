@@ -1,6 +1,7 @@
 #include <thread>         
 #include <chrono>        
 #include <algorithm>    
+#include <sys/socket.h>
 #include "perfctx.h"
 #include <tinyxml.h>
 #include <tinystr.h>
@@ -190,7 +191,7 @@ void UniConsumer::InitMarketDataServer()
 
 
 	int opt_val = 0;
-	int opt_len = sizeof(opt_val);
+	socklen_t opt_len = sizeof(opt_val);
 	getsockopt(local_sev_socket_, SOL_SOCKET, SO_RCVBUF, &opt_val, &opt_len);
 	clog_warning("[%s] get SO_RCVBUF option: %d.", module_name_, opt_val);
 
