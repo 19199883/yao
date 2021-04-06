@@ -14,8 +14,8 @@
  *  网络好，可以使用UDP
  *  网络不好，使用UDP
  */
-// #define DCE_UDP_SEND_DATA
-#define DCE_TCP_SEND_DATA
+ #define DCE_UDP_SEND_DATA
+//#define DCE_TCP_SEND_DATA
 
 
 // 如果要支持INE的行情，需要定义INE_ENABLE宏
@@ -25,12 +25,12 @@
  * 如下宏根据情况进行定义
 */
 // 行情持久化开关
-#define PERSISTENCE_ENABLED
+ #define PERSISTENCE_ENABLED
 //#define LATENCY_MEASURE
 
 
 // software license
-#define SERVER_NAME  "JRdl-test3"
+#define SERVER_NAME  "zjtest1"
 
 // 合规检查开关
 #define COMPLIANCE_CHECK

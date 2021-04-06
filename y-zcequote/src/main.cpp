@@ -32,7 +32,7 @@ int main(/*int argc, const char **argv*/)
 	sigaction(SIGUSR1, &SIGINT_act, NULL);
 
 	// clog setting		   CLOG_LEVEL_WARNING
-	clog_set_minimum_level(CLOG_LEVEL_INFO);
+	clog_set_minimum_level(CLOG_LEVEL_WARNING);
 	FILE *fp;/*文件指针*/
 	fp=fopen("./x-trader.log","w+");
 
@@ -59,7 +59,7 @@ int main(/*int argc, const char **argv*/)
 	clog_warning("PERSISTENCE_ENABLEDon off"); 
 #endif
 	// version
-	clog_warning("version:y-zcequote_2019-12-19_r"); 
+	clog_warning("version:y-zcequote_2021-04-06_r"); 
 	
 	struct vrt_queue  *queue;
 	int64_t  result;

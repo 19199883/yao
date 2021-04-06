@@ -297,9 +297,12 @@ void Lev1Producer::OnRspUserLogin(
 void Lev1Producer::OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, 
 			CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-    clog_warning("[%s] CTP - OnRspSubMarketData, code: %s", 
-				module_name_, 
-				pSpecificInstrument->InstrumentID);
+	if( pSpecificInstrument != NULL)
+	{
+		clog_warning("[%s] CTP - OnRspSubMarketData, code: %s", 
+					module_name_, 
+					pSpecificInstrument->InstrumentID);
+	}
     if (bIsLast) { }
 }
 

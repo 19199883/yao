@@ -11,6 +11,8 @@
 	9. 编译行情程序：需定义PERSISTENCE_ENABLED
 	11. x-ees-ctp: 如果要支持INE的行情，需要定义INE_ENABLE宏
 	15. 如发布release版，则注释掉所有clog_info, 并确认是否存在不必要的字符段格式化语句
+	16. y-dcequote:  设置 DCE_UDP_SEND_DATA或  DCE_TCP_SEND_DATA
+	17. y-trader:  设置 DCE_UDP_SEND_DATA或  DCE_TCP_SEND_DATA
 
 
 
