@@ -415,13 +415,47 @@ def WarnChaningMonthForDeliveryDay(warnContracts):
 				usingContracts.append(row["r1"])
 	
 	for contract in usingContracts:
-		contractMonth = int(contract[-3:])
-		#logging.info("WarnChaningMonthForDeliveryDay contractMonth: {0} {1}".format(contract, contractMonth))
-		curMonth = int(date.today().strftime("%y%m")[-3:])
-		#logging.info("WarnChaningMonthForDeliveryDay curMonth:{0}".format(curMonth))
-		if contractMonth == curMonth :
-			if (30 - date.today().day) <= 7 :  # TODO: to here
-				#logging.info("WarnChaningMonthForDeliveryDay warn contract:{0}".format(contract))
+		contractMonth = int(contract[-2:])
+		curMonth = int(date.today().strftime("%y%m")[-2:])
+		logging.info("WarnChaningMonthForDeliveryDay contractMonth: {0} {1} {2}".format(contract, contractMonth,curMonth))
+		nextMonth = curMonth + 1
+		if nextMonth > 12 :
+			nextMonth = 1
+		logging.info("WarnChaningMonthForDeliveryDay curMonth:{0}".format(curMonth))
+		if contractMonth == nextMonth :
+			if (30 - date.today().day) <= 15 :  # TODO: to here
+				logging.info("WarnChaningMonthForDeliveryDay warn contract:{0}".format(contract))
+				warnContracts.append(contract)
+		
+
+######################
+# 通过遍历实盘主力合约，找到需要接近交割日提醒的合约，
+# 并存储到warnContracts
+# 
+# 假设: 假设所有月份的最后一天都是30
+#
+#######################
+def WarnChaningMonthForDeliveryDayFor2ndMc(warnContracts):
+	# 实盘主力合约
+	usingContracts = []
+	if os.path.exists(mcFile):
+		with open(mcFile) as f:
+			reader = csv.DictReader(f)		
+			for row in reader:								
+				usingContracts.append(row["r2"])
+	
+	for contract in usingContracts:
+		contractMonth = int(contract[-2:])
+		curMonth = int(date.today().strftime("%y%m")[-2:])
+		logging.info("WarnChaningMonthForDeliveryDayFor2ndMc contractMonth: {0} {1}".format(contract, contractMonth,curMonth))
+		nextMonth = curMonth + 1
+		if (nextMonth) > 12 :
+			nextMonth = 1
+
+		logging.info("WarnChaningMonthForDeliveryDayFor2ndMc curMonth:{0}".format(curMonth))
+		if contractMonth == nextMonth :
+			if (30 - date.today().day) <= 15 :  # TODO: to here
+				logging.info("WarnChaningMonthForDeliveryDay warn contract:{0}".format(contract))
 				warnContracts.append(contract)
 		
 
